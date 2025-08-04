@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import { createTRPCRouter, publicProcedure } from '../trpc'
+import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc'
 import { db } from '@/lib/db'
 
 export const memberRouter = createTRPCRouter({
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return db.member.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -25,7 +25,7 @@ export const memberRouter = createTRPCRouter({
     })
   }),
 
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       return db.member.findUnique({
@@ -49,7 +49,7 @@ export const memberRouter = createTRPCRouter({
       })
     }),
 
-  create: publicProcedure
+  create: protectedProcedure
     .input(
       z.object({
         name: z.string().min(1, 'Name is required'),
@@ -65,7 +65,7 @@ export const memberRouter = createTRPCRouter({
       })
     }),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -84,7 +84,7 @@ export const memberRouter = createTRPCRouter({
       })
     }),
 
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       return db.member.delete({
@@ -93,7 +93,7 @@ export const memberRouter = createTRPCRouter({
     }),
 
   // Get unclaimed members (members without user accounts)
-  getUnclaimed: publicProcedure.query(async () => {
+  getUnclaimed: protectedProcedure.query(async () => {
     return db.member.findMany({
       where: {
         user: null

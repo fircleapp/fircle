@@ -1,4 +1,5 @@
 import { createTRPCRouter } from './trpc'
+import { authRouter } from './routers/auth'
 import { memberRouter } from './routers/member'
 import { userRouter } from './routers/user'
 import { postRouter } from './routers/post'
@@ -6,6 +7,8 @@ import { postRouter } from './routers/post'
 import { familyMemberRouter } from './routers/familyMember'
 
 export const appRouter = createTRPCRouter({
+  // Authentication router
+  auth: authRouter,
   // New routers based on updated schema
   member: memberRouter,
   user: userRouter,
