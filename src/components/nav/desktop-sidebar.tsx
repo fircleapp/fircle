@@ -32,7 +32,7 @@ export function DesktopSidebar() {
         <span className="font-bold text-lg leading-none">F</span>
       </div>
 
-      <nav className="mt-8 flex flex-1 flex-col items-center gap-2">
+      <nav className="mt-8 flex flex-1 flex-col items-center gap-4">
         {items.map((item) => {
           const active = isActivePath(pathname, item.href);
           const Icon = item.icon;
@@ -42,16 +42,16 @@ export function DesktopSidebar() {
               key={item.href}
               asChild
               variant="ghost"
-              size="icon"
+              size="icon-lg"
               title={item.label}
               className={cn(
                 active
-                  ? "rounded-lg bg-muted text-foreground hover:bg-muted"
+                  ? "rounded-full bg-muted text-foreground hover:bg-muted"
                   : "text-muted-foreground"
               )}
             >
               <Link href={item.href} aria-label={item.label}>
-                <Icon className="size-5" />
+                <Icon className="size-6" />
               </Link>
             </Button>
           );
