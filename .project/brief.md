@@ -1,23 +1,32 @@
-# Fircle — Project Brief
+# Fircle - Project Brief
 
 ## Overview
 
-**Fircle** is a family-focused social network — a private, intimate space built specifically for families to connect, share, and preserve memories together.
+Fircle is a family-focused social network: a private space designed for families to connect, share updates, and preserve memories together.
 
-## Problem & Goal
+## Problem and Goal
 
-General social networks are built for the public, not for families. Fircle addresses this by providing a tailored social experience where family members can share moments without the noise, privacy concerns, or distractions of mainstream platforms.
+Mainstream social platforms are public-first and not built around real family structure and privacy needs. Fircle solves this by offering a family-first network with controlled access, identity-aware sharing, and memory-centered features.
 
-**Goal:** Build an MVP of a family social network with core sharing and memory features, designed for self-hosted family instances.
+Goal for the near term: ship a functional MVP quickly.
 
 ## Target Audience
 
-Families — parents, siblings, extended relatives — who want a private, dedicated space to stay connected and document their lives together.
+Families (parents, siblings, children, and extended relatives) who want a dedicated private space to stay connected.
 
-## Core Features (MVP)
+## Product Direction
 
-- **Multi-tenancy** — Families can host their own isolated instances of Fircle, keeping their data private and under their control.
-- **Posts with photos and videos** — Members can create posts with media attachments to share and preserve family memories.
+- Build in single-family mode first to reduce complexity and reach usable product fast.
+- Keep architecture migration-friendly so multi-tenancy can be added later without major rewrites.
+- Prioritize features that create immediate user value: invites, posting, member identity, and tagging.
+
+## Core Features for MVP
+
+- Invite-only registration for a family site (no open sign-up).
+- Family member creation without required immediate presence (unclaimed member profiles).
+- Account claiming flow so real people can claim previously created member profiles.
+- Posts with photo and video support.
+- Member tagging in photos and videos, including unclaimed members.
 
 ## Tech Stack
 
@@ -32,28 +41,34 @@ Families — parents, siblings, extended relatives — who want a private, dedic
 
 ## Scope
 
-This is an **open-source MVP**. The focus is on shipping the core multi-tenant architecture and memory-sharing features before expanding functionality.
+Open-source MVP focused on becoming functional quickly for one family instance, then expanding to multi-family hosting.
 
-## Status
+## Current Status
 
 - [x] Project scaffolded
-- [ ] Multi-tenancy setup
+- [ ] Invite-only registration
+- [ ] Family member auth and onboarding
+- [ ] Unclaimed member profile creation
+- [ ] Account claiming flow
 - [ ] Post creation with media uploads
-- [ ] Family member auth & onboarding
+- [ ] Member tagging in photos and videos
 
 ## Roadmap
 
-### Phase 1 — MVP
-- Multi-tenant architecture (isolated family instances)
-- Post creation with photo and video support
-- Basic family member auth & onboarding
+### Phase 1 - Functional MVP (single-family mode)
+- Invite-only registration
+- Family member auth and onboarding
+- Unclaimed member profiles
+- Account claiming flow
+- Post creation with photos and videos
+- Member tagging in media
 
-### Phase 2 — Identity & Access
-- **Invite-only registration** — New members can only join a family instance via an invite link or code issued by an existing member. No open sign-ups.
-- **Unclaimed member profiles** — A member can be added to the family tree/circle without requiring their presence. The profile exists (name, relation, avatar) and can be tagged in posts, but has no login access until the real person claims it.
-- **Account claiming** — An unclaimed profile can be claimed by the real person via an invite or claim link, merging the profile history with their new account.
+### Phase 2 - Memory Experience
+- Tag notifications for claimed members
+- Per-member memory timeline (all tagged photos and videos)
+- Basic moderation and content controls for family admins
 
-### Phase 3 — Tagging & Memories
-- **Member tagging in media** — Users can tag family members (including unclaimed profiles) in photos and videos within posts.
-- Tag notifications sent to claimed members when they are tagged.
-- Browsable per-member media archive (all photos/videos a member is tagged in).
+### Phase 3 - Multi-tenancy and Hosting
+- Multi-tenancy model for isolated family instances
+- Tenant-aware auth, routing, and data boundaries
+- Self-hosting and deployment guidance per family instance
