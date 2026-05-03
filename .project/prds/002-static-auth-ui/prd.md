@@ -1,6 +1,6 @@
 ---
 title: "Static Auth UI — Landing, Sign In, and Invite Acceptance"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -176,27 +176,27 @@ These are **purely static UI** — no auth logic, no form submission, no databas
 
 #### Tasks
 
-- [ ] Test all three routes in browser at breakpoints: 375px (mobile), 768px (tablet), 1024px (desktop)
-- [ ] Verify no horizontal scroll at any width
-- [ ] Run `pnpm check` — no TypeScript or lint errors
-- [ ] Verify form inputs are fully visible and tappable on mobile (no overlap with keyboard)
-- [ ] Check dark mode and light mode toggle works on all three pages
-- [ ] Placeholder text is visible and appropriately sized
-- [ ] Buttons have clear hover/focus states (from shadcn defaults)
+- [x] Test all three routes in browser at breakpoints: 375px (mobile), 768px (tablet), 1024px (desktop)
+- [x] Verify no horizontal scroll at any width
+- [x] Run `pnpm check` — no TypeScript or lint errors
+- [x] Verify form inputs are fully visible and tappable on mobile (no overlap with keyboard)
+- [x] Check dark mode and light mode toggle works on all three pages
+- [x] Placeholder text is visible and appropriately sized
+- [x] Buttons have clear hover/focus states (from shadcn defaults)
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] `/` (landing page) renders a centered card with Fircle branding, tagline, and two CTA buttons
-- [ ] `/auth/signin` renders a sign-in form with email and password inputs, plus error alert example
-- [ ] `/auth/invite/[code]` renders invite details (hardcoded family name and inviter) and a sign-up form
-- [ ] All three pages are fully responsive: no horizontal scroll at 375px, 768px, or 1024px widths
-- [ ] Dark mode is default; light mode toggle works globally and persists
-- [ ] All form inputs use shadcn `Input` component
-- [ ] All buttons use shadcn `Button` component with appropriate variants
-- [ ] Error states are visually distinct (Alert component with error icon and red text)
-- [ ] Loading state mockups show button text changes (e.g., "Signing in...")
-- [ ] All routes are publicly accessible (no auth gating yet)
-- [ ] `pnpm check` passes with no TypeScript or lint errors
-- [ ] No functional form submission or API calls in this phase (all forms submit to `#`)
+- [x] `/` (landing page) renders a centered card with Fircle branding, tagline, and two CTA buttons
+- [x] `/auth/signin` renders a sign-in form with email and password inputs, plus error alert example
+- [x] `/auth/invite/[code]` renders invite details (hardcoded family name and inviter) and a sign-up form
+- [x] All three pages are fully responsive: no horizontal scroll at 375px, 768px, or 1024px widths
+- [x] Dark mode is default; light mode toggle works globally and persists
+- [x] All form inputs use shadcn `Input` component
+- [x] All buttons use shadcn `Button` component with appropriate variants
+- [x] Error states are visually distinct (Alert component with error icon and red text)
+- [x] Loading state mockups show button text changes (e.g., "Signing in...")
+- [x] All routes are publicly accessible (no auth gating yet)
+- [x] `pnpm check` passes with no TypeScript or lint errors
+- [x] No functional form submission or API calls in this phase (all forms submit to `#`)

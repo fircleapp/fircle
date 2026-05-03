@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AlertCircle, UserRoundPlus } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -10,12 +11,9 @@ import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
-export default function InviteAcceptancePage({
-  params,
-}: {
-  params: { code: string };
-}) {
+export default function InviteAcceptancePage() {
   const [isLoading, setIsLoading] = useState(false);
+  const params = useParams<{ code: string }>();
   const searchParams = useSearchParams();
   const errorType = searchParams.get("error");
 
