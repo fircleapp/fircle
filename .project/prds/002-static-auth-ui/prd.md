@@ -8,6 +8,9 @@ references:
   - type: doc
     url: .project/prds/001-foundation-ui-app-shell-navigation/prd.md
     description: "App shell & navigation foundation"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/4
+    description: "Implementation pull request - feat: implement static auth UIs"
 ---
 
 > **Instructions for AI Agents:**
