@@ -155,16 +155,16 @@ These are **purely static UI** — no auth logic, no form submission, no databas
 
 #### Tasks
 
-- [ ] Sign In page:
+- [x] Sign In page:
   - Add conditional `Alert` component for error message (hardcoded, example: "Invalid credentials")
   - Add conditional empty/loading button states
-- [ ] Invite Acceptance page:
+- [x] Invite Acceptance page:
   - Add conditional `Alert` for expired invite (with suggested action)
   - Add conditional `Alert` for already-used invite
   - Add conditional `Alert` for email conflict
-- [ ] Landing page:
+- [x] Landing page:
   - Verify CTAs route correctly to sign in and invite pages
-- [ ] All error alerts:
+- [x] All error alerts:
   - Use shadcn `Alert` component if available, or custom styled box with `AlertCircle` icon from lucide-react
   - Red/error color from theme (e.g., `text-destructive`)
 

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { ThemeToggle } from "~/components/theme-toggle";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
@@ -73,10 +74,11 @@ export default function InviteAcceptancePage({
           <p className="text-sm text-muted-foreground">Relationship to family? (Optional)</p>
 
           {errorMessage ? (
-            <div className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              <p>{errorMessage}</p>
-            </div>
+            <Alert variant="destructive">
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Invite issue</AlertTitle>
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
           ) : null}
 
           <form action="#" className="space-y-4" onSubmit={handleSubmit}>
