@@ -124,7 +124,7 @@ These are **purely static UI** — no auth logic, no form submission, no databas
 
 #### Tasks
 
-- [ ] Create `src/app/auth/invite/[code]/page.tsx`:
+- [x] Create `src/app/auth/invite/[code]/page.tsx`:
   - Extract `code` from `params` (used for display/context only, not functional yet)
   - Centered card container
   - Invite details card (light border, gray background):
