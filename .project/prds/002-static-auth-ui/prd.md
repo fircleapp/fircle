@@ -78,7 +78,7 @@ These are **purely static UI** — no auth logic, no form submission, no databas
 
 #### Tasks
 
-- [ ] Create `src/app/page.tsx`:
+- [x] Create `src/app/page.tsx`:
   - Centered card container
   - Fircle heading (large, bold, branded) — e.g., `<h1 className="text-4xl font-bold">Fircle</h1>`
   - Tagline (gray, smaller) — e.g., "Family memories, privately shared."
@@ -88,8 +88,8 @@ These are **purely static UI** — no auth logic, no form submission, no databas
     - Secondary/Ghost: "I have an invite" (routes to `/auth/invite` or shows inline invite code input)
   - Footer link (optional): "Learn more" or placeholder for future feature info
   - Full responsive design: looks good on mobile and desktop
-- [ ] Export as a reusable component `src/app/_components/landing-page.tsx` if multiple routes will use it
-- [ ] Add Fircle branding (logo or wordmark) at the top if available, otherwise use text
+- [x] Export as a reusable component `src/app/_components/landing-page.tsx` if multiple routes will use it
+- [x] Add Fircle branding (logo or wordmark) at the top if available, otherwise use text
 
 ---
 
