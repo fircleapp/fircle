@@ -135,16 +135,16 @@ The goal is to lock down information architecture, screen flow, card design, and
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/members/new/page.tsx`.
-- [ ] Build a centered or contained form card with:
-  - [ ] heading: `Add a family member`
-  - [ ] explanatory copy clarifying this creates an unclaimed profile
-  - [ ] fields for name, relationship, optional email, optional photo URL/upload placeholder, optional short note
-  - [ ] checkbox or helper text for `They are not joining yet`
-- [ ] Use existing shadcn form primitives where available (`Input`, `Textarea`, `Select`, `Button`, etc.).
-- [ ] Add a static success state or confirmation panel after “Create member”.
-- [ ] Add a secondary link back to the members directory.
-- [ ] Add an inline helper note explaining that the person can claim the account later.
+- [x] Implement `src/app/(app)/members/new/page.tsx`.
+- [x] Build a centered or contained form card with:
+  - [x] heading: `Add a family member`
+  - [x] explanatory copy clarifying this creates an unclaimed profile
+  - [x] fields for name, relationship, optional email, optional photo URL/upload placeholder, optional short note
+  - [x] checkbox or helper text for `They are not joining yet`
+- [x] Use existing shadcn form primitives where available (`Input`, `Textarea`, `Select`, `Button`, etc.).
+- [x] Add a static success state or confirmation panel after “Create member”.
+- [x] Add a secondary link back to the members directory.
+- [x] Add an inline helper note explaining that the person can claim the account later.
 
 ---
 
