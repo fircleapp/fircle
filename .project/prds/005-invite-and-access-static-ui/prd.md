@@ -1,6 +1,6 @@
 ---
 title: "Invite and Access Static UI — Invite Management, Family Settings, and Roles"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -201,15 +201,15 @@ This is **purely static UI**. No invites are generated, no settings are persiste
 
 #### Tasks
 
-- [ ] Test all three routes at 375px, 768px, and 1024px.
-- [ ] Verify no horizontal scroll at any breakpoint.
+- [x] Test all three routes at 375px, 768px, and 1024px.
+- [x] Verify no horizontal scroll at any breakpoint.
 - [x] Confirm settings nav highlights the correct active route on each page.
 - [x] Verify invite status badges are visually distinct (color and label).
-- [ ] Confirm copy-link button works (clipboard write).
+- [x] Confirm copy-link button works (clipboard write).
 - [x] Confirm revoke inline confirmation appears and dismisses correctly (UI only).
 - [x] Confirm invite creation panel opens and shows mocked success state.
 - [x] Run `pnpm check` — no TypeScript or lint errors.
-- [ ] Verify dark mode and light mode look correct on all three pages.
+- [x] Verify dark mode and light mode look correct on all three pages.
 
 #### QA Notes
 
@@ -228,9 +228,9 @@ This is **purely static UI**. No invites are generated, no settings are persiste
 - [x] All three pages render inside the shared settings layout with a working nav.
 - [x] Settings nav active state highlights the current route.
 - [x] Invite status badges (`Pending`, `Accepted`, `Expired`, `Revoked`) are color-coded and visually distinct.
-- [ ] Copy-link button writes to clipboard.
+- [x] Copy-link button writes to clipboard.
 - [x] Revoke confirmation pattern is present and dismissible.
-- [ ] All pages are fully responsive with no horizontal scroll at 375px, 768px, or 1024px.
-- [ ] Dark mode renders correctly on all three pages.
+- [x] All pages are fully responsive with no horizontal scroll at 375px, 768px, or 1024px.
+- [x] Dark mode renders correctly on all three pages.
 - [x] `pnpm check` passes with no TypeScript or lint errors.
 - [x] No functional API calls or database writes in this phase.
