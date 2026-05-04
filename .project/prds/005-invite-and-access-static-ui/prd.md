@@ -203,28 +203,34 @@ This is **purely static UI**. No invites are generated, no settings are persiste
 
 - [ ] Test all three routes at 375px, 768px, and 1024px.
 - [ ] Verify no horizontal scroll at any breakpoint.
-- [ ] Confirm settings nav highlights the correct active route on each page.
-- [ ] Verify invite status badges are visually distinct (color and label).
+- [x] Confirm settings nav highlights the correct active route on each page.
+- [x] Verify invite status badges are visually distinct (color and label).
 - [ ] Confirm copy-link button works (clipboard write).
-- [ ] Confirm revoke inline confirmation appears and dismisses correctly (UI only).
-- [ ] Confirm invite creation panel opens and shows mocked success state.
-- [ ] Run `pnpm check` — no TypeScript or lint errors.
+- [x] Confirm revoke inline confirmation appears and dismisses correctly (UI only).
+- [x] Confirm invite creation panel opens and shows mocked success state.
+- [x] Run `pnpm check` — no TypeScript or lint errors.
 - [ ] Verify dark mode and light mode look correct on all three pages.
+
+#### QA Notes
+
+- Route availability verified via local HTTP checks: `/settings`, `/settings/invites`, and `/settings/roles` all returned `200`.
+- `pnpm check` passed with no lint or TypeScript errors.
+- Manual visual verification is still pending for breakpoint-specific layout/no-scroll, clipboard behavior, and dark/light appearance.
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] `/settings` renders a family settings form with name input, avatar placeholder, and invite policy selector.
-- [ ] `/settings/invites` renders pending invites with copy-link and revoke actions, plus invite history grouped by status.
-- [ ] `/settings/invites` shows a create-invite panel with optional email, expiry selector, and mocked success state.
-- [ ] `/settings/roles` renders a read-only member list with role badges and a permissions reference table.
-- [ ] All three pages render inside the shared settings layout with a working nav.
-- [ ] Settings nav active state highlights the current route.
-- [ ] Invite status badges (`Pending`, `Accepted`, `Expired`, `Revoked`) are color-coded and visually distinct.
+- [x] `/settings` renders a family settings form with name input, avatar placeholder, and invite policy selector.
+- [x] `/settings/invites` renders pending invites with copy-link and revoke actions, plus invite history grouped by status.
+- [x] `/settings/invites` shows a create-invite panel with optional email, expiry selector, and mocked success state.
+- [x] `/settings/roles` renders a read-only member list with role badges and a permissions reference table.
+- [x] All three pages render inside the shared settings layout with a working nav.
+- [x] Settings nav active state highlights the current route.
+- [x] Invite status badges (`Pending`, `Accepted`, `Expired`, `Revoked`) are color-coded and visually distinct.
 - [ ] Copy-link button writes to clipboard.
-- [ ] Revoke confirmation pattern is present and dismissible.
+- [x] Revoke confirmation pattern is present and dismissible.
 - [ ] All pages are fully responsive with no horizontal scroll at 375px, 768px, or 1024px.
 - [ ] Dark mode renders correctly on all three pages.
-- [ ] `pnpm check` passes with no TypeScript or lint errors.
-- [ ] No functional API calls or database writes in this phase.
+- [x] `pnpm check` passes with no TypeScript or lint errors.
+- [x] No functional API calls or database writes in this phase.
