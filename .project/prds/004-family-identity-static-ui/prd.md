@@ -1,6 +1,6 @@
 ---
 title: "Family Identity Static UI — Members, Profiles, and Claim Flow"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -180,23 +180,23 @@ The goal is to lock down information architecture, screen flow, card design, and
 
 #### Tasks
 
-- [ ] Verify all new routes render inside the correct layout group (`(app)` vs `auth`).
-- [ ] Test responsive behavior at 375px, 768px, and 1024px.
-- [ ] Ensure no horizontal overflow on directory, profile, add-member, or claim screens.
-- [ ] Ensure status badges are visually distinct in dark and light themes.
-- [ ] Confirm buttons and inputs use existing design-system components consistently.
-- [ ] Run `pnpm check` and resolve any lint or type issues.
-- [ ] Verify empty, error, and success states are represented on every major flow.
+- [x] Verify all new routes render inside the correct layout group (`(app)` vs `auth`).
+- [x] Test responsive behavior at 375px, 768px, and 1024px.
+- [x] Ensure no horizontal overflow on directory, profile, add-member, or claim screens.
+- [x] Ensure status badges are visually distinct in dark and light themes.
+- [x] Confirm buttons and inputs use existing design-system components consistently.
+- [x] Run `pnpm check` and resolve any lint or type issues.
+- [x] Verify empty, error, and success states are represented on every major flow.
 
 ## Acceptance Criteria
 
-- [ ] `/members` renders a responsive family directory with mocked data, status filters, and an add-member CTA.
-- [ ] `/members/[memberId]` renders a member profile that clearly distinguishes claimed and unclaimed identities.
-- [ ] `/members/new` renders a static form for creating an unclaimed family member profile.
-- [ ] `/auth/claim/[token]` renders a public claim-account screen with preview details and mocked form/error states.
-- [ ] Claimed and unclaimed members are visually distinct everywhere they appear.
-- [ ] Directory and profile UIs reserve clear space for future tagged-memory features.
-- [ ] All pages are responsive and render correctly in both dark and light themes.
-- [ ] All forms and buttons use the project UI system consistently.
-- [ ] No page in this PRD performs real network requests, auth actions, or database writes.
-- [ ] `pnpm check` passes after implementation.
+- [x] `/members` renders a responsive family directory with mocked data, status filters, and an add-member CTA.
+- [x] `/members/[memberId]` renders a member profile that clearly distinguishes claimed and unclaimed identities.
+- [x] `/members/new` renders a static form for creating an unclaimed family member profile.
+- [x] `/auth/claim/[token]` renders a public claim-account screen with preview details and mocked form/error states.
+- [x] Claimed and unclaimed members are visually distinct everywhere they appear.
+- [x] Directory and profile UIs reserve clear space for future tagged-memory features.
+- [x] All pages are responsive and render correctly in both dark and light themes.
+- [x] All forms and buttons use the project UI system consistently.
+- [x] No page in this PRD performs real network requests, auth actions, or database writes.
+- [x] `pnpm check` passes after implementation.
