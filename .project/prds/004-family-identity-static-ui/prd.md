@@ -85,21 +85,21 @@ The goal is to lock down information architecture, screen flow, card design, and
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/members/page.tsx`:
-  - [ ] page title and supporting copy
-  - [ ] primary CTA: `Add family member`
-  - [ ] search input mock
-  - [ ] status filter tabs/chips: `All`, `Claimed`, `Unclaimed`
-  - [ ] responsive layout with stacked cards on mobile and multi-column grid or denser list on desktop
-- [ ] Create `src/components/members/member-card.tsx`:
-  - [ ] avatar or fallback initials
-  - [ ] display name
-  - [ ] relationship label
-  - [ ] claim-status badge
-  - [ ] small metadata row (for example: `Added by Emma`, `No account yet`)
-- [ ] Create `src/components/members/member-status-badge.tsx` shared across directory and profile screens.
-- [ ] Add a mocked empty-state variant for when no members match the current filter.
-- [ ] Add a mocked “invite/claim pending” helper treatment for unclaimed profiles.
+- [x] Implement `src/app/(app)/members/page.tsx`:
+  - [x] page title and supporting copy
+  - [x] primary CTA: `Add family member`
+  - [x] search input mock
+  - [x] status filter tabs/chips: `All`, `Claimed`, `Unclaimed`
+  - [x] responsive layout with stacked cards on mobile and multi-column grid or denser list on desktop
+- [x] Create `src/components/members/member-card.tsx`:
+  - [x] avatar or fallback initials
+  - [x] display name
+  - [x] relationship label
+  - [x] claim-status badge
+  - [x] small metadata row (for example: `Added by Emma`, `No account yet`)
+- [x] Create `src/components/members/member-status-badge.tsx` shared across directory and profile screens.
+- [x] Add a mocked empty-state variant for when no members match the current filter.
+- [x] Add a mocked “invite/claim pending” helper treatment for unclaimed profiles.
 
 ---
 

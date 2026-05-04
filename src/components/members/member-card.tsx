@@ -1,0 +1,77 @@
+import Link from "next/link";
+import { Clock3 } from "lucide-react";
+
+import type { FamilyMemberSummary } from "~/lib/mocks/family-members";
+import { cn } from "~/lib/utils";
+
+import { MemberStatusBadge } from "./member-status-badge";
+
+type MemberCardProps = {
+  member: FamilyMemberSummary;
+};
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+export function MemberCard({ member }: MemberCardProps) {
+  const isUnclaimed = member.status === "unclaimed";
+  const initials = getInitials(member.name);
+
+  return (
+    <article className="rounded-3xl border bg-card p-4 shadow-sm transition hover:border-primary/30">
+      <div className="flex items-start gap-3">
+        <div
+          aria-hidden="true"
+          className={cn(
+            "grid size-12 shrink-0 place-items-center rounded-full border text-sm font-semibold text-foreground",
+            member.avatarUrl ? "bg-cover bg-center text-transparent" : "bg-muted",
+          )}
+          style={
+            member.avatarUrl
+              ? {
+                  backgroundImage: `url(${member.avatarUrl})`,
+                }
+              : undefined
+          }
+        >
+          {initials}
+        </div>
+
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="truncate font-medium text-sm sm:text-base">{member.name}</p>
+            <MemberStatusBadge status={member.status} />
+          </div>
+
+          <p className="text-xs text-muted-foreground sm:text-sm">{member.relationship}</p>
+
+          <p className="text-xs text-muted-foreground">
+            Added by {member.addedByName} · {member.addedAtLabel}
+          </p>
+
+          {isUnclaimed ? (
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
+              <Clock3 className="size-3.5" aria-hidden="true" />
+              Invite/claim pending
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-end">
+        <Link
+          href={`/members/${member.id}`}
+          className="text-sm text-muted-foreground underline-offset-4 transition hover:text-foreground hover:underline"
+        >
+          View profile
+        </Link>
+      </div>
+    </article>
+  );
+}
