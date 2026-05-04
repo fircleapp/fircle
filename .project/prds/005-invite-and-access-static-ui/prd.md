@@ -104,7 +104,7 @@ This is **purely static UI**. No invites are generated, no settings are persiste
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/settings/page.tsx`:
+- [x] Implement `src/app/(app)/settings/page.tsx`:
   - Page heading: "Family Settings"
   - Section: **Family Identity**
     - Avatar/logo upload area (static placeholder, no upload logic):
