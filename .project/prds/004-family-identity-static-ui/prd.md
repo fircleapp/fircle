@@ -1,6 +1,6 @@
 ---
 title: "Family Identity Static UI — Members, Profiles, and Claim Flow"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -60,22 +60,22 @@ The goal is to lock down information architecture, screen flow, card design, and
 
 #### Tasks
 
-- [ ] Create `src/lib/mocks/family-members.ts` with typed mock member data.
-- [ ] Add types for:
-  - [ ] `FamilyMemberStatus` (`claimed`, `unclaimed`)
-  - [ ] `FamilyRelationship`
-  - [ ] `FamilyMemberSummary`
-  - [ ] `FamilyMemberProfile`
-  - [ ] `ClaimInvitePreview`
-- [ ] Seed at least 8 mock family members with a mix of:
-  - [ ] claimed members
-  - [ ] unclaimed members
-  - [ ] different relationships
-  - [ ] optional avatars
-- [ ] Create `src/app/(app)/members/page.tsx` as the family members directory route.
-- [ ] Create `src/app/(app)/members/[memberId]/page.tsx` as the member profile route.
-- [ ] Create `src/app/(app)/members/new/page.tsx` as the add-member route.
-- [ ] Create `src/app/auth/claim/[token]/page.tsx` as the public claim-account route.
+- [x] Create `src/lib/mocks/family-members.ts` with typed mock member data.
+- [x] Add types for:
+  - [x] `FamilyMemberStatus` (`claimed`, `unclaimed`)
+  - [x] `FamilyRelationship`
+  - [x] `FamilyMemberSummary`
+  - [x] `FamilyMemberProfile`
+  - [x] `ClaimInvitePreview`
+- [x] Seed at least 8 mock family members with a mix of:
+  - [x] claimed members
+  - [x] unclaimed members
+  - [x] different relationships
+  - [x] optional avatars
+- [x] Create `src/app/(app)/members/page.tsx` as the family members directory route.
+- [x] Create `src/app/(app)/members/[memberId]/page.tsx` as the member profile route.
+- [x] Create `src/app/(app)/members/new/page.tsx` as the add-member route.
+- [x] Create `src/app/auth/claim/[token]/page.tsx` as the public claim-account route.
 
 ---
 
