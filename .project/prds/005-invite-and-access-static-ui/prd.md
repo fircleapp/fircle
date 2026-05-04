@@ -1,6 +1,6 @@
 ---
 title: "Invite and Access Static UI — Invite Management, Family Settings, and Roles"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -65,7 +65,7 @@ This is **purely static UI**. No invites are generated, no settings are persiste
 
 #### Tasks
 
-- [ ] Create `src/app/(app)/settings/layout.tsx`:
+- [x] Create `src/app/(app)/settings/layout.tsx`:
   - Renders a two-panel layout on desktop: left settings nav (~220px) + right content area.
   - On mobile: renders only the content area (nav collapses or moves to a top tab strip).
   - Settings nav items:
@@ -73,10 +73,10 @@ This is **purely static UI**. No invites are generated, no settings are persiste
     - "Invites" → `/settings/invites`
     - "Roles" → `/settings/roles`
   - Active link is highlighted using `aria-current="page"` pattern.
-- [ ] Create `src/app/(app)/settings/page.tsx` — route stub for Family Settings.
-- [ ] Create `src/app/(app)/settings/invites/page.tsx` — route stub for Invite Management.
-- [ ] Create `src/app/(app)/settings/roles/page.tsx` — route stub for Roles and Permissions.
-- [ ] Verify all three routes load inside the settings layout without errors.
+- [x] Create `src/app/(app)/settings/page.tsx` — route stub for Family Settings.
+- [x] Create `src/app/(app)/settings/invites/page.tsx` — route stub for Invite Management.
+- [x] Create `src/app/(app)/settings/roles/page.tsx` — route stub for Roles and Permissions.
+- [x] Verify all three routes load inside the settings layout without errors.
 
 ---
 
