@@ -1,6 +1,6 @@
 ---
 title: "Tagging and Memory Static UI — Media Tagging, Tagged Memories, and Notifications"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -60,23 +60,23 @@ The goal is to lock down the UX, route structure, component model, and informati
 
 #### Tasks
 
-- [ ] Create `src/lib/mocks/tagging.ts` with typed mock data for tagging editor states, tag anchors, video tag moments, and tagged memory groups.
-- [ ] Add types for:
-  - [ ] `TaggedPerson`
-  - [ ] `PhotoTagAnchor`
-  - [ ] `VideoTagMoment`
-  - [ ] `TaggedMemoryItem`
-  - [ ] `TagNotificationItem`
-- [ ] Seed mock data covering:
-  - [ ] claimed and unclaimed tagged members
-  - [ ] at least 2 photo-tagging examples
-  - [ ] at least 2 video-tagging examples
-  - [ ] at least 8 tagged memory items across multiple members
-  - [ ] at least 6 tag-related notifications with mixed read/unread states
-- [ ] Create `src/app/(app)/create/tagging/photo/page.tsx` as the static photo-tagging route.
-- [ ] Create `src/app/(app)/create/tagging/video/page.tsx` as the static video-tagging route.
-- [ ] Create `src/app/(app)/members/[memberId]/memories/page.tsx` as the tagged memories archive route.
-- [ ] Upgrade `src/app/(app)/notifications/page.tsx` from placeholder to the notifications list route used in this PRD.
+- [x] Create `src/lib/mocks/tagging.ts` with typed mock data for tagging editor states, tag anchors, video tag moments, and tagged memory groups.
+- [x] Add types for:
+  - [x] `TaggedPerson`
+  - [x] `PhotoTagAnchor`
+  - [x] `VideoTagMoment`
+  - [x] `TaggedMemoryItem`
+  - [x] `TagNotificationItem`
+- [x] Seed mock data covering:
+  - [x] claimed and unclaimed tagged members
+  - [x] at least 2 photo-tagging examples
+  - [x] at least 2 video-tagging examples
+  - [x] at least 8 tagged memory items across multiple members
+  - [x] at least 6 tag-related notifications with mixed read/unread states
+- [x] Create `src/app/(app)/create/tagging/photo/page.tsx` as the static photo-tagging route.
+- [x] Create `src/app/(app)/create/tagging/video/page.tsx` as the static video-tagging route.
+- [x] Create `src/app/(app)/members/[memberId]/memories/page.tsx` as the tagged memories archive route.
+- [x] Upgrade `src/app/(app)/notifications/page.tsx` from placeholder to the notifications list route used in this PRD.
 
 ---
 
