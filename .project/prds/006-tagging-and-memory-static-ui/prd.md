@@ -115,25 +115,25 @@ The goal is to lock down the UX, route structure, component model, and informati
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/create/tagging/video/page.tsx`:
-  - [ ] mock video player frame with poster image
-  - [ ] transport bar shell with current time and duration labels
-  - [ ] timeline rail containing visible tag markers at different timestamps
-  - [ ] selected timestamp state with member assignments
-  - [ ] right-side panel or stacked section for tag details
-  - [ ] primary CTA: `Save video tags`
-  - [ ] secondary CTA: `Back to composer`
-- [ ] Create `src/components/tagging/video-tag-timeline.tsx`:
-  - [ ] timeline rail
-  - [ ] timestamp markers
-  - [ ] selected marker detail affordance
-  - [ ] legend or helper text for how tagging works
-- [ ] Create `src/components/tagging/video-tag-moment-card.tsx`:
-  - [ ] timestamp label
-  - [ ] one or more tagged members
-  - [ ] appearance notes or optional label mock
-- [ ] Add empty state for videos with no tags placed yet.
-- [ ] Ensure the layout remains legible on mobile without horizontal overflow.
+- [x] Implement `src/app/(app)/create/tagging/video/page.tsx`:
+  - [x] mock video player frame with poster image
+  - [x] transport bar shell with current time and duration labels
+  - [x] timeline rail containing visible tag markers at different timestamps
+  - [x] selected timestamp state with member assignments
+  - [x] right-side panel or stacked section for tag details
+  - [x] primary CTA: `Save video tags`
+  - [x] secondary CTA: `Back to composer`
+- [x] Create `src/components/tagging/video-tag-timeline.tsx`:
+  - [x] timeline rail
+  - [x] timestamp markers
+  - [x] selected marker detail affordance
+  - [x] legend or helper text for how tagging works
+- [x] Create `src/components/tagging/video-tag-moment-card.tsx`:
+  - [x] timestamp label
+  - [x] one or more tagged members
+  - [x] appearance notes or optional label mock
+- [x] Add empty state for videos with no tags placed yet.
+- [x] Ensure the layout remains legible on mobile without horizontal overflow.
 
 ---
 
