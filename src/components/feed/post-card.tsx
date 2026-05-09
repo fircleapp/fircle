@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Heart, Comment, Share } from "~/components/ui/icons";
@@ -95,6 +95,7 @@ function getInitials(name: string) {
 }
 
 export function PostCard({ post }: PostCardProps) {
+  const pathname = usePathname();
   const router = useRouter();
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerStart, setViewerStart] = useState(0);
@@ -107,6 +108,7 @@ export function PostCard({ post }: PostCardProps) {
   const imageItems = post.mediaItems.filter((item) => item.type === "image");
   const videoItems = post.mediaItems.filter((item) => item.type === "video");
   const shouldUseMixedMediaStack = post.type === "mixed" && post.mediaItems.length > 4;
+  const isClickable = !pathname?.startsWith("/post/");
 
   function navigateToPost() {
     router.push(`/post/${post.id}`);
@@ -114,17 +116,25 @@ export function PostCard({ post }: PostCardProps) {
 
   return (
     <article
-      role="link"
-      tabIndex={0}
-      aria-label={`Open post by ${post.author.name}`}
-      className="cursor-pointer rounded-3xl border border-border/80 bg-card/90 p-4 shadow-sm outline-none transition-colors hover:border-border hover:bg-card sm:p-5"
-      onClick={navigateToPost}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          navigateToPost();
-        }
-      }}
+      role={isClickable ? "link" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      aria-label={isClickable ? `Open post by ${post.author.name}` : undefined}
+      className={`rounded-3xl border border-border/80 bg-card/90 p-4 shadow-sm sm:p-5 ${
+        isClickable
+          ? "cursor-pointer outline-none transition-colors hover:border-border hover:bg-card"
+          : "cursor-default"
+      }`}
+      onClick={isClickable ? navigateToPost : undefined}
+      onKeyDown={
+        isClickable
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                navigateToPost();
+              }
+            }
+          : undefined
+      }
     >
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
