@@ -58,12 +58,6 @@ function CommentCard({ comment }: { comment: PostComment }) {
               <span className="tabular-nums">{comment.reactionCount}</span>
             )}
           </button>
-          <button
-            type="button"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
-          >
-            Reply
-          </button>
         </div>
       </div>
     </article>
