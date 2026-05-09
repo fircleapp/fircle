@@ -40,13 +40,15 @@ function CommentCard({ comment }: { comment: PostComment }) {
       {/* Bubble */}
       <div className="flex-1 min-w-0">
         <div className="rounded-2xl rounded-tl-sm border border-border/80 bg-card/90 px-4 py-3">
-          <p className="text-sm font-medium text-foreground leading-none mb-1">
-            {comment.author.name}
-          </p>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <p className="text-sm font-medium text-foreground leading-none">
+              {comment.author.name}
+            </p>
+            <span className="shrink-0 text-xs text-muted-foreground">{comment.createdAtLabel}</span>
+          </div>
           <p className="text-sm text-foreground leading-relaxed">{comment.body}</p>
         </div>
         <div className="mt-1.5 flex items-center gap-3 pl-1">
-          <span className="text-xs text-muted-foreground">{comment.createdAtLabel}</span>
           <button
             type="button"
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
