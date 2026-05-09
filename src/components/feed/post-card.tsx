@@ -23,7 +23,7 @@ export type PostCardData = {
   createdAtLabel: string;
   body: string;
   mediaItems: PostMediaItem[];
-  taggedMembers: string[];
+  taggedMembers: { name: string; avatarUrl: string }[];
   reactionCount: number;
   commentCount: number;
 };
@@ -44,6 +44,12 @@ function getInitials(name: string) {
 export function PostCard({ post }: PostCardProps) {
   const imageItems = post.mediaItems.filter((item) => item.type === "image");
   const videoItems = post.mediaItems.filter((item) => item.type === "video");
+  const showSinglePhotoTaggedOverlay =
+    post.type === "photo" && imageItems.length === 1 && post.taggedMembers.length > 0;
+  const showSingleVideoTaggedOverlay =
+    post.type === "video" && videoItems.length === 1 && post.taggedMembers.length > 0;
+  const shouldShowTaggedChips =
+    post.taggedMembers.length > 0 && !showSinglePhotoTaggedOverlay && !showSingleVideoTaggedOverlay;
 
   return (
     <article className="rounded-3xl border border-border/80 bg-card/90 p-4 shadow-sm sm:p-5">
@@ -67,14 +73,14 @@ export function PostCard({ post }: PostCardProps) {
         <p className="mt-3 text-foreground text-sm leading-6 sm:text-base">{post.body}</p>
       ) : null}
 
-      {post.taggedMembers.length > 0 ? (
+      {shouldShowTaggedChips ? (
         <div className="mt-3 flex flex-wrap gap-2">
           {post.taggedMembers.map((member) => (
             <span
-              key={`${post.id}-${member}`}
+              key={`${post.id}-${member.name}`}
               className="rounded-full border border-border/80 bg-muted px-2.5 py-1 text-[11px] text-muted-foreground"
             >
-              {member}
+              {member.name}
             </span>
           ))}
         </div>
@@ -82,14 +88,22 @@ export function PostCard({ post }: PostCardProps) {
 
       {post.type === "photo" && imageItems.length > 0 ? (
         <div className="mt-3">
-          <PostMediaGrid items={imageItems} />
+          <PostMediaGrid
+            items={imageItems}
+            taggedMembers={showSinglePhotoTaggedOverlay ? post.taggedMembers : undefined}
+          />
         </div>
       ) : null}
 
       {post.type === "video" && videoItems.length > 0 ? (
         <div className="mt-3 space-y-2">
           {videoItems.map((item) => (
-            <PostVideoCard key={item.id} title={item.alt} durationLabel={item.durationLabel} />
+            <PostVideoCard
+              key={item.id}
+              title={item.alt}
+              durationLabel={item.durationLabel}
+              taggedMembers={showSingleVideoTaggedOverlay ? post.taggedMembers : undefined}
+            />
           ))}
         </div>
       ) : null}
