@@ -1,13 +1,21 @@
 import { PlayCircle } from "~/components/ui/icons";
 
+import { TaggedMemberAvatarStack } from "./tagged-member-avatar-stack";
+
 type PostVideoCardProps = {
   title: string;
   durationLabel?: string;
+  taggedMembers?: { name: string; avatarUrl: string }[];
 };
 
-export function PostVideoCard({ title, durationLabel }: PostVideoCardProps) {
+export function PostVideoCard({
+  title,
+  durationLabel,
+  taggedMembers = [],
+}: PostVideoCardProps) {
   return (
     <article className="relative overflow-hidden rounded-2xl border border-border/80 bg-muted/50">
+      {taggedMembers.length > 0 ? <TaggedMemberAvatarStack members={taggedMembers} /> : null}
       <div className="aspect-video p-3">
         <div className="relative flex h-full items-center justify-center rounded-xl border border-border/70 bg-background/70">
           <PlayCircle className="size-12 text-muted-foreground" aria-hidden="true" />
