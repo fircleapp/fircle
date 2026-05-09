@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Heart, Comment, Share } from "~/components/ui/icons";
@@ -94,6 +95,7 @@ function getInitials(name: string) {
 }
 
 export function PostCard({ post }: PostCardProps) {
+  const router = useRouter();
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerStart, setViewerStart] = useState(0);
 
@@ -106,8 +108,24 @@ export function PostCard({ post }: PostCardProps) {
   const videoItems = post.mediaItems.filter((item) => item.type === "video");
   const shouldUseMixedMediaStack = post.type === "mixed" && post.mediaItems.length > 4;
 
+  function navigateToPost() {
+    router.push(`/post/${post.id}`);
+  }
+
   return (
-    <article className="rounded-3xl border border-border/80 bg-card/90 p-4 shadow-sm sm:p-5">
+    <article
+      role="link"
+      tabIndex={0}
+      aria-label={`Open post by ${post.author.name}`}
+      className="cursor-pointer rounded-3xl border border-border/80 bg-card/90 p-4 shadow-sm outline-none transition-colors hover:border-border hover:bg-card sm:p-5"
+      onClick={navigateToPost}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          navigateToPost();
+        }
+      }}
+    >
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-foreground">
@@ -131,7 +149,7 @@ export function PostCard({ post }: PostCardProps) {
       ) : null}
 
       {post.type === "photo" && imageItems.length > 0 ? (
-        <div className="mt-3">
+        <div className="mt-3" onClick={(event) => event.stopPropagation()}>
           <PostMediaGrid
             items={imageItems}
             onItemClick={(localIdx) => {
@@ -143,7 +161,7 @@ export function PostCard({ post }: PostCardProps) {
       ) : null}
 
       {post.type === "video" && videoItems.length > 0 ? (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-2" onClick={(event) => event.stopPropagation()}>
           {videoItems.map((item) => (
             <PostVideoCard
               key={item.id}
@@ -159,7 +177,7 @@ export function PostCard({ post }: PostCardProps) {
       ) : null}
 
       {post.type === "mixed" ? (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-2" onClick={(event) => event.stopPropagation()}>
           {shouldUseMixedMediaStack ? (
             <PostMixedMediaStack items={post.mediaItems} onItemClick={openViewer} />
           ) : (
@@ -168,7 +186,10 @@ export function PostCard({ post }: PostCardProps) {
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 border-border/70 pt-2">
+      <div
+        className="mt-4 flex flex-wrap items-center gap-2 border-border/70 pt-2"
+        onClick={(event) => event.stopPropagation()}
+      >
         <Button type="button" variant="ghost" size="sm" className="rounded-2xl px-3">
           <Heart className="size-4" />
           Like
