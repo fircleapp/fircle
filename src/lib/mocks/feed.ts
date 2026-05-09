@@ -42,7 +42,7 @@ export const feedPosts: FeedPost[] = [
         "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop",
     },
     createdAtLabel: "2h ago",
-    body: "Sunday dinner plan: pasta, garlic bread, and movie night after.",
+    body: "Sunday dinner plan: pasta, garlic bread, and movie night after. @Liam Johnson and @Noah Johnson — don't be late!",
     mediaItems: [],
     taggedMembers: [
       {

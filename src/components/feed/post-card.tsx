@@ -34,6 +34,50 @@ type PostCardProps = {
   post: PostCardData;
 };
 
+function renderBody(
+  body: string,
+  taggedMembers: { name: string; avatarUrl: string }[],
+): React.ReactNode {
+  if (taggedMembers.length === 0) return body;
+
+  // Build a regex that matches any @MemberName token
+  const names = taggedMembers.map((m) => m.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const pattern = new RegExp(`@(${names.join("|")})`, "g");
+
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(body)) !== null) {
+    if (match.index > last) parts.push(body.slice(last, match.index));
+    const memberName = match[1]!;
+    const member = taggedMembers.find((m) => m.name === memberName);
+    parts.push(
+      <a
+        href="#"
+        key={`${memberName}-${match.index}`}
+        className="mx-0.5 inline-flex items-center gap-1 align-middle whitespace-nowrap"
+      >
+        {member?.avatarUrl ? (
+          <img
+            src={member.avatarUrl}
+            alt={memberName}
+            className="size-4 rounded-full object-cover"
+          />
+        ) : (
+          <span className="flex size-4 items-center justify-center rounded-full bg-border text-[8px] font-semibold text-foreground">
+            {memberName[0]?.toUpperCase()}
+          </span>
+        )}
+        <span className="font-medium leading-none text-foreground">{memberName}</span>
+      </a>,
+    );
+    last = match.index + match[0].length;
+  }
+  if (last < body.length) parts.push(body.slice(last));
+  return parts;
+}
+
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -61,13 +105,15 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         </div>
 
-        {post.taggedMembers.length > 0 ? (
+        {post.taggedMembers.length > 0 && post.type !== "text" ? (
           <TaggedMemberAvatarStack members={post.taggedMembers} />
         ) : null}
       </header>
 
       {post.body ? (
-        <p className="mt-3 text-foreground text-sm leading-6 sm:text-base">{post.body}</p>
+        <p className="mt-3 text-foreground text-sm leading-6 sm:text-base">
+          {renderBody(post.body, post.type === "text" ? post.taggedMembers : [])}
+        </p>
       ) : null}
 
       {post.type === "photo" && imageItems.length > 0 ? (
