@@ -5,6 +5,7 @@ import { MemberStatusBadge } from "./member-status-badge";
 
 type MemberProfileHeaderProps = {
   member: FamilyMemberProfile;
+  showStatus?: boolean;
 };
 
 function getInitials(name: string) {
@@ -16,7 +17,7 @@ function getInitials(name: string) {
     .join("");
 }
 
-export function MemberProfileHeader({ member }: MemberProfileHeaderProps) {
+export function MemberProfileHeader({ member, showStatus = true }: MemberProfileHeaderProps) {
   const initials = getInitials(member.name);
 
   return (
@@ -39,9 +40,11 @@ export function MemberProfileHeader({ member }: MemberProfileHeaderProps) {
       <div className="space-y-1.5">
         <h1 className="font-semibold text-2xl tracking-tight sm:text-3xl">{member.name}</h1>
         <p className="text-sm text-muted-foreground">{member.relationship}</p>
-        <div className="flex justify-center">
-          <MemberStatusBadge status={member.status} />
-        </div>
+        {showStatus ? (
+          <div className="flex justify-center">
+            <MemberStatusBadge status={member.status} />
+          </div>
+        ) : null}
       </div>
     </header>
   );
