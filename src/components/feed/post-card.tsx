@@ -144,22 +144,22 @@ export function PostCard({ post }: PostCardProps) {
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
-        <span>{post.reactionCount} reactions</span>
-        <span aria-hidden>•</span>
-        <span>{post.commentCount} comments</span>
-      </div>
-
-      <div className="mt-3 flex items-center gap-2 border-border/70 border-t pt-3">
-        <Button type="button" variant="ghost" size="sm" className="rounded-2xl">
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-border/70 pt-2">
+        <Button type="button" variant="ghost" size="sm" className="rounded-2xl px-3">
           <Heart className="size-4" />
           Like
+          <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
+            {post.reactionCount}
+          </span>
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="rounded-2xl">
+        <Button type="button" variant="ghost" size="sm" className="rounded-2xl px-3">
           <Comment className="size-4" />
           Comment
+          <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
+            {post.commentCount}
+          </span>
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="rounded-2xl">
+        <Button type="button" variant="ghost" size="sm" className="ml-auto rounded-2xl px-3">
           <Share className="size-4" />
           Share
         </Button>
