@@ -21,44 +21,42 @@ function getInitials(name: string) {
 
 function CommentCard({ comment }: { comment: PostComment }) {
   return (
-    <article className="flex gap-3">
-      {/* Avatar */}
-      <div className="shrink-0">
-        {comment.author.avatarUrl ? (
-          <img
-            src={comment.author.avatarUrl}
-            alt={comment.author.name}
-            className="size-8 rounded-full object-cover border border-border"
-          />
-        ) : (
-          <div className="flex size-8 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-foreground">
-            {getInitials(comment.author.name)}
-          </div>
-        )}
-      </div>
+    <article className="rounded-2xl border border-border/80 bg-card/90 px-4 py-3">
+      {/* Header: avatar + name + timestamp */}
+      <header className="flex items-center gap-3">
+        <div className="shrink-0">
+          {comment.author.avatarUrl ? (
+            <img
+              src={comment.author.avatarUrl}
+              alt={comment.author.name}
+              className="size-9 rounded-full object-cover border border-border"
+            />
+          ) : (
+            <div className="flex size-9 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-foreground">
+              {getInitials(comment.author.name)}
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground leading-none">{comment.author.name}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{comment.createdAtLabel}</p>
+        </div>
+      </header>
 
-      {/* Bubble */}
-      <div className="flex-1 min-w-0">
-        <div className="rounded-2xl rounded-tl-sm border border-border/80 bg-card/90 px-4 py-3">
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <p className="text-sm font-medium text-foreground leading-none">
-              {comment.author.name}
-            </p>
-            <span className="shrink-0 text-xs text-muted-foreground">{comment.createdAtLabel}</span>
-          </div>
-          <p className="text-sm text-foreground leading-relaxed">{comment.body}</p>
-        </div>
-        <div className="mt-1.5 flex items-center gap-3 pl-1">
-          <button
-            type="button"
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Heart className="size-3" />
-            {comment.reactionCount > 0 && (
-              <span className="tabular-nums">{comment.reactionCount}</span>
-            )}
-          </button>
-        </div>
+      {/* Body */}
+      <p className="mt-3 text-foreground leading-relaxed">{comment.body}</p>
+
+      {/* Actions */}
+      <div className="mt-3 flex items-center gap-2">
+        <Button type="button" variant="ghost" size="sm" className="rounded-2xl px-3">
+          <Heart className="size-4" />
+          Like
+          {comment.reactionCount > 0 && (
+            <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
+              {comment.reactionCount}
+            </span>
+          )}
+        </Button>
       </div>
     </article>
   );
