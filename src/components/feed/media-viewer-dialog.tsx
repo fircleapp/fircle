@@ -13,11 +13,17 @@ import {
 } from "~/components/ui/carousel";
 import type { CarouselApi } from "~/components/ui/carousel";
 
+type TaggedMember = {
+  name: string;
+  avatarUrl: string;
+};
+
 export type MediaViewerItem = {
   id: string;
   type: "image" | "video";
   url: string;
   alt: string;
+  taggedMembers?: TaggedMember[];
 };
 
 type MediaViewerDialogProps = {
@@ -30,21 +36,55 @@ type MediaViewerDialogProps = {
 function MediaSlide({ item }: { item: MediaViewerItem }) {
   if (item.type === "video") {
     return (
-      <video
-        src={item.url}
-        controls
-        className="max-h-full max-w-full rounded-lg"
-        aria-label={item.alt}
-      />
+      <div className="relative flex h-full w-full items-center justify-center">
+        <video
+          src={item.url}
+          controls
+          className="max-h-full max-w-full rounded-lg"
+          aria-label={item.alt}
+        />
+
+        {item.taggedMembers?.length ? <TaggedMembersOverlay members={item.taggedMembers} /> : null}
+      </div>
     );
   }
 
   return (
-    <img
-      src={item.url}
-      alt={item.alt}
-      className="max-h-full max-w-full rounded-lg object-contain"
-    />
+    <div className="relative flex h-full w-full items-center justify-center">
+      <img
+        src={item.url}
+        alt={item.alt}
+        className="max-h-full max-w-full rounded-lg object-contain"
+      />
+
+      {item.taggedMembers?.length ? <TaggedMembersOverlay members={item.taggedMembers} /> : null}
+    </div>
+  );
+}
+
+function TaggedMembersOverlay({ members }: { members: TaggedMember[] }) {
+  return (
+    <div className="absolute bottom-4 left-4 max-w-[min(92vw,28rem)] rounded-2xl border border-white/10 bg-black/55 px-3 py-2 text-white shadow-xl backdrop-blur-sm">
+      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/60">
+        Tagged in this media
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {members.map((member) => (
+          <div
+            key={member.name}
+            className="inline-flex items-center gap-2 rounded-full bg-white/10 px-2.5 py-1"
+            title={member.name}
+          >
+            <img
+              src={member.avatarUrl}
+              alt={member.name}
+              className="size-5 rounded-full object-cover"
+            />
+            <span className="text-xs font-medium text-white">{member.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

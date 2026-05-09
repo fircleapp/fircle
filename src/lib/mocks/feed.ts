@@ -17,6 +17,7 @@ export type PostMediaItem = {
   url: string;
   alt: string;
   durationLabel?: string;
+  taggedMembers?: TaggedMember[];
 };
 
 export type FeedPost = {
@@ -76,12 +77,36 @@ export const feedPosts: FeedPost[] = [
         type: "image",
         url: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1280&h=720&fit=crop",
         alt: "Tomato plants in a family garden",
+        taggedMembers: [
+          {
+            name: "Grandma Rose",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=100&h=100&fit=crop",
+          },
+          {
+            name: "Dan Johnson",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
+          },
+        ],
       },
       {
         id: "media-002-b",
         type: "image",
         url: "https://images.unsplash.com/photo-1438109491414-7198515b166b?w=1280&h=720&fit=crop",
         alt: "Harvest basket with fresh vegetables",
+        taggedMembers: [
+          {
+            name: "Uncle Ben",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
+          },
+          {
+            name: "Amy Johnson",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+          },
+        ],
       },
     ],
     taggedMembers: [
@@ -117,6 +142,23 @@ export const feedPosts: FeedPost[] = [
         url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
         alt: "Piano recital clip",
         durationLabel: "01:12",
+        taggedMembers: [
+          {
+            name: "Ella Lin",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
+          },
+          {
+            name: "Grace Park",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop",
+          },
+          {
+            name: "Sophie Chen",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
+          },
+        ],
       },
     ],
     taggedMembers: [
@@ -156,6 +198,13 @@ export const feedPosts: FeedPost[] = [
         type: "image",
         url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1280&h=720&fit=crop",
         alt: "Family at a lakeside stop",
+        taggedMembers: [
+          {
+            name: "Maya Parker",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&h=100&fit=crop",
+          },
+        ],
       },
       {
         id: "media-004-b",
@@ -163,12 +212,31 @@ export const feedPosts: FeedPost[] = [
         url: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
         alt: "Kids skipping stones at a lake",
         durationLabel: "00:34",
+        taggedMembers: [
+          {
+            name: "Leo Parker",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=100&h=100&fit=crop",
+          },
+          {
+            name: "Sam Parker",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop",
+          },
+        ],
       },
       {
         id: "media-004-c",
         type: "image",
         url: "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=1280&h=720&fit=crop",
         alt: "Road snacks spread on a picnic blanket",
+        taggedMembers: [
+          {
+            name: "Mia Parker",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop",
+          },
+        ],
       },
       {
         id: "media-004-d",
@@ -176,6 +244,18 @@ export const feedPosts: FeedPost[] = [
         url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
         alt: "Family walking along the shoreline",
         durationLabel: "00:41",
+        taggedMembers: [
+          {
+            name: "Maya Parker",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&h=100&fit=crop",
+          },
+          {
+            name: "Leo Parker",
+            avatarUrl:
+              "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=100&h=100&fit=crop",
+          },
+        ],
       },
       {
         id: "media-004-e",

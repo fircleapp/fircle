@@ -18,6 +18,7 @@ type PostMediaItem = {
   url: string;
   alt: string;
   durationLabel?: string;
+  taggedMembers?: { name: string; avatarUrl: string }[];
 };
 
 export type PostCardData = {
