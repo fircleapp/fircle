@@ -1,3 +1,5 @@
+import { PlayCircle } from "~/components/ui/icons";
+
 type MixedMediaItem = {
   id: string;
   type: "image" | "video";
@@ -41,13 +43,17 @@ export function PostMixedMediaStack({ items }: PostMixedMediaStackProps) {
           >
             <div className="h-full p-3">
               <div className="relative flex h-full items-end justify-between rounded-xl border border-border/70 bg-background p-3">
+                {item.type === "video" ? (
+                  <PlayCircle
+                    className="pointer-events-none absolute left-1/2 top-1/2 size-10 -translate-x-1/2 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                ) : null}
+
                 <p className="line-clamp-2 max-w-[70%] text-xs text-muted-foreground">{item.alt}</p>
-                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                  {item.type === "video" ? "Video" : "Photo"}
-                </span>
 
                 {item.type === "video" && item.durationLabel ? (
-                  <span className="absolute bottom-2 left-2 rounded-full border border-border bg-background/90 px-2 py-0.5 text-[11px] text-foreground">
+                  <span className="absolute bottom-2 right-2 rounded-full border border-border bg-background/90 px-2 py-0.5 text-[11px] text-foreground">
                     {item.durationLabel}
                   </span>
                 ) : null}
