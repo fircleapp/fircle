@@ -1,7 +1,5 @@
 import { PlayCircle } from "~/components/ui/icons";
 
-import { TaggedMemberAvatarStack } from "./tagged-member-avatar-stack";
-
 type PostMediaGridItem = {
   id: string;
   type?: "image" | "video";
@@ -12,7 +10,6 @@ type PostMediaGridItem = {
 
 type PostMediaGridProps = {
   items: PostMediaGridItem[];
-  taggedMembers?: { name: string; avatarUrl: string }[];
 };
 
 function getGridClass(count: number) {
@@ -23,7 +20,7 @@ function getGridClass(count: number) {
   return "grid-cols-2";
 }
 
-export function PostMediaGrid({ items, taggedMembers = [] }: PostMediaGridProps) {
+export function PostMediaGrid({ items }: PostMediaGridProps) {
   if (items.length === 0) {
     return null;
   }
@@ -44,9 +41,6 @@ export function PostMediaGrid({ items, taggedMembers = [] }: PostMediaGridProps)
             }`}
           >
             <div className="aspect-video p-1.5 sm:p-3">
-              {visibleItems.length === 1 && taggedMembers.length > 0 ? (
-                <TaggedMemberAvatarStack members={taggedMembers} />
-              ) : null}
               <div className="relative flex h-full items-end justify-between rounded-xl border border-border/70 bg-background p-3">
                 {isVideo ? (
                   <PlayCircle

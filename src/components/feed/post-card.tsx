@@ -3,6 +3,7 @@ import { Heart, Comment, Share } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 import { PostMediaGrid } from "./post-media-grid";
+import { TaggedMemberAvatarStack } from "./tagged-member-avatar-stack";
 import { PostMixedMediaStack } from "./post-mixed-media-stack";
 import { PostVideoCard } from "./post-video-card";
 
@@ -46,12 +47,6 @@ export function PostCard({ post }: PostCardProps) {
   const imageItems = post.mediaItems.filter((item) => item.type === "image");
   const videoItems = post.mediaItems.filter((item) => item.type === "video");
   const shouldUseMixedMediaStack = post.type === "mixed" && post.mediaItems.length > 4;
-  const showSinglePhotoTaggedOverlay =
-    post.type === "photo" && imageItems.length === 1 && post.taggedMembers.length > 0;
-  const showSingleVideoTaggedOverlay =
-    post.type === "video" && videoItems.length === 1 && post.taggedMembers.length > 0;
-  const shouldShowTaggedChips =
-    post.taggedMembers.length > 0 && !showSinglePhotoTaggedOverlay && !showSingleVideoTaggedOverlay;
 
   return (
     <article className="rounded-3xl border border-border/80 bg-card/90 p-4 shadow-sm sm:p-5">
@@ -66,34 +61,18 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         </div>
 
-        <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-          {post.type}
-        </span>
+        {post.taggedMembers.length > 0 ? (
+          <TaggedMemberAvatarStack members={post.taggedMembers} />
+        ) : null}
       </header>
 
       {post.body ? (
         <p className="mt-3 text-foreground text-sm leading-6 sm:text-base">{post.body}</p>
       ) : null}
 
-      {shouldShowTaggedChips ? (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {post.taggedMembers.map((member) => (
-            <span
-              key={`${post.id}-${member.name}`}
-              className="rounded-full border border-border/80 bg-muted px-2.5 py-1 text-[11px] text-muted-foreground"
-            >
-              {member.name}
-            </span>
-          ))}
-        </div>
-      ) : null}
-
       {post.type === "photo" && imageItems.length > 0 ? (
         <div className="mt-3">
-          <PostMediaGrid
-            items={imageItems}
-            taggedMembers={showSinglePhotoTaggedOverlay ? post.taggedMembers : undefined}
-          />
+          <PostMediaGrid items={imageItems} />
         </div>
       ) : null}
 
@@ -104,7 +83,6 @@ export function PostCard({ post }: PostCardProps) {
               key={item.id}
               title={item.alt}
               durationLabel={item.durationLabel}
-              taggedMembers={showSingleVideoTaggedOverlay ? post.taggedMembers : undefined}
             />
           ))}
         </div>

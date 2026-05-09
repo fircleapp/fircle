@@ -25,15 +25,14 @@ export function TaggedMemberAvatarStack({ members }: TaggedMemberAvatarStackProp
   }
 
   return (
-    <div className="absolute right-5 top-5 z-10 flex items-center">
-      <div
-        className="flex flex-row-reverse items-center"
-        aria-label={`Tagged members: ${members.map((m) => m.name).join(", ")}`}
-      >
+    <div
+      className="flex items-center"
+      aria-label={`Tagged members: ${members.map((m) => m.name).join(", ")}`}
+    >
         {visibleMembers.map((member, index) => (
           <div
             key={member.name}
-            className="-ml-2 size-8 overflow-hidden rounded-full border-2 border-background shadow-sm"
+            className="-ml-2 size-8 overflow-hidden rounded-full border-2 border-background/70 shadow-sm"
             style={{ zIndex: visibleMembers.length - index }}
             title={member.name}
           >
@@ -53,13 +52,12 @@ export function TaggedMemberAvatarStack({ members }: TaggedMemberAvatarStackProp
 
         {remainingCount > 0 ? (
           <div
-            className="-ml-2 flex size-8 items-center justify-center rounded-full border-2 border-background bg-muted text-[10px] font-semibold text-muted-foreground shadow-sm"
+            className="-ml-2 flex size-8 items-center justify-center rounded-full border-2 border-background/70 bg-muted text-[10px] font-semibold text-muted-foreground shadow-sm"
             title={`${remainingCount} more tagged`}
           >
             +{remainingCount}
           </div>
         ) : null}
-      </div>
     </div>
   );
 }
