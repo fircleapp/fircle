@@ -122,6 +122,8 @@ export function MediaViewerDialog({
         <DialogPrimitive.Content
           aria-describedby={undefined}
           className="fixed inset-0 z-50 flex flex-col outline-none"
+          onClick={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
         >
           <DialogPrimitive.Title className="sr-only">
             Media viewer
