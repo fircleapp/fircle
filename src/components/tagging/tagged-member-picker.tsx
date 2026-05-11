@@ -4,6 +4,7 @@ import { Check, Search, Tag } from "~/components/ui/icons";
 import { useMemo, useState } from "react";
 
 import { MemberStatusBadge } from "~/components/members/member-status-badge";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Input } from "~/components/ui/input";
 import type { FamilyMemberSummary } from "~/lib/mocks/family-members";
 import { cn } from "~/lib/utils";
@@ -99,22 +100,12 @@ export function TaggedMemberPicker({
                 isSelected && "border-primary/40 bg-primary/5",
               )}
             >
-              <div
-                aria-hidden="true"
-                className={cn(
-                  "grid size-11 shrink-0 place-items-center rounded-full border text-sm font-semibold text-foreground",
-                  member.avatarUrl ? "bg-cover bg-center text-transparent" : "bg-muted",
-                )}
-                style={
-                  member.avatarUrl
-                    ? {
-                        backgroundImage: `url(${member.avatarUrl})`,
-                      }
-                    : undefined
-                }
-              >
-                {initials}
-              </div>
+              <Avatar className="size-11 shrink-0 border">
+                <AvatarImage src={member.avatarUrl} alt={member.name} />
+                <AvatarFallback className="text-sm font-semibold text-foreground">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
 
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">

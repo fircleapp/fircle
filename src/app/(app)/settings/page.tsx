@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Camera, TriangleAlert } from "~/components/ui/icons";
 
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { familySettings } from "~/lib/mocks/family-settings";
@@ -28,18 +29,12 @@ export default function FamilySettingsPage() {
         <h3 className="font-medium text-base">Family Identity</h3>
 
         <div className="flex flex-col items-center gap-2 sm:items-start">
-          <div className="flex size-20 items-center justify-center rounded-full border-2 border-dashed border-border bg-muted text-muted-foreground">
-            {familySettings.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={familySettings.avatarUrl}
-                alt="Family avatar"
-                className="size-full rounded-full object-cover"
-              />
-            ) : (
+          <Avatar className="size-20 border-2 border-dashed border-border">
+            <AvatarImage src={familySettings.avatarUrl} alt="Family avatar" />
+            <AvatarFallback className="text-muted-foreground">
               <Camera className="size-7" />
-            )}
-          </div>
+            </AvatarFallback>
+          </Avatar>
           <button
             type="button"
             className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"

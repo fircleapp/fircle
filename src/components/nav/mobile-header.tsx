@@ -2,6 +2,7 @@
 
 import { Bell, Menu } from "~/components/ui/icons";
 
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 
 export function MobileHeader() {
@@ -37,11 +38,9 @@ export function MobileHeader() {
             </span>
           </Button>
 
-          <div
-            title="Profile"
-            aria-hidden
-            className="size-8 rounded-full border border-border bg-muted"
-          />
+          <Avatar title="Profile" aria-hidden className="size-8 border border-border">
+            <AvatarFallback />
+          </Avatar>
         </div>
       </div>
     </header>

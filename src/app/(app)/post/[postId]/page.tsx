@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { ArrowLeft, Heart } from "~/components/ui/icons";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
@@ -24,19 +25,12 @@ function CommentCard({ comment }: { comment: PostComment }) {
     <article className="rounded-2xl border border-border/80 bg-card/90 px-4 py-3">
       {/* Header: avatar + name + timestamp */}
       <header className="flex items-center gap-3">
-        <div className="shrink-0">
-          {comment.author.avatarUrl ? (
-            <img
-              src={comment.author.avatarUrl}
-              alt={comment.author.name}
-              className="size-9 rounded-full object-cover border border-border"
-            />
-          ) : (
-            <div className="flex size-9 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-foreground">
-              {getInitials(comment.author.name)}
-            </div>
-          )}
-        </div>
+        <Avatar className="size-9 shrink-0 border border-border">
+          <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
+          <AvatarFallback className="text-xs font-semibold text-foreground">
+            {getInitials(comment.author.name)}
+          </AvatarFallback>
+        </Avatar>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-foreground leading-none">{comment.author.name}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">{comment.createdAtLabel}</p>
@@ -93,9 +87,9 @@ function CommentInput() {
       className="flex items-center gap-3 rounded-2xl border border-border/80 bg-card/90 p-4"
     >
       {/* Current user avatar placeholder */}
-      <div className="mb-auto mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-foreground">
-        ME
-      </div>
+      <Avatar className="mb-auto mt-0.5 size-10 shrink-0 border border-border">
+        <AvatarFallback className="text-xs font-semibold text-foreground">ME</AvatarFallback>
+      </Avatar>
       <div className="flex-1">
         <textarea
           ref={textareaRef}

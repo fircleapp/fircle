@@ -7,10 +7,10 @@ import { useMemo, useState } from "react";
 import { MemberStatusBadge } from "~/components/members/member-status-badge";
 import { PhotoTagEditor } from "~/components/tagging/photo-tag-editor";
 import { TaggedMemberPicker } from "~/components/tagging/tagged-member-picker";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { familyMembers } from "~/lib/mocks/family-members";
 import { photoTaggingExamples } from "~/lib/mocks/tagging";
-import { cn } from "~/lib/utils";
 
 function getInitials(name: string) {
   return name
@@ -125,22 +125,12 @@ export default function PhotoTaggingPage() {
 
               {selectedAnchor ? (
                 <div className="mt-4 flex flex-col gap-4 rounded-[1.75rem] border bg-muted/20 p-4 sm:flex-row sm:items-center">
-                  <div
-                    aria-hidden="true"
-                    className={cn(
-                      "grid size-14 shrink-0 place-items-center rounded-full border text-sm font-semibold text-foreground",
-                      selectedAnchor.person.avatarUrl ? "bg-cover bg-center text-transparent" : "bg-muted",
-                    )}
-                    style={
-                      selectedAnchor.person.avatarUrl
-                        ? {
-                            backgroundImage: `url(${selectedAnchor.person.avatarUrl})`,
-                          }
-                        : undefined
-                    }
-                  >
-                    {getInitials(selectedAnchor.person.name)}
-                  </div>
+                  <Avatar className="size-14 shrink-0 border">
+                    <AvatarImage src={selectedAnchor.person.avatarUrl} alt={selectedAnchor.person.name} />
+                    <AvatarFallback className="text-sm font-semibold text-foreground">
+                      {getInitials(selectedAnchor.person.name)}
+                    </AvatarFallback>
+                  </Avatar>
 
                   <div className="min-w-0 flex-1 space-y-1">
                     <p className="font-medium text-base">{selectedAnchor.person.name}</p>

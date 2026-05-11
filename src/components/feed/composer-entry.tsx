@@ -1,5 +1,6 @@
 import { ImagePlus, Video } from "~/components/ui/icons";
 
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 
 type ComposerEntryProps = {
@@ -10,12 +11,9 @@ export function ComposerEntry({ onOpenComposer }: ComposerEntryProps) {
   return (
     <section className="rounded-3xl border border-border/80 bg-card/90 p-4 shadow-sm">
       <div className="flex items-start gap-3">
-        <div
-          aria-hidden
-          className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-foreground"
-        >
-          Y
-        </div>
+        <Avatar className="size-10 shrink-0 border border-border" aria-hidden>
+          <AvatarFallback className="text-sm font-semibold text-foreground">Y</AvatarFallback>
+        </Avatar>
 
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           <Button

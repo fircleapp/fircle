@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Heart, Comment, Share } from "~/components/ui/icons";
 
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 
 import { PostMediaGrid } from "./post-media-grid";
@@ -65,17 +66,12 @@ function renderBody(
         key={`${memberName}-${match.index}`}
         className="mx-0.5 inline-flex items-center gap-1 align-middle whitespace-nowrap"
       >
-        {member?.avatarUrl ? (
-          <img
-            src={member.avatarUrl}
-            alt={memberName}
-            className="size-4 rounded-full object-cover"
-          />
-        ) : (
-          <span className="flex size-4 items-center justify-center rounded-full bg-border text-[8px] font-semibold text-foreground">
+        <Avatar className="size-4">
+          <AvatarImage src={member?.avatarUrl} alt={memberName} />
+          <AvatarFallback className="bg-border text-[8px] font-semibold text-foreground">
             {memberName[0]?.toUpperCase()}
-          </span>
-        )}
+          </AvatarFallback>
+        </Avatar>
         <span className="font-medium leading-none text-foreground">{memberName}</span>
       </a>,
     );
@@ -138,9 +134,12 @@ export function PostCard({ post }: PostCardProps) {
     >
       <header className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-foreground">
-            {getInitials(post.author.name)}
-          </div>
+          <Avatar className="size-10 border border-border">
+            <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+            <AvatarFallback className="text-xs font-semibold text-foreground">
+              {getInitials(post.author.name)}
+            </AvatarFallback>
+          </Avatar>
           <div>
             <p className="font-medium text-sm text-foreground">{post.author.name}</p>
             <p className="text-muted-foreground text-xs">{post.createdAtLabel}</p>

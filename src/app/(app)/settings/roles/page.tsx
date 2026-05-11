@@ -1,4 +1,5 @@
 import { MemberStatusBadge } from "~/components/members/member-status-badge";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { familyMembers, type FamilyMemberSummary, type MemberRole } from "~/lib/mocks/family-members";
 import { cn } from "~/lib/utils";
 
@@ -79,22 +80,12 @@ export default function RolesPage() {
                 className="flex flex-col gap-3 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <div
-                    aria-hidden="true"
-                    className={cn(
-                      "grid size-10 shrink-0 place-items-center rounded-full border text-xs font-semibold text-foreground",
-                      member.avatarUrl ? "bg-cover bg-center text-transparent" : "bg-muted",
-                    )}
-                    style={
-                      member.avatarUrl
-                        ? {
-                            backgroundImage: `url(${member.avatarUrl})`,
-                          }
-                        : undefined
-                    }
-                  >
-                    {initials}
-                  </div>
+                  <Avatar className="size-10 shrink-0 border">
+                    <AvatarImage src={member.avatarUrl} alt={member.name} />
+                    <AvatarFallback className="text-xs font-semibold text-foreground">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
 
                   <div className="min-w-0">
                     <p className="truncate font-medium text-sm">{member.name}</p>

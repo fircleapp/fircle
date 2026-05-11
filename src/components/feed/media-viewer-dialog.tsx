@@ -4,6 +4,7 @@ import * as React from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 
 import { X } from "~/components/ui/icons";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import {
   Carousel,
   CarouselContent,
@@ -32,6 +33,15 @@ type MediaViewerDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
 
 function MediaSlide({ item }: { item: MediaViewerItem }) {
   if (item.type === "video") {
@@ -75,11 +85,12 @@ function TaggedMembersOverlay({ members }: { members: TaggedMember[] }) {
             className="inline-flex items-center gap-2 rounded-full bg-black/10 dark:bg-white/10 text-foreground dark:text-white px-2.5 py-1"
             title={member.name}
           >
-            <img
-              src={member.avatarUrl}
-              alt={member.name}
-              className="size-5 rounded-full object-cover"
-            />
+            <Avatar className="size-5">
+              <AvatarImage src={member.avatarUrl} alt={member.name} />
+              <AvatarFallback className="text-[10px] font-semibold text-foreground dark:text-white">
+                {getInitials(member.name)}
+              </AvatarFallback>
+            </Avatar>
             <span className="text-xs font-medium">{member.name}</span>
           </div>
         ))}

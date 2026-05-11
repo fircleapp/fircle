@@ -7,9 +7,9 @@ import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import { Input } from "~/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { CalendarDays, Camera, User, X } from "~/components/ui/icons";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
-import { cn } from "~/lib/utils";
 
 type EditProfileDialogProps = {
   member: FamilyMemberProfile;
@@ -140,22 +140,12 @@ export function EditProfileDialog({
 
             <div className="mt-4 space-y-4">
               <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 p-3">
-                <div
-                  aria-hidden="true"
-                  className={cn(
-                    "grid size-14 shrink-0 place-items-center rounded-full border text-sm font-semibold text-foreground",
-                    form.avatarUrl ? "bg-cover bg-center text-transparent" : "bg-muted",
-                  )}
-                  style={
-                    form.avatarUrl
-                      ? {
-                          backgroundImage: `url(${form.avatarUrl})`,
-                        }
-                      : undefined
-                  }
-                >
-                  {previewInitials}
-                </div>
+                <Avatar className="size-14 shrink-0 border">
+                  <AvatarImage src={form.avatarUrl} alt={form.name || member.name} />
+                  <AvatarFallback className="text-sm font-semibold text-foreground">
+                    {previewInitials}
+                  </AvatarFallback>
+                </Avatar>
 
                 <div className="min-w-0">
                   <p className="font-medium text-sm">Live preview</p>

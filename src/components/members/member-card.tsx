@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Clock3 } from "~/components/ui/icons";
 
 import type { FamilyMemberSummary } from "~/lib/mocks/family-members";
-import { cn } from "~/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
 import { MemberStatusBadge } from "./member-status-badge";
 
@@ -29,22 +29,10 @@ export function MemberCard({ member }: MemberCardProps) {
       className="block rounded-3xl border bg-card p-4 shadow-sm transition hover:border-primary/30"
     >
       <article className="flex items-start gap-3">
-        <div
-          aria-hidden="true"
-          className={cn(
-            "grid size-12 shrink-0 place-items-center rounded-full border text-sm font-semibold text-foreground",
-            member.avatarUrl ? "bg-cover bg-center text-transparent" : "bg-muted",
-          )}
-          style={
-            member.avatarUrl
-              ? {
-                  backgroundImage: `url(${member.avatarUrl})`,
-                }
-              : undefined
-          }
-        >
-          {initials}
-        </div>
+        <Avatar className="size-12 shrink-0 border">
+          <AvatarImage src={member.avatarUrl} alt={member.name} />
+          <AvatarFallback className="text-sm font-semibold text-foreground">{initials}</AvatarFallback>
+        </Avatar>
 
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
