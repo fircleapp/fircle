@@ -105,7 +105,7 @@ function CommentInput() {
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder="Post your reply"
-          className="min-h-6 w-full resize-none bg-transparent py-1 text-foreground leading-5 placeholder:text-muted-foreground outline-none"
+          className="pt-2.5 mt-0.5 min-h-6 w-full resize-none bg-transparent py-1 text-foreground leading-5 placeholder:text-muted-foreground outline-none"
         />
 
         {isExpanded ? (
