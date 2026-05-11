@@ -39,7 +39,7 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
             key={item.id}
             onClick={() => onItemClick?.(index)}
             className={`relative overflow-hidden rounded-2xl border border-border/80 bg-muted/40 ${
-              shouldSpanTwo ? "sm:col-span-2" : ""
+              shouldSpanTwo ? "col-span-2" : ""
             } ${onItemClick ? "cursor-pointer" : ""}`}
           >
             <div className="aspect-video p-1.5 sm:p-3">
