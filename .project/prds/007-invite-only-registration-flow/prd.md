@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/005-invite-and-access-static-ui/prd.md
     description: "Static invite management and access control UI patterns"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/12
+    description: "Implementation pull request - feat: implement invite only registration flow"
 ---
 
 > **Instructions for AI Agents:**
