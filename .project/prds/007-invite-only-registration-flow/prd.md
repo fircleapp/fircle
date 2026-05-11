@@ -1,6 +1,6 @@
 ---
 title: "Invite-Only Registration Flow - Live Auth, Invite Validation, and Account Creation"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -58,12 +58,12 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 
 #### Tasks
 
-- [ ] Update prisma/schema.prisma with `Family`, `FamilyMember` (user-family membership), and `Invite` models.
-- [ ] Add enums for invite type and invite status (for example: `OPEN`, `EMAIL_BOUND`; `PENDING`, `CLAIMED`, `EXPIRED`, `REVOKED`).
-- [ ] Ensure `Invite` includes: code/token, family relation, optional invited email, createdBy, expiresAt, claimedAt, claimedBy, revokedAt.
-- [ ] Ensure `FamilyMember` includes role support for admin authorization (`OWNER`, `ADMIN`, `MEMBER`).
-- [ ] Add indexes and uniqueness constraints needed for reliable lookup and claim safety.
-- [ ] Generate and commit Prisma migration for the schema changes.
+- [x] Update prisma/schema.prisma with `Family`, `FamilyMember` (user-family membership), and `Invite` models.
+- [x] Add enums for invite type and invite status (for example: `OPEN`, `EMAIL_BOUND`; `PENDING`, `CLAIMED`, `EXPIRED`, `REVOKED`).
+- [x] Ensure `Invite` includes: code/token, family relation, optional invited email, createdBy, expiresAt, claimedAt, claimedBy, revokedAt.
+- [x] Ensure `FamilyMember` includes role support for admin authorization (`OWNER`, `ADMIN`, `MEMBER`).
+- [x] Add indexes and uniqueness constraints needed for reliable lookup and claim safety.
+- [x] Generate and commit Prisma migration for the schema changes.
 
 ---
 
