@@ -131,11 +131,11 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 
 #### Tasks
 
-- [ ] Wire create invite form to live `createInvite` mutation.
-- [ ] Wire invite list view to live `listInvites` query.
-- [ ] Wire revoke action to live `revokeInvite` mutation.
-- [ ] Display generated invite link/code for sharing.
-- [ ] Ensure non-admin users cannot access invite management mutations.
+- [x] Wire create invite form to live `createInvite` mutation.
+- [x] Wire invite list view to live `listInvites` query.
+- [x] Wire revoke action to live `revokeInvite` mutation.
+- [x] Display generated invite link/code for sharing.
+- [x] Ensure non-admin users cannot access invite management mutations.
 
 ---
 

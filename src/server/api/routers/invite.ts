@@ -210,6 +210,43 @@ export const inviteRouter = createTRPCRouter({
     }),
 
   /**
+   * Protected query: Resolve invite management context for current user.
+   * Returns primary family and whether invite management actions are allowed.
+   */
+  getManagementContext: protectedProcedure.query(async ({ ctx }) => {
+    const memberships = await ctx.db.familyMember.findMany({
+      where: { userId: ctx.session.user.id },
+      include: {
+        family: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    })
+
+    const manageableMembership = memberships.find(
+      (membership) => membership.role === "ADMIN" || membership.role === "OWNER",
+    )
+
+    const selectedMembership = manageableMembership ?? memberships[0] ?? null
+
+    return {
+      family: selectedMembership
+        ? {
+            id: selectedMembership.family.id,
+            name: selectedMembership.family.name,
+          }
+        : null,
+      role: selectedMembership?.role ?? null,
+      canManageInvites:
+        selectedMembership?.role === "ADMIN" || selectedMembership?.role === "OWNER",
+    }
+  }),
+
+  /**
    * Protected mutation: Create a new invite (admin-only).
    * Generates a unique code and sets expiry based on TTL.
    */
