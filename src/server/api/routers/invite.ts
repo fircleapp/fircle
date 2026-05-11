@@ -23,8 +23,6 @@ import {
 } from "~/lib/invite-schemas"
 import { normalizeEmail } from "~/lib/email"
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-return */
-
 export const inviteRouter = createTRPCRouter({
   /**
    * Public query: Get invite details by code for pre-acceptance viewing.
