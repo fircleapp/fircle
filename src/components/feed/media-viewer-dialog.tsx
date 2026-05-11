@@ -96,6 +96,8 @@ export function MediaViewerDialog({
 }: MediaViewerDialogProps) {
   const [current, setCurrent] = React.useState(startIndex);
   const [api, setApi] = React.useState<CarouselApi>();
+  const mediaViewportClass = "w-full max-w-7xl";
+  const mediaFrameClass = "flex h-[calc(100vh-8rem)] w-full items-center justify-center";
 
   // Sync current slide index when the dialog opens or startIndex changes
   React.useEffect(() => {
@@ -145,19 +147,21 @@ export function MediaViewerDialog({
           {/* Media area */}
           <div className="flex flex-1 items-center justify-center overflow-hidden px-2 pb-3 sm:px-4 sm:pb-4">
             {isSingle ? (
-              <div className="flex h-[calc(100vh-6rem)] w-full items-center justify-center">
-                <MediaSlide item={items[0]!} />
+              <div className={mediaViewportClass}>
+                <div className={mediaFrameClass}>
+                  <MediaSlide item={items[0]!} />
+                </div>
               </div>
             ) : (
               <Carousel
-                className="w-full max-w-6xl"
+                className={mediaViewportClass}
                 opts={{ startIndex, loop: false }}
                 setApi={setApi}
               >
                 <CarouselContent>
                   {items.map((item) => (
                     <CarouselItem key={item.id}>
-                      <div className="flex h-[calc(100vh-9rem)] items-center justify-center">
+                      <div className={mediaFrameClass}>
                         <MediaSlide item={item} />
                       </div>
                     </CarouselItem>
