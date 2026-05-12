@@ -196,16 +196,16 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 
 #### Tasks
 
-- [ ] Add rate-limit guard rails for public claim-link lookup and claim submission.
-- [ ] Verify create-member permissions for owner/admin versus regular members.
-- [ ] Test successful unclaimed member creation without email.
-- [ ] Test successful unclaimed member creation with optional future claim email.
-- [ ] Test token-based claim without email binding.
-- [ ] Test token-based claim with matching email binding.
-- [ ] Test token-based claim rejection with non-matching email binding.
-- [ ] Test rejection for already-claimed members.
-- [ ] Test rejection for expired, revoked, and invalid claim links.
-- [ ] Run `pnpm check` and validate the Prisma migration path.
+- [x] Add rate-limit guard rails for public claim-link lookup and claim submission.
+- [x] Verify create-member permissions for owner/admin versus regular members.
+- [x] Test successful unclaimed member creation without email.
+- [x] Test successful unclaimed member creation with optional future claim email.
+- [x] Test token-based claim without email binding.
+- [x] Test token-based claim with matching email binding.
+- [x] Test token-based claim rejection with non-matching email binding.
+- [x] Test rejection for already-claimed members.
+- [x] Test rejection for expired, revoked, and invalid claim links.
+- [x] Run `pnpm check` and validate the Prisma migration path.
 
 ## Acceptance Criteria
 
