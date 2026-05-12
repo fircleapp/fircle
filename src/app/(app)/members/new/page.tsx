@@ -1,24 +1,75 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, UserRoundPlus } from "~/components/ui/icons";
 import { useState } from "react";
+import { AlertCircle, CheckCircle2, UserRoundPlus } from "~/components/ui/icons";
 
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { api } from "~/trpc/react";
 
 export default function AddMemberPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [memberName, setMemberName] = useState("");
+  const [memberEmail, setMemberEmail] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [note, setNote] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const selectedFamilyId = managementContext.data?.family?.id ?? null;
+
+  const createMember = api.familyMember.createUnclaimedMember.useMutation({
+    onSuccess: () => {
+      setIsSubmitted(true);
+      setFormError(null);
+    },
+    onError(error) {
+      setFormError(error.message);
+    },
+  });
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsSubmitted(true);
+
+    const normalizedName = memberName.trim();
+    const normalizedEmail = memberEmail.trim();
+    const normalizedPhotoUrl = photoUrl.trim();
+    const normalizedNote = note.trim();
+
+    if (!normalizedName) {
+      setFormError("Member name is required.");
+      return;
+    }
+
+    if (!selectedFamilyId) {
+      setFormError("No family context was found for your account.");
+      return;
+    }
+
+    setFormError(null);
+
+    await createMember.mutateAsync({
+      familyId: selectedFamilyId,
+      name: normalizedName,
+      email: normalizedEmail.length > 0 ? normalizedEmail : undefined,
+      image: normalizedPhotoUrl.length > 0 ? normalizedPhotoUrl : undefined,
+      note: normalizedNote.length > 0 ? normalizedNote : undefined,
+    });
   };
 
   const handleAddAnother = () => {
     setMemberName("");
+    setMemberEmail("");
+    setPhotoUrl("");
+    setNote("");
     setIsSubmitted(false);
+    setFormError(null);
   };
 
   return (
@@ -68,6 +119,24 @@ export default function AddMemberPage() {
             </div>
           </div>
 
+          {formError ? (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Unable to create member</AlertTitle>
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {managementContext.isLoading ? (
+            <Alert className="mb-6">
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Loading family context</AlertTitle>
+              <AlertDescription>
+                We&apos;re checking which family you can add this member to.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="name" className="text-sm font-medium">
@@ -79,6 +148,7 @@ export default function AddMemberPage() {
                 value={memberName}
                 onChange={(event) => setMemberName(event.target.value)}
                 required
+                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
               />
             </div>
 
@@ -86,14 +156,27 @@ export default function AddMemberPage() {
               <label htmlFor="email" className="text-sm font-medium">
                 Email (optional)
               </label>
-              <Input id="email" type="email" placeholder="name@family.com" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@family.com"
+                value={memberEmail}
+                onChange={(event) => setMemberEmail(event.target.value)}
+                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
+              />
             </div>
 
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="photoUrl" className="text-sm font-medium">
                 Photo URL (optional)
               </label>
-              <Input id="photoUrl" placeholder="https://example.com/photo.jpg" />
+              <Input
+                id="photoUrl"
+                placeholder="https://example.com/photo.jpg"
+                value={photoUrl}
+                onChange={(event) => setPhotoUrl(event.target.value)}
+                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
+              />
             </div>
 
             <div className="space-y-2 sm:col-span-2">
@@ -104,13 +187,16 @@ export default function AddMemberPage() {
                 id="note"
                 rows={4}
                 placeholder="Any context for this profile, such as preferred name or invite timing."
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
                 className="w-full rounded-2xl border border-input bg-transparent px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
               />
             </div>
 
             <div className="sm:col-span-2">
               <label className="inline-flex items-start gap-2 text-sm text-muted-foreground">
-                <input type="checkbox" defaultChecked className="mt-0.5" />
+                <input type="checkbox" defaultChecked className="mt-0.5" disabled={createMember.isPending} />
                 <span>
                   They are not joining yet. I am only creating their profile now so they can be tagged
                   in memories and claim later.
@@ -120,7 +206,9 @@ export default function AddMemberPage() {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            <Button type="submit">Create member</Button>
+            <Button type="submit" disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}>
+              {createMember.isPending ? "Creating..." : "Create member"}
+            </Button>
             <Button asChild type="button" variant="outline">
               <Link href="/members">Back to members</Link>
             </Button>

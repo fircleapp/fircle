@@ -153,24 +153,24 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 
 #### Tasks
 
-- [ ] Update `src/app/(app)/members/new/page.tsx` to submit to `createUnclaimedMember`.
-- [ ] Preserve the existing success state on the add-member page, but populate it from real mutation results.
-- [ ] Add inline handling for create-member failures such as duplicate member conflicts or validation errors.
-- [ ] Update `src/app/auth/claim/[token]/page.tsx` to fetch live claim-link preview data by token.
-- [ ] Replace `src/lib/mocks/family-members` usage in the claim page with live query data.
-- [ ] Submit the claim form to `claimMemberProfile`.
-- [ ] Render distinct live states on the claim page for:
-  - [ ] invalid token
-  - [ ] expired token
-  - [ ] revoked token
-  - [ ] already claimed link
-  - [ ] member already claimed
-  - [ ] email mismatch
-  - [ ] success
-- [ ] Route the user into the correct next step after a successful claim:
+- [x] Update `src/app/(app)/members/new/page.tsx` to submit to `createUnclaimedMember`.
+- [x] Preserve the existing success state on the add-member page, but populate it from real mutation results.
+- [x] Add inline handling for create-member failures such as duplicate member conflicts or validation errors.
+- [x] Update `src/app/auth/claim/[token]/page.tsx` to fetch live claim-link preview data by token.
+- [x] Replace `src/lib/mocks/family-members` usage in the claim page with live query data.
+- [x] Submit the claim form to `claimMemberProfile`.
+- [x] Render distinct live states on the claim page for:
+  - [x] invalid token
+  - [x] expired token
+  - [x] revoked token
+  - [x] already claimed link
+  - [x] member already claimed
+  - [x] email mismatch
+  - [x] success
+- [x] Route the user into the correct next step after a successful claim:
   - [ ] either auto sign-in and redirect into the app
-  - [ ] or redirect to sign-in with a clear success state
-- [ ] Keep the UI contract compatible with optional email-bound and non-email-bound claim flows.
+  - [x] or redirect to sign-in with a clear success state
+- [x] Keep the UI contract compatible with optional email-bound and non-email-bound claim flows.
 
 ---
 

@@ -239,7 +239,7 @@ export const familyMemberRouter = createTRPCRouter({
       }
 
       if (isMemberAlreadyClaimed(inv.claimMember!)) {
-        return { state: "invalid" as const }
+        return { state: "memberAlreadyClaimed" as const }
       }
 
       return {
