@@ -52,6 +52,7 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 - **Claiming should avoid duplicates**: A successful claim must attach the new account to the existing `FamilyMember` record instead of creating a second member entry.
 - **Admin-managed creation and claim issuance**: Only authorized family members (owner/admin) can create unclaimed members or issue claim links in MVP.
 - **Preserve existing static UIs**: The existing add-member and claim pages are the contract. This phase should wire them to live data rather than redesign them.
+- **No relationship field**: `FamilyMember` does not store a relationship label. Relationship is inherently subjective — the same person may be a parent to one member and a grandparent's child to another — and a single stored value would be misleading or require per-viewer overrides. Relationship context is omitted from all member creation, editing, display, and search surfaces.
 
 ### User Stories
 

@@ -83,29 +83,6 @@ export default function AddMemberPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="relationship" className="text-sm font-medium">
-                Relationship
-              </label>
-              <select
-                id="relationship"
-                defaultValue=""
-                className="flex h-10 w-full min-w-0 rounded-2xl border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-                required
-              >
-                <option value="" disabled>
-                  Select relationship
-                </option>
-                <option value="Parent">Parent</option>
-                <option value="Sibling">Sibling</option>
-                <option value="Child">Child</option>
-                <option value="Grandparent">Grandparent</option>
-                <option value="Aunt/Uncle">Aunt/Uncle</option>
-                <option value="Cousin">Cousin</option>
-                <option value="Family Friend">Family Friend</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 Email (optional)
               </label>

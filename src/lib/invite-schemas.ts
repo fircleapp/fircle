@@ -58,22 +58,9 @@ export type InviteRevokeInput = z.infer<typeof inviteRevokeInputSchema>
 
 // ─── Claim schemas ────────────────────────────────────────────────────────────
 
-export const MEMBER_RELATIONSHIPS = [
-  "Parent",
-  "Sibling",
-  "Child",
-  "Grandparent",
-  "Aunt/Uncle",
-  "Cousin",
-  "Family Friend",
-] as const
-
-export type MemberRelationship = (typeof MEMBER_RELATIONSHIPS)[number]
-
 export const createUnclaimedMemberInputSchema = z.object({
   familyId: z.string().cuid(),
   name: z.string().trim().min(1).max(120),
-  relationship: z.enum(MEMBER_RELATIONSHIPS),
   /** Optional email for future claim-link binding. Not stored on `User`. */
   email: z
     .string()

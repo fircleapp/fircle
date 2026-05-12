@@ -86,9 +86,7 @@ export default function ClaimAccountPage() {
 
                   <div className="space-y-2 text-sm">
                     <p className="font-semibold text-base">{claimPreview.memberName}</p>
-                    <p className="text-muted-foreground">
-                      {claimPreview.relationship} · {claimPreview.familyName}
-                    </p>
+                    <p className="text-muted-foreground">{claimPreview.familyName}</p>
                     <p className="text-muted-foreground">Invited by {claimPreview.invitedByName}</p>
                     <p className="text-muted-foreground">
                       Claiming this link will activate this existing profile instead of creating a

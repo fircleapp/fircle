@@ -30,7 +30,7 @@ export default function MembersPage() {
       const matchesQuery =
         normalizedQuery.length === 0
           ? true
-          : `${member.name} ${member.relationship} ${member.addedByName}`
+          : `${member.name} ${member.addedByName}`
               .toLowerCase()
               .includes(normalizedQuery);
 
@@ -60,7 +60,7 @@ export default function MembersPage() {
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by name, relationship, or who added them"
+            placeholder="Search by name or who added them"
             aria-label="Search family members"
             className="sm:max-w-md"
           />

@@ -40,8 +40,6 @@ export function MemberCard({ member }: MemberCardProps) {
             <MemberStatusBadge status={member.status} />
           </div>
 
-          <p className="text-xs text-muted-foreground sm:text-sm">{member.relationship}</p>
-
           <p className="text-xs text-muted-foreground">
             Added by {member.addedByName} · {member.addedAtLabel}
           </p>
