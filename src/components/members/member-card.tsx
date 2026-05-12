@@ -25,7 +25,7 @@ export function MemberCard({ member }: MemberCardProps) {
 
   return (
     <Link
-      href={`/members/${member.id}`}
+      href={`/member/${member.slug}`}
       className="block rounded-3xl border bg-card p-4 shadow-sm transition hover:border-primary/30"
     >
       <article className="flex items-start gap-3">

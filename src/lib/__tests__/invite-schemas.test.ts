@@ -19,15 +19,25 @@ describe("createUnclaimedMemberInputSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts a full input with optional email, image, and note", () => {
+  it("accepts a full input with optional nickname, email, image, and note", () => {
     const result = createUnclaimedMemberInputSchema.safeParse({
       familyId: VALID_CUID,
       name: "Grandma Betty",
+      nickname: "Nana",
       email: "betty@example.com",
       image: "https://example.com/photo.jpg",
       note: "Added by admin — will claim later",
     });
     expect(result.success).toBe(true);
+  });
+
+  it("rejects empty nickname", () => {
+    const result = createUnclaimedMemberInputSchema.safeParse({
+      familyId: VALID_CUID,
+      name: "Betty",
+      nickname: "",
+    });
+    expect(result.success).toBe(false);
   });
 
   it("rejects missing name", () => {

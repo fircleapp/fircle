@@ -7,11 +7,11 @@ const db = new PrismaClient();
 const SEED_PASSWORD = "Passw0rd!123";
 
 const usersFromMocks = [
-  { name: "Emma Shittabey", email: "emma.shittabey@example.com", role: "OWNER" },
+  { name: "Emma Shittabey", nickname: "Em", email: "emma.shittabey@example.com", role: "OWNER" },
   { name: "Noah Shittabey", email: "noah.shittabey@example.com", role: "ADMIN" },
   { name: "Lily Shittabey", email: "lily.shittabey@example.com", role: "MEMBER" },
   { name: "Logan Ross", email: "logan.ross@example.com", role: "MEMBER" },
-  { name: "Ava Kim", email: "ava.kim@example.com", role: "MEMBER" },
+  { name: "Ava Kim", nickname: "Av", email: "ava.kim@example.com", role: "MEMBER" },
 ];
 
 // This user is intentionally outside the family to test duplicate-email invite acceptance.
@@ -93,6 +93,36 @@ function parseDate(input) {
   return new Date(input);
 }
 
+function slugifyMemberText(value) {
+  const normalized = value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized.length > 0 ? normalized : "member";
+}
+
+function getMemberSlugBase(name, nickname) {
+  return slugifyMemberText((nickname && nickname.trim()) || name);
+}
+
+function resolveUniqueSeedSlug(usedSlugs, baseSlug) {
+  let attempt = 0;
+
+  while (attempt < 1000) {
+    const candidate = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
+    if (!usedSlugs.has(candidate)) {
+      usedSlugs.add(candidate);
+      return candidate;
+    }
+    attempt += 1;
+  }
+
+  throw new Error("Could not resolve a unique slug for seed member");
+}
+
 async function upsertUser(email, hashedPassword) {
   return db.user.upsert({
     where: { email },
@@ -124,25 +154,48 @@ async function main() {
 
   const usersByName = new Map();
 
+  const existingMemberSlugs = await db.familyMember.findMany({
+    where: { familyId: family.id },
+    select: { slug: true },
+  });
+  const usedSlugs = new Set(existingMemberSlugs.map((member) => member.slug));
+
   for (const userInput of usersFromMocks) {
     const user = await upsertUser(userInput.email, hashedPassword);
     usersByName.set(userInput.name, user);
 
-    await db.familyMember.upsert({
+    const existingMembership = await db.familyMember.findUnique({
       where: {
         familyId_userId: {
           familyId: family.id,
           userId: user.id,
         },
       },
-      update: {
-        name: userInput.name,
-        role: userInput.role,
-      },
-      create: {
+    });
+
+    if (existingMembership) {
+      await db.familyMember.update({
+        where: { id: existingMembership.id },
+        data: {
+          name: userInput.name,
+          nickname: userInput.nickname ?? null,
+          role: userInput.role,
+        },
+      });
+      usedSlugs.add(existingMembership.slug);
+      continue;
+    }
+
+    const slugBase = getMemberSlugBase(userInput.name, userInput.nickname);
+    const slug = resolveUniqueSeedSlug(usedSlugs, slugBase);
+
+    await db.familyMember.create({
+      data: {
         familyId: family.id,
         userId: user.id,
         name: userInput.name,
+        nickname: userInput.nickname ?? null,
+        slug,
         role: userInput.role,
       },
     });

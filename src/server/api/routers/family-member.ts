@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs"
 import { TRPCError } from "@trpc/server"
 import { type Prisma } from "../../../../generated/prisma"
+import { z } from "zod"
 
 import {
   createTRPCRouter,
@@ -24,6 +25,7 @@ import {
 } from "~/lib/invite-schemas"
 import { getInviteExpiryDate } from "~/lib/invite"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
+import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -60,6 +62,68 @@ async function requireAdminMembership(
 
 export const familyMemberRouter = createTRPCRouter({
   /**
+   * Protected query: Resolve a family member profile by slug within a family.
+   * Caller must be a member of the target family.
+   */
+  getMemberProfileBySlug: protectedProcedure
+    .input(
+      z.object({
+        familyId: z.string().cuid(),
+        slug: z.string().trim().min(1).max(120),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const membership = await ctx.db.familyMember.findUnique({
+        where: {
+          familyId_userId: {
+            familyId: input.familyId,
+            userId: ctx.session.user.id,
+          },
+        },
+        select: { id: true },
+      })
+
+      if (!membership) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have access to this family",
+        })
+      }
+
+      const member = await ctx.db.familyMember.findFirst({
+        where: {
+          familyId: input.familyId,
+          slug: input.slug,
+        },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          nickname: true,
+          image: true,
+          role: true,
+          userId: true,
+          createdAt: true,
+        },
+      })
+
+      if (!member) {
+        return null
+      }
+
+      return {
+        id: member.id,
+        slug: member.slug,
+        name: member.name,
+        nickname: member.nickname,
+        image: member.image,
+        role: member.role,
+        status: member.userId ? ("claimed" as const) : ("unclaimed" as const),
+        createdAt: member.createdAt,
+      }
+    }),
+
+  /**
    * Protected mutation: Create an unclaimed family member profile.
    * Only owner/admin may create unclaimed members for a family.
    */
@@ -68,24 +132,10 @@ export const familyMemberRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await requireAdminMembership(ctx.db, input.familyId, ctx.session.user.id)
 
-      // Prevent duplicate names within the same family (case-insensitive).
-      // This is a soft guard only — no unique index exists on name — so a
-      // warning-level conflict is raised rather than a silent duplicate.
-      const existing = await ctx.db.familyMember.findFirst({
-        where: {
-          familyId: input.familyId,
-          name: { equals: input.name, mode: "insensitive" },
-        },
-      })
-
-      if (existing) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: `A family member named "${input.name}" already exists in this family`,
-        })
-      }
-
       const result = await ctx.db.$transaction(async (tx: Prisma.TransactionClient) => {
+        const baseSlug = getMemberSlugBase(input.name, input.nickname)
+        const slug = await resolveUniqueMemberSlug(tx, input.familyId, baseSlug)
+
         if (input.email) {
           const conflictingInvite = await tx.invite.findFirst({
             where: {
@@ -119,6 +169,8 @@ export const familyMemberRouter = createTRPCRouter({
             familyId: input.familyId,
             userId: null,
             name: input.name,
+            nickname: input.nickname ?? null,
+            slug,
             image: input.image ?? null,
             role: "MEMBER",
           },
@@ -182,6 +234,8 @@ export const familyMemberRouter = createTRPCRouter({
       return {
         id: member.id,
         name: member.name,
+        nickname: member.nickname,
+        slug: member.slug,
         image: member.image,
         familyId: member.familyId,
         status: "unclaimed" as const,

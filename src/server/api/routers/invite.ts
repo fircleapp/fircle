@@ -23,6 +23,7 @@ import {
 } from "~/lib/invite-schemas"
 import { normalizeEmail } from "~/lib/email"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
+import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
 
 export const inviteRouter = createTRPCRouter({
   /**
@@ -232,11 +233,15 @@ export const inviteRouter = createTRPCRouter({
           }
 
           // Add user to family
+          const baseSlug = getMemberSlugBase(input.name)
+          const slug = await resolveUniqueMemberSlug(tx, invite.familyId, baseSlug)
+
           await tx.familyMember.create({
             data: {
               familyId: invite.familyId,
               userId: user.id,
               name: input.name,
+              slug,
               role: "MEMBER",
             },
           })

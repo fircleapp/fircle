@@ -5,6 +5,8 @@ export type MemberRole = "owner" | "admin" | "member";
 export type FamilyMemberSummary = {
   id: string;
   name: string;
+  nickname?: string;
+  slug: string;
   status: FamilyMemberStatus;
   role: MemberRole;
   avatarUrl?: string;
@@ -32,6 +34,8 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-emma-shittabey",
     name: "Emma Shittabey",
+    nickname: "Em",
+    slug: "em",
     status: "claimed",
     role: "owner",
     avatarUrl:
@@ -42,6 +46,7 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-noah-shittabey",
     name: "Noah Shittabey",
+    slug: "noah-shittabey",
     status: "claimed",
     role: "admin",
     avatarUrl:
@@ -52,6 +57,7 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-lily-shittabey",
     name: "Lily Shittabey",
+    slug: "lily-shittabey",
     status: "claimed",
     role: "member",
     avatarUrl:
@@ -62,6 +68,8 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-evelyn-shittabey",
     name: "Evelyn Shittabey",
+    nickname: "Evie",
+    slug: "evie",
     status: "unclaimed",
     role: "member",
     avatarUrl:
@@ -72,6 +80,7 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-logan-ross",
     name: "Logan Ross",
+    slug: "logan-ross",
     status: "claimed",
     role: "member",
     avatarUrl:
@@ -82,6 +91,7 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-nina-ross",
     name: "Nina Ross",
+    slug: "nina-ross",
     status: "unclaimed",
     role: "member",
     addedByName: "Logan Ross",
@@ -90,6 +100,7 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-ben-harper",
     name: "Ben Harper",
+    slug: "ben-harper",
     status: "unclaimed",
     role: "member",
     avatarUrl:
@@ -100,6 +111,8 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-ava-kim",
     name: "Ava Kim",
+    nickname: "Av",
+    slug: "av",
     status: "claimed",
     role: "member",
     avatarUrl:
@@ -153,6 +166,9 @@ export const claimInvitePreviews: ClaimInvitePreview[] = [
 
 export const getFamilyMemberProfileById = (memberId: string) =>
   familyMemberProfiles.find((member) => member.id === memberId);
+
+export const getFamilyMemberProfileBySlug = (slug: string) =>
+  familyMemberProfiles.find((member) => member.slug === slug);
 
 export const getClaimInvitePreviewByToken = (token: string) =>
   claimInvitePreviews.find((preview) => preview.token === token);

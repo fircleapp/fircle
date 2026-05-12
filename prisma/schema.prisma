@@ -47,7 +47,9 @@ model FamilyMember {
   id        String     @id @default(cuid())
   familyId  String
   userId    String?
-  name      String?
+  name      String
+  nickname  String?
+  slug      String
   image     String?
   role      FamilyRole @default(MEMBER)
   createdAt DateTime   @default(now())
@@ -58,6 +60,7 @@ model FamilyMember {
   user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@unique([familyId, userId])
+  @@unique([familyId, slug])
   @@index([userId])
 }
 

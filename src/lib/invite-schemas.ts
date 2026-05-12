@@ -61,6 +61,8 @@ export type InviteRevokeInput = z.infer<typeof inviteRevokeInputSchema>
 export const createUnclaimedMemberInputSchema = z.object({
   familyId: z.string().cuid(),
   name: z.string().trim().min(1).max(120),
+  /** Optional family-friendly display handle used for profile slug generation. */
+  nickname: z.string().trim().min(1).max(60).optional(),
   /** Optional email for future claim-link binding. Not stored on `User`. */
   email: z
     .string()

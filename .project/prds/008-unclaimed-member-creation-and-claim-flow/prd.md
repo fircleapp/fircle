@@ -35,6 +35,8 @@ This PRD covers:
 - creating unclaimed family members from the existing add-member screen
 - generating claim links for unclaimed members
 - auto-generating an email-bound claim link immediately when add-member includes an email
+- introducing member identity fields (`name`, optional `nickname`, and family-scoped `slug`)
+- using slug-based member profile URLs at `/member/[slug]`
 - optionally binding claim links to a specific email address
 - claiming an existing family member profile from the public claim route
 - linking the claimed profile to a newly created auth account
@@ -46,6 +48,11 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 - **`FamilyMember` is the identity record**: Member-level relationships should hang off `FamilyMember`, not `User`. `User` is only the account layer.
 - **Nullable `userId` means unclaimed**: `FamilyMember.userId = null` is the canonical representation for an unclaimed member. No separate profile table should be introduced in this phase.
 - **Profile fields are member-scoped**: `name` and `image` should live on `FamilyMember`. The `User` model should not store these fields.
+- **Member name is required**: `FamilyMember.name` is required and should not be nullable.
+- **Duplicate names are allowed**: family members can share the same `name`; identity checks should not rely on name uniqueness.
+- **Nickname is optional**: `nickname` is an optional family-friendly display handle.
+- **Slug is canonical for profile URLs**: each member has a family-scoped unique `slug` used for `/member/[slug]`.
+- **Slug generation source**: generate slug from `nickname` when present, otherwise from `name`.
 - **Reuse `Invite` with `claimMemberId`**: Keep one invite model. Treat invites with `claimMemberId != null` as member-claim invites, and invites with `claimMemberId = null` as normal family registration invites.
 - **Token-based by default**: Claiming should work via a generated token link.
 - **Optional email binding**: Claim links may optionally be bound to an email address for extra verification, but email binding is not required for all claims.
@@ -211,7 +218,30 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 - [x] Test token-based claim rejection with non-matching email binding.
 - [x] Test rejection for already-claimed members.
 - [x] Test rejection for expired, revoked, and invalid claim links.
+- [x] Update `prisma/seed.mjs` so seeded `FamilyMember` records include valid required identity fields (`name`, `slug`) and optional `nickname`.
 - [x] Run `pnpm check` and validate the Prisma migration path.
+
+---
+
+### Phase 7: Member Identity and Slug Routing
+
+**Goal:** Introduce required member identity fields and slug-based member profile routing.
+
+#### Tasks
+
+- [x] Update `FamilyMember` schema so `name` is required and add optional `nickname` plus required `slug`.
+- [x] Add family-scoped uniqueness on member slug (`@@unique([familyId, slug])`).
+- [x] Add migration backfill for existing members to ensure required `name` and `slug` are populated.
+- [x] Add shared slug utility to normalize slug text and resolve family-scoped collisions.
+- [x] Update create-member validation schema to accept optional `nickname`.
+- [x] Remove duplicate-name blocking in create-member flow.
+- [x] Generate/store `slug` during unclaimed member creation.
+- [x] Ensure invite acceptance creates `FamilyMember` records with required `slug`.
+- [x] Add optional nickname input to add-member UI and submit it in create-member payload.
+- [x] Switch member card links from id-based URLs to `/member/[slug]`.
+- [x] Add slug-based member profile route at `src/app/(app)/member/[slug]/page.tsx`.
+- [x] Extend mock member data with `slug`/`nickname` and add slug lookup helper for route rendering.
+- [x] Add schema tests for nickname acceptance and validation behavior.
 
 ## Acceptance Criteria
 
@@ -230,4 +260,10 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 - [ ] Invalid, expired, revoked, already-used, and already-claimed flows each return distinct UI states.
 - [ ] Non-admin users cannot create unclaimed members or issue claim links.
 - [ ] The existing add-member and claim pages are wired to live backend procedures.
+- [ ] Local seed data remains compatible with the current Prisma schema for `FamilyMember` identity fields.
 - [ ] `pnpm check` passes with no lint or type errors after implementation.
+- [ ] `FamilyMember.name` is required and non-null for persisted records.
+- [ ] Family members with the same display name can coexist in the same family.
+- [ ] Member profile URLs are slug-based (`/member/[slug]`) and resolve by member slug.
+- [ ] Slug generation uses `nickname` first, then falls back to `name`.
+- [ ] Slug uniqueness is enforced per family.

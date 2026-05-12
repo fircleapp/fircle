@@ -12,6 +12,7 @@ import { api } from "~/trpc/react";
 export default function AddMemberPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [memberName, setMemberName] = useState("");
+  const [memberNickname, setMemberNickname] = useState("");
   const [memberEmail, setMemberEmail] = useState("");
   const [autoClaimInvite, setAutoClaimInvite] = useState<{
     code: string;
@@ -52,6 +53,7 @@ export default function AddMemberPage() {
     event.preventDefault();
 
     const normalizedName = memberName.trim();
+    const normalizedNickname = memberNickname.trim();
     const normalizedEmail = memberEmail.trim();
     const normalizedPhotoUrl = photoUrl.trim();
     const normalizedNote = note.trim();
@@ -71,6 +73,7 @@ export default function AddMemberPage() {
     await createMember.mutateAsync({
       familyId: selectedFamilyId,
       name: normalizedName,
+      nickname: normalizedNickname.length > 0 ? normalizedNickname : undefined,
       email: normalizedEmail.length > 0 ? normalizedEmail : undefined,
       image: normalizedPhotoUrl.length > 0 ? normalizedPhotoUrl : undefined,
       note: normalizedNote.length > 0 ? normalizedNote : undefined,
@@ -79,6 +82,7 @@ export default function AddMemberPage() {
 
   const handleAddAnother = () => {
     setMemberName("");
+    setMemberNickname("");
     setMemberEmail("");
     setAutoClaimInvite(null);
     setIsClaimLinkCopied(false);
@@ -202,6 +206,19 @@ export default function AddMemberPage() {
                 value={memberName}
                 onChange={(event) => setMemberName(event.target.value)}
                 required
+                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="nickname" className="text-sm font-medium">
+                Nickname (optional)
+              </label>
+              <Input
+                id="nickname"
+                placeholder="For example: Nana"
+                value={memberNickname}
+                onChange={(event) => setMemberNickname(event.target.value)}
                 disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
               />
             </div>
