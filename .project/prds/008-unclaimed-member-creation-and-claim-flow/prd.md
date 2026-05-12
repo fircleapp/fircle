@@ -101,23 +101,23 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 
 #### Tasks
 
-- [ ] Add a member-claim helper module under `src/lib` for token generation, claim status evaluation, and lifecycle checks.
-- [ ] Add helper predicate for invite intent inference:
-  - [ ] `isClaimInvite(invite) => invite.claimMemberId != null`
-- [ ] Add zod schemas for:
-  - [ ] create unclaimed member input
-  - [ ] generate claim link input
-  - [ ] claim link lookup input
-  - [ ] claim member input
-- [ ] Implement centralized claim status evaluation covering:
-  - [ ] valid
-  - [ ] expired
-  - [ ] claimed
-  - [ ] revoked
-  - [ ] invalid
-- [ ] Implement optional email-binding validation for claim links.
-- [ ] Reuse or extend existing email normalization utilities for safe email comparisons.
-- [ ] Define stable error codes/messages for duplicate member, already-claimed member, already-used claim link, email mismatch, and invalid token cases.
+- [x] Add a member-claim helper module under `src/lib` for token generation, claim status evaluation, and lifecycle checks.
+- [x] Add helper predicate for invite intent inference:
+  - [x] `isClaimInvite(invite) => invite.claimMemberId != null`
+- [x] Add zod schemas for:
+  - [x] create unclaimed member input
+  - [x] generate claim link input
+  - [x] claim link lookup input
+  - [x] claim member input
+- [x] Implement centralized claim status evaluation covering:
+  - [x] valid
+  - [x] expired
+  - [x] claimed
+  - [x] revoked
+  - [x] invalid
+- [x] Implement optional email-binding validation for claim links.
+- [x] Reuse or extend existing email normalization utilities for safe email comparisons.
+- [x] Define stable error codes/messages for duplicate member, already-claimed member, already-used claim link, email mismatch, and invalid token cases.
 
 ---
 
