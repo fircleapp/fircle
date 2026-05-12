@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { AlertCircle, CheckCircle2, UserRoundPlus } from "~/components/ui/icons";
+import { AlertCircle, Check, CheckCircle2, Copy, Link2, UserRoundPlus } from "~/components/ui/icons";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
@@ -13,6 +13,11 @@ export default function AddMemberPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [memberName, setMemberName] = useState("");
   const [memberEmail, setMemberEmail] = useState("");
+  const [autoClaimInvite, setAutoClaimInvite] = useState<{
+    code: string;
+    invitedEmail: string | null;
+  } | null>(null);
+  const [isClaimLinkCopied, setIsClaimLinkCopied] = useState(false);
   const [photoUrl, setPhotoUrl] = useState("");
   const [note, setNote] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -25,9 +30,18 @@ export default function AddMemberPage() {
   const selectedFamilyId = managementContext.data?.family?.id ?? null;
 
   const createMember = api.familyMember.createUnclaimedMember.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       setIsSubmitted(true);
       setFormError(null);
+      setAutoClaimInvite(
+        data.claimInvite
+          ? {
+              code: data.claimInvite.code,
+              invitedEmail: data.claimInvite.invitedEmail,
+            }
+          : null,
+      );
+      setIsClaimLinkCopied(false);
     },
     onError(error) {
       setFormError(error.message);
@@ -66,10 +80,23 @@ export default function AddMemberPage() {
   const handleAddAnother = () => {
     setMemberName("");
     setMemberEmail("");
+    setAutoClaimInvite(null);
+    setIsClaimLinkCopied(false);
     setPhotoUrl("");
     setNote("");
     setIsSubmitted(false);
     setFormError(null);
+  };
+
+  const autoClaimUrl = autoClaimInvite
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/auth/claim/${autoClaimInvite.code}`
+    : null;
+
+  const handleCopyClaimLink = async () => {
+    if (!autoClaimUrl) return;
+    await navigator.clipboard.writeText(autoClaimUrl);
+    setIsClaimLinkCopied(true);
+    setTimeout(() => setIsClaimLinkCopied(false), 2000);
   };
 
   return (
@@ -95,6 +122,33 @@ export default function AddMemberPage() {
               <p className="text-sm text-muted-foreground">
                 They can claim this profile later using a claim invite.
               </p>
+              {autoClaimInvite && autoClaimUrl ? (
+                <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3 text-sm">
+                  <p className="font-medium text-primary">Claim invite created automatically</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border bg-background/80 px-2 py-2">
+                    <Link2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <p className="min-w-0 flex-1 break-all font-mono text-xs sm:text-sm">{autoClaimUrl}</p>
+                    <Button type="button" size="sm" variant="outline" onClick={handleCopyClaimLink}>
+                      {isClaimLinkCopied ? (
+                        <>
+                          <Check className="size-4" aria-hidden="true" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="size-4" aria-hidden="true" />
+                          Copy link
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  {autoClaimInvite.invitedEmail ? (
+                    <p className="mt-1 text-muted-foreground">
+                      This link is email-bound to {autoClaimInvite.invitedEmail}.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </div>
 

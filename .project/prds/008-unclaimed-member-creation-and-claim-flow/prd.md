@@ -34,6 +34,7 @@ This feature establishes `FamilyMember` as the primary family-scoped identity re
 This PRD covers:
 - creating unclaimed family members from the existing add-member screen
 - generating claim links for unclaimed members
+- auto-generating an email-bound claim link immediately when add-member includes an email
 - optionally binding claim links to a specific email address
 - claiming an existing family member profile from the public claim route
 - linking the claimed profile to a newly created auth account
@@ -49,6 +50,7 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 - **Token-based by default**: Claiming should work via a generated token link.
 - **Optional email binding**: Claim links may optionally be bound to an email address for extra verification, but email binding is not required for all claims.
 - **Create first, claim later**: Family admins can create an unclaimed member without requiring that person to be present or know their final email yet.
+- **Email on create can invite immediately**: If an email is provided during unclaimed-member creation, the system immediately creates an email-bound claim invite for that profile.
 - **Claiming should avoid duplicates**: A successful claim must attach the new account to the existing `FamilyMember` record instead of creating a second member entry.
 - **Admin-managed creation and claim issuance**: Only authorized family members (owner/admin) can create unclaimed members or issue claim links in MVP.
 - **Preserve existing static UIs**: The existing add-member and claim pages are the contract. This phase should wire them to live data rather than redesign them.
@@ -58,6 +60,7 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 
 - **As a** family organizer, **I want** to create a family member before they join the app, **so that** the whole family can be represented from the start.
 - **As a** family organizer, **I want** to optionally attach an email to a future claim, **so that** I can add extra verification when needed.
+- **As a** family organizer, **I want** an email entered during member creation to immediately generate a claim link, **so that** I can invite them right away without extra steps.
 - **As a** family organizer, **I want** to send a claim link to an unclaimed member later, **so that** they can take over their existing profile without creating a duplicate identity.
 - **As a** person receiving a claim link, **I want** to claim my family profile and create my account in one flow, **so that** I can join the app with the right family identity already attached.
 - **As a** family member, **I want** claimed and unclaimed members to appear as the same kind of family identity record, **so that** future tags, posts, and activities can refer to one consistent member model.
@@ -156,6 +159,8 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 - [x] Update `src/app/(app)/members/new/page.tsx` to submit to `createUnclaimedMember`.
 - [x] Preserve the existing success state on the add-member page, but populate it from real mutation results.
 - [x] Add inline handling for create-member failures such as duplicate member conflicts or validation errors.
+- [x] When add-member email is provided, auto-create an email-bound claim invite in the same create flow and return invite metadata.
+- [x] Show the generated claim link in the add-member success state when an auto-created invite exists.
 - [x] Update `src/app/auth/claim/[token]/page.tsx` to fetch live claim-link preview data by token.
 - [x] Replace `src/lib/mocks/family-members` usage in the claim page with live query data.
 - [x] Submit the claim form to `claimMemberProfile`.
@@ -200,6 +205,7 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 - [x] Verify create-member permissions for owner/admin versus regular members.
 - [x] Test successful unclaimed member creation without email.
 - [x] Test successful unclaimed member creation with optional future claim email.
+- [x] Test that add-member email creates an immediate email-bound claim invite and returns a usable claim link.
 - [x] Test token-based claim without email binding.
 - [x] Test token-based claim with matching email binding.
 - [x] Test token-based claim rejection with non-matching email binding.
@@ -213,6 +219,7 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 - [ ] An unclaimed member is stored as a `FamilyMember` with `userId = null`.
 - [ ] Claimed and unclaimed members use the same `FamilyMember` identity model.
 - [ ] Member profile fields (`name`, `image`) are stored on `FamilyMember`, not `User`.
+- [ ] When add-member includes an email, the system creates an email-bound claim invite for that member immediately.
 - [ ] A family admin can generate a claim link for an unclaimed member.
 - [ ] Claim links are represented as `Invite` records with `claimMemberId` populated.
 - [ ] Registration invites are represented as `Invite` records with `claimMemberId = null`.

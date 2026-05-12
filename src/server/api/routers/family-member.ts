@@ -9,6 +9,7 @@ import {
 } from "~/server/api/trpc"
 import {
   generateClaimToken,
+  CLAIM_DEFAULT_TTL_DAYS,
   getClaimLifecycleState,
   isMemberAlreadyClaimed,
   isClaimInvite,
@@ -84,19 +85,99 @@ export const familyMemberRouter = createTRPCRouter({
         })
       }
 
-      const member = await ctx.db.familyMember.create({
-        data: {
-          familyId: input.familyId,
-          userId: null,
-          name: input.name,
-          image: input.image ?? null,
-          role: "MEMBER",
-        },
+      const result = await ctx.db.$transaction(async (tx: Prisma.TransactionClient) => {
+        if (input.email) {
+          const conflictingInvite = await tx.invite.findFirst({
+            where: {
+              type: "EMAIL_BOUND",
+              invitedEmail: input.email,
+              status: "PENDING",
+              claimedAt: null,
+              revokedAt: null,
+              expiresAt: { gt: new Date() },
+            },
+            include: {
+              claimMember: {
+                select: { id: true, name: true },
+              },
+            },
+          })
+
+          if (conflictingInvite) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                conflictingInvite.claimMember?.name
+                  ? `This email is already bound to an active claim invite for ${conflictingInvite.claimMember.name}.`
+                  : "This email is already bound to another active claim invite.",
+            })
+          }
+        }
+
+        const member = await tx.familyMember.create({
+          data: {
+            familyId: input.familyId,
+            userId: null,
+            name: input.name,
+            image: input.image ?? null,
+            role: "MEMBER",
+          },
+        })
+
+        if (!input.email) {
+          return {
+            member,
+            claimInvite: null,
+          }
+        }
+
+        let code: string | undefined
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const candidate = generateClaimToken()
+          const conflict = await tx.invite.findUnique({ where: { code: candidate } })
+          if (!conflict) {
+            code = candidate
+            break
+          }
+        }
+
+        if (!code) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to generate a unique claim code. Please try again.",
+          })
+        }
+
+        const invite = await tx.invite.create({
+          data: {
+            code,
+            type: "EMAIL_BOUND",
+            status: "PENDING",
+            familyId: input.familyId,
+            claimMemberId: member.id,
+            invitedEmail: input.email,
+            createdById: ctx.session.user.id,
+            expiresAt: getInviteExpiryDate(new Date(), CLAIM_DEFAULT_TTL_DAYS),
+          },
+        })
+
+        return {
+          member,
+          claimInvite: invite,
+        }
       })
+
+      const member = result.member
 
       console.log(
         `[member:created-unclaimed] id=${member.id} familyId=${member.familyId} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
       )
+
+      if (result.claimInvite) {
+        console.log(
+          `[claim-link:auto-created] inviteId=${result.claimInvite.id} memberId=${member.id} familyId=${member.familyId} type=${result.claimInvite.type} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
+        )
+      }
 
       return {
         id: member.id,
@@ -104,6 +185,15 @@ export const familyMemberRouter = createTRPCRouter({
         image: member.image,
         familyId: member.familyId,
         status: "unclaimed" as const,
+        claimInvite: result.claimInvite
+          ? {
+              id: result.claimInvite.id,
+              code: result.claimInvite.code,
+              type: result.claimInvite.type,
+              invitedEmail: result.claimInvite.invitedEmail,
+              expiresAt: result.claimInvite.expiresAt,
+            }
+          : null,
       }
     }),
 
@@ -155,6 +245,35 @@ export const familyMemberRouter = createTRPCRouter({
 
       const expiresAt = getInviteExpiryDate(new Date(), input.expiresInDays)
       const type = input.invitedEmail ? "EMAIL_BOUND" : "OPEN"
+
+      if (input.invitedEmail) {
+        const conflictingInvite = await ctx.db.invite.findFirst({
+          where: {
+            type: "EMAIL_BOUND",
+            invitedEmail: input.invitedEmail,
+            status: "PENDING",
+            claimedAt: null,
+            revokedAt: null,
+            expiresAt: { gt: new Date() },
+            claimMemberId: { not: member.id },
+          },
+          include: {
+            claimMember: {
+              select: { id: true, name: true },
+            },
+          },
+        })
+
+        if (conflictingInvite) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message:
+              conflictingInvite.claimMember?.name
+                ? `This email is already bound to an active claim invite for ${conflictingInvite.claimMember.name}.`
+                : "This email is already bound to another active claim invite.",
+          })
+        }
+      }
 
       // Revoke any currently active claim links for this member before creating a new one
       await ctx.db.invite.updateMany({
