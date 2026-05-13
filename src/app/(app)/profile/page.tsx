@@ -50,8 +50,6 @@ export default function ProfilePage() {
         avatarUrl: memberQuery.data.image ?? undefined,
         addedByName: "Family organizer",
         addedAtLabel: "Profile in family",
-        bio: undefined,
-        location: undefined,
         recentActivity: [],
       } satisfies FamilyMemberProfile)
     : undefined

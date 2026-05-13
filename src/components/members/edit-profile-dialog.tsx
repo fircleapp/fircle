@@ -22,7 +22,6 @@ type EditProfileDialogProps = {
 type EditProfileFormState = {
   name: string;
   avatarUrl: string;
-  location: string;
   dateOfBirth?: Date;
 };
 
@@ -47,7 +46,6 @@ export function EditProfileDialog({
   const [form, setForm] = useState<EditProfileFormState>({
     name: member.name,
     avatarUrl: member.avatarUrl ?? "",
-    location: member.location ?? "",
     dateOfBirth: undefined,
   });
 
@@ -57,7 +55,6 @@ export function EditProfileDialog({
     setForm({
       name: member.name,
       avatarUrl: member.avatarUrl ?? "",
-      location: member.location ?? "",
       dateOfBirth: undefined,
     });
   }, [member, open]);
@@ -192,14 +189,6 @@ export function EditProfileDialog({
                   </Popover>
                 </label>
 
-                <label className="space-y-1.5 text-sm">
-                  <span className="text-muted-foreground text-xs">Location</span>
-                  <Input
-                    value={form.location}
-                    onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
-                    placeholder="City or region"
-                  />
-                </label>
               </div>
 
               <label className="space-y-1.5 text-sm">
