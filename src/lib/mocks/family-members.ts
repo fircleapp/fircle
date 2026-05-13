@@ -17,7 +17,6 @@ export type FamilyMemberSummary = {
 export type FamilyMemberProfile = FamilyMemberSummary & {
   bio?: string;
   location?: string;
-  note?: string;
   recentActivity: string[];
 };
 
@@ -129,7 +128,6 @@ export const familyMemberProfiles: FamilyMemberProfile[] = familyMembers.map((me
       ? `${member.name.split(" ")[0]} shares family updates and memories with the group.`
       : `${member.name.split(" ")[0]} has a profile in the family circle and can claim this account later.`,
   location: "Springfield",
-  note: member.status === "unclaimed" ? "Claim invite pending" : undefined,
   recentActivity: [
     "Tagged in a weekend dinner memory",
     "Mentioned in family planning chat",

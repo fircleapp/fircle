@@ -19,14 +19,13 @@ describe("createUnclaimedMemberInputSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts a full input with optional nickname, email, image, and note", () => {
+  it("accepts a full input with optional nickname, email, and image", () => {
     const result = createUnclaimedMemberInputSchema.safeParse({
       familyId: VALID_CUID,
       name: "Grandma Betty",
       nickname: "Nana",
       email: "betty@example.com",
       image: "https://example.com/photo.jpg",
-      note: "Added by admin — will claim later",
     });
     expect(result.success).toBe(true);
   });
@@ -76,14 +75,6 @@ describe("createUnclaimedMemberInputSchema", () => {
     }
   });
 
-  it("rejects note over 500 characters", () => {
-    const result = createUnclaimedMemberInputSchema.safeParse({
-      familyId: VALID_CUID,
-      name: "Betty",
-      note: "x".repeat(501),
-    });
-    expect(result.success).toBe(false);
-  });
 });
 
 // ─── createClaimLinkInputSchema ───────────────────────────────────────────────

@@ -140,13 +140,6 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
             </Button>
           </div>
         </div>
-
-        {member.note ? (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-3 py-2.5">
-            <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Admin note</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">{member.note}</p>
-          </div>
-        ) : null}
       </div>
     </details>
   );

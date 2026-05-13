@@ -71,8 +71,6 @@ export const createUnclaimedMemberInputSchema = z.object({
     .optional(),
   /** Optional URL for the member's profile image. */
   image: z.string().url().max(2048).optional(),
-  /** Free-text note visible only to family admins during member management. */
-  note: z.string().trim().max(500).optional(),
 })
 
 export const createClaimLinkInputSchema = z.object({

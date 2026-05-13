@@ -20,7 +20,6 @@ export default function AddMemberPage() {
   } | null>(null);
   const [isClaimLinkCopied, setIsClaimLinkCopied] = useState(false);
   const [photoUrl, setPhotoUrl] = useState("");
-  const [note, setNote] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
@@ -56,7 +55,6 @@ export default function AddMemberPage() {
     const normalizedNickname = memberNickname.trim();
     const normalizedEmail = memberEmail.trim();
     const normalizedPhotoUrl = photoUrl.trim();
-    const normalizedNote = note.trim();
 
     if (!normalizedName) {
       setFormError("Member name is required.");
@@ -76,7 +74,6 @@ export default function AddMemberPage() {
       nickname: normalizedNickname.length > 0 ? normalizedNickname : undefined,
       email: normalizedEmail.length > 0 ? normalizedEmail : undefined,
       image: normalizedPhotoUrl.length > 0 ? normalizedPhotoUrl : undefined,
-      note: normalizedNote.length > 0 ? normalizedNote : undefined,
     });
   };
 
@@ -87,7 +84,6 @@ export default function AddMemberPage() {
     setAutoClaimInvite(null);
     setIsClaimLinkCopied(false);
     setPhotoUrl("");
-    setNote("");
     setIsSubmitted(false);
     setFormError(null);
   };
@@ -250,21 +246,6 @@ export default function AddMemberPage() {
               />
             </div>
 
-            <div className="space-y-2 sm:col-span-2">
-              <label htmlFor="note" className="text-sm font-medium">
-                Short note (optional)
-              </label>
-              <textarea
-                id="note"
-                rows={4}
-                placeholder="Any context for this profile, such as preferred name or invite timing."
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                className="w-full rounded-2xl border border-input bg-transparent px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
-              />
-            </div>
-
             <div className="sm:col-span-2">
               <label className="inline-flex items-start gap-2 text-sm text-muted-foreground">
                 <input type="checkbox" defaultChecked className="mt-0.5" disabled={createMember.isPending} />
@@ -285,10 +266,6 @@ export default function AddMemberPage() {
             </Button>
           </div>
 
-          <p className="mt-4 text-sm text-muted-foreground">
-            Inline note: after this profile is created, you can send a claim invite whenever they are
-            ready to join.
-          </p>
         </form>
       )}
     </section>

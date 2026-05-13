@@ -65,7 +65,6 @@ export default function MemberProfilePage() {
         addedAtLabel: "Profile in family",
         bio: undefined,
         location: undefined,
-        note: undefined,
         recentActivity: [],
       } satisfies FamilyMemberProfile)
     : undefined;
