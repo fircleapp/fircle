@@ -231,6 +231,11 @@ export default function AddMemberPage() {
                 onChange={(event) => setMemberEmail(event.target.value)}
                 disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
               />
+              {memberEmail.trim().length > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  A claim invite link will be created automatically and bound to this email.
+                </p>
+              ) : null}
             </div>
 
             <div className="space-y-2 sm:col-span-2">
@@ -244,16 +249,6 @@ export default function AddMemberPage() {
                 onChange={(event) => setPhotoUrl(event.target.value)}
                 disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
               />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="inline-flex items-start gap-2 text-sm text-muted-foreground">
-                <input type="checkbox" defaultChecked className="mt-0.5" disabled={createMember.isPending} />
-                <span>
-                  They are not joining yet. I am only creating their profile now so they can be tagged
-                  in memories and claim later.
-                </span>
-              </label>
             </div>
           </div>
 
