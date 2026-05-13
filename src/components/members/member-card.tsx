@@ -20,7 +20,7 @@ function getInitials(name: string) {
 }
 
 export function MemberCard({ member }: MemberCardProps) {
-  const isUnclaimed = member.status === "unclaimed";
+  const hasPendingInvite = member.status === "unclaimed" && member.hasPendingClaimInvite === true;
   const initials = getInitials(member.name);
 
   return (
@@ -44,7 +44,7 @@ export function MemberCard({ member }: MemberCardProps) {
             Added by {member.addedByName} · {member.addedAtLabel}
           </p>
 
-          {isUnclaimed ? (
+          {hasPendingInvite ? (
             <p className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
               <Clock3 className="size-3.5" aria-hidden="true" />
               Invite/claim pending

@@ -8,6 +8,7 @@ export type FamilyMemberSummary = {
   nickname?: string;
   slug: string;
   status: FamilyMemberStatus;
+  hasPendingClaimInvite?: boolean;
   role: MemberRole;
   avatarUrl?: string;
   addedByName: string;

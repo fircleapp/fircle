@@ -49,6 +49,7 @@ export default function MembersPage() {
       name: member.name,
       nickname: member.nickname ?? undefined,
       status: member.status,
+      hasPendingClaimInvite: member.hasPendingClaimInvite,
       role: member.role.toLowerCase() as "owner" | "admin" | "member",
       avatarUrl: member.image ?? undefined,
       addedByName: managementContext.data?.family?.name ?? "Family",
