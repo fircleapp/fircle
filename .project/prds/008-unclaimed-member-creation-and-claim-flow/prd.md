@@ -1,6 +1,6 @@
 ---
 title: "Unclaimed Member Creation and Claim Flow - Live Family Identity Linking"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -245,25 +245,25 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 
 ## Acceptance Criteria
 
-- [ ] A family admin can create an unclaimed member from the add-member UI.
-- [ ] An unclaimed member is stored as a `FamilyMember` with `userId = null`.
-- [ ] Claimed and unclaimed members use the same `FamilyMember` identity model.
-- [ ] Member profile fields (`name`, `image`) are stored on `FamilyMember`, not `User`.
-- [ ] When add-member includes an email, the system creates an email-bound claim invite for that member immediately.
-- [ ] A family admin can generate a claim link for an unclaimed member.
-- [ ] Claim links are represented as `Invite` records with `claimMemberId` populated.
-- [ ] Registration invites are represented as `Invite` records with `claimMemberId = null`.
-- [ ] Claim links support token-based claiming by default.
-- [ ] Claim links can optionally enforce an email match.
-- [ ] A valid claim creates a new user account and links it to the existing `FamilyMember` record.
-- [ ] Claiming does not create a duplicate family member.
-- [ ] Invalid, expired, revoked, already-used, and already-claimed flows each return distinct UI states.
-- [ ] Non-admin users cannot create unclaimed members or issue claim links.
-- [ ] The existing add-member and claim pages are wired to live backend procedures.
-- [ ] Local seed data remains compatible with the current Prisma schema for `FamilyMember` identity fields.
-- [ ] `pnpm check` passes with no lint or type errors after implementation.
-- [ ] `FamilyMember.name` is required and non-null for persisted records.
-- [ ] Family members with the same display name can coexist in the same family.
-- [ ] Member profile URLs are slug-based (`/member/[slug]`) and resolve by member slug.
-- [ ] Slug generation uses `nickname` first, then falls back to `name`.
-- [ ] Slug uniqueness is enforced per family.
+- [x] A family admin can create an unclaimed member from the add-member UI.
+- [x] An unclaimed member is stored as a `FamilyMember` with `userId = null`.
+- [x] Claimed and unclaimed members use the same `FamilyMember` identity model.
+- [x] Member profile fields (`name`, `image`) are stored on `FamilyMember`, not `User`.
+- [x] When add-member includes an email, the system creates an email-bound claim invite for that member immediately.
+- [x] A family admin can generate a claim link for an unclaimed member.
+- [x] Claim links are represented as `Invite` records with `claimMemberId` populated.
+- [x] Registration invites are represented as `Invite` records with `claimMemberId = null`.
+- [x] Claim links support token-based claiming by default.
+- [x] Claim links can optionally enforce an email match.
+- [x] A valid claim creates a new user account and links it to the existing `FamilyMember` record.
+- [x] Claiming does not create a duplicate family member.
+- [x] Invalid, expired, revoked, already-used, and already-claimed flows each return distinct UI states.
+- [x] Non-admin users cannot create unclaimed members or issue claim links.
+- [x] The existing add-member and claim pages are wired to live backend procedures.
+- [x] Local seed data remains compatible with the current Prisma schema for `FamilyMember` identity fields.
+- [x] `pnpm check` passes with no lint or type errors after implementation.
+- [x] `FamilyMember.name` is required and non-null for persisted records.
+- [x] Family members with the same display name can coexist in the same family.
+- [x] Member profile URLs are slug-based (`/member/[slug]`) and resolve by member slug.
+- [x] Slug generation uses `nickname` first, then falls back to `name`.
+- [x] Slug uniqueness is enforced per family.
