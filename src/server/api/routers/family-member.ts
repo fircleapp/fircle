@@ -104,6 +104,22 @@ export const familyMemberRouter = createTRPCRouter({
           role: true,
           userId: true,
           createdAt: true,
+          claimInvites: {
+            where: {
+              status: "PENDING",
+              claimedAt: null,
+              revokedAt: null,
+              expiresAt: { gt: new Date() },
+            },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: {
+              id: true,
+              code: true,
+              invitedEmail: true,
+              expiresAt: true,
+            },
+          },
         },
       })
 
@@ -119,6 +135,15 @@ export const familyMemberRouter = createTRPCRouter({
         image: member.image,
         role: member.role,
         status: member.userId ? ("claimed" as const) : ("unclaimed" as const),
+        pendingClaimInvite:
+          member.claimInvites[0]
+            ? {
+                id: member.claimInvites[0].id,
+                code: member.claimInvites[0].code,
+                invitedEmail: member.claimInvites[0].invitedEmail,
+                expiresAt: member.claimInvites[0].expiresAt,
+              }
+            : null,
         createdAt: member.createdAt,
       }
     }),

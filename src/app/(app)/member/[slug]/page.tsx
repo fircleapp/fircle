@@ -63,6 +63,14 @@ export default function MemberProfilePage() {
         avatarUrl: memberProfileQuery.data.image ?? undefined,
         addedByName: "Family organizer",
         addedAtLabel: "Profile in family",
+        pendingClaimInvite: memberProfileQuery.data.pendingClaimInvite
+          ? {
+              id: memberProfileQuery.data.pendingClaimInvite.id,
+              code: memberProfileQuery.data.pendingClaimInvite.code,
+              invitedEmail: memberProfileQuery.data.pendingClaimInvite.invitedEmail,
+              expiresAt: new Date(memberProfileQuery.data.pendingClaimInvite.expiresAt),
+            }
+          : null,
         recentActivity: [],
       } satisfies FamilyMemberProfile)
     : undefined;

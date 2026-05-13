@@ -16,6 +16,12 @@ export type FamilyMemberSummary = {
 };
 
 export type FamilyMemberProfile = FamilyMemberSummary & {
+  pendingClaimInvite?: {
+    id: string;
+    code: string;
+    invitedEmail: string | null;
+    expiresAt: Date;
+  } | null;
   recentActivity: string[];
 };
 
