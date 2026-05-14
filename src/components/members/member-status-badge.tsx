@@ -4,11 +4,21 @@ import type { FamilyMemberStatus } from "~/lib/mocks/family-members";
 
 type MemberStatusBadgeProps = {
   status: FamilyMemberStatus;
+  hasPendingClaimInvite?: boolean;
   className?: string;
 };
 
-export function MemberStatusBadge({ status, className }: MemberStatusBadgeProps) {
+export function MemberStatusBadge({
+  status,
+  hasPendingClaimInvite = false,
+  className,
+}: MemberStatusBadgeProps) {
   const isClaimed = status === "claimed";
+  const showClaimPending = !isClaimed && hasPendingClaimInvite;
+
+  if (showClaimPending) {
+    return <ClaimPendingBadge className={className} />;
+  }
 
   return (
     <Badge
@@ -25,9 +35,9 @@ export function MemberStatusBadge({ status, className }: MemberStatusBadgeProps)
   );
 }
 
-export function ClaimPendingBadge() {
+export function ClaimPendingBadge({ className }: { className?: string }) {
   return (
-    <Badge variant="secondary">
+    <Badge className={className} variant="secondary">
       <Clock3 data-icon="inline-start" aria-hidden="true" />
       Claim pending
     </Badge>

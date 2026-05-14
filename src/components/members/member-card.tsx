@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { FamilyMemberSummary } from "~/lib/mocks/family-members";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
-import { ClaimPendingBadge, MemberStatusBadge } from "./member-status-badge";
+import { MemberStatusBadge } from "./member-status-badge";
 
 type MemberCardProps = {
   member: FamilyMemberSummary;
@@ -35,14 +35,15 @@ export function MemberCard({ member }: MemberCardProps) {
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="truncate font-medium text-sm sm:text-base">{member.name}</p>
-            <MemberStatusBadge status={member.status} />
+            <MemberStatusBadge
+              status={member.status}
+              hasPendingClaimInvite={hasPendingInvite}
+            />
           </div>
 
           <p className="text-xs text-muted-foreground">
             Added by {member.addedByName} · {member.addedAtLabel}
           </p>
-
-          {hasPendingInvite ? <ClaimPendingBadge /> : null}
         </div>
       </article>
     </Link>
