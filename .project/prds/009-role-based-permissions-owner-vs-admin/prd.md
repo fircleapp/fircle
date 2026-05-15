@@ -87,9 +87,9 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 
 #### Tasks
 
-- [ ] Update `MemberAdminPanelProps` in `src/components/members/member-admin-panel.tsx` to accept `callerRole: MemberRole`
-- [ ] In `src/app/(app)/member/[slug]/page.tsx` (or whichever server/client component renders the panel), resolve the caller's role from the management context and pass it as `callerRole`
-- [ ] In `MemberAdminActionsPanel`, derive `isCallerOwner = callerRole === "owner"` for use in the next phase
+- [x] Update `MemberAdminPanelProps` in `src/components/members/member-admin-panel.tsx` to accept `callerRole: MemberRole`
+- [x] In `src/app/(app)/member/[slug]/page.tsx` (or whichever server/client component renders the panel), resolve the caller's role from the management context and pass it as `callerRole`
+- [x] In `MemberAdminActionsPanel`, derive `isCallerOwner = callerRole === "owner"` for use in the next phase
 
 ### Phase 3: Client — wire role buttons and apply Owner gate
 

@@ -12,6 +12,7 @@ import { GenerateClaimLinkDialog } from "./generate-claim-link-dialog";
 
 type MemberAdminPanelProps = {
   member: FamilyMemberProfile;
+  callerRole: MemberRole;
 };
 
 const roleLabels: Record<MemberRole, string> = {
@@ -26,8 +27,9 @@ const roleBadgeClasses: Record<MemberRole, string> = {
   member: "bg-muted text-muted-foreground border-border",
 };
 
-export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
+export function MemberAdminActionsPanel({ member, callerRole }: MemberAdminPanelProps) {
   const isClaimed = member.status === "claimed";
+  const isCallerOwner = callerRole === "owner";
   const pendingClaimInvite = member.pendingClaimInvite ?? null;
   const [isClaimLinkCopied, setIsClaimLinkCopied] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -90,7 +92,10 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
           <EditProfileDialog member={member} triggerText="Edit member profile" triggerClassName="mt-3 w-full" />
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+          data-caller-owner={isCallerOwner ? "true" : "false"}
+        >
           <div className="rounded-2xl border bg-muted/20 p-3">
             <div className="flex items-start gap-3">
               <UserCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
