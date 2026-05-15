@@ -47,6 +47,14 @@ export function MemberAdminActionsPanel({ member, callerRole }: MemberAdminPanel
       ]);
     },
   });
+  const updateRole = api.familyMember.updateMemberRole.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        trpcUtils.familyMember.getMemberProfileBySlug.invalidate(),
+        trpcUtils.familyMember.listFamilyMembers.invalidate(),
+      ]);
+    },
+  });
 
   const pendingClaimPath = pendingClaimInvite
     ? `/auth/claim/${pendingClaimInvite.code}`
@@ -65,6 +73,13 @@ export function MemberAdminActionsPanel({ member, callerRole }: MemberAdminPanel
   const handleRevokeInvite = async () => {
     if (!pendingClaimInvite) return;
     await revokeInvite.mutateAsync({ inviteId: pendingClaimInvite.id });
+  };
+
+  const canChangeRole = isCallerOwner && !updateRole.isPending;
+
+  const handleUpdateRole = (role: "MEMBER" | "ADMIN") => {
+    if (!canChangeRole) return;
+    updateRole.mutate({ memberId: member.id, role });
   };
 
   return (
@@ -205,18 +220,37 @@ export function MemberAdminActionsPanel({ member, callerRole }: MemberAdminPanel
             <p className="mt-1 text-xs text-muted-foreground">
               Pick the role that best matches how much control this member should have.
             </p>
+            {!isCallerOwner ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Only the family owner can change roles.
+              </p>
+            ) : null}
 
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button size="sm" type="button" variant={member.role === "member" ? "default" : "outline"}>
+              <Button
+                size="sm"
+                type="button"
+                variant={member.role === "member" ? "default" : "outline"}
+                onClick={() => handleUpdateRole("MEMBER")}
+                disabled={!canChangeRole}
+              >
                 Member
               </Button>
-              <Button size="sm" type="button" variant={member.role === "admin" ? "default" : "outline"}>
+              <Button
+                size="sm"
+                type="button"
+                variant={member.role === "admin" ? "default" : "outline"}
+                onClick={() => handleUpdateRole("ADMIN")}
+                disabled={!canChangeRole}
+              >
                 Admin
               </Button>
-              <Button size="sm" type="button" variant={member.role === "owner" ? "default" : "outline"}>
-                Owner
-              </Button>
             </div>
+            {updateRole.error ? (
+              <p className="mt-2 rounded-lg border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-xs text-destructive">
+                {updateRole.error.message}
+              </p>
+            ) : null}
           </div>
         </div>
 

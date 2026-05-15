@@ -97,7 +97,7 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 
 #### Tasks
 
-- [ ] In `MemberAdminActionsPanel`, add `updateMemberRole` tRPC mutation:
+- [x] In `MemberAdminActionsPanel`, add `updateMemberRole` tRPC mutation:
   ```ts
   const updateRole = api.familyMember.updateMemberRole.useMutation({
     onSuccess: async () => {
@@ -108,11 +108,11 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
     },
   })
   ```
-- [ ] Connect each role button (`Member`, `Admin`) to call `updateRole.mutate({ memberId: member.id, role: ... })`
-- [ ] Remove the `Owner` button from the role picker (assigning Owner is not supported here)
-- [ ] Disable all role buttons when `!isCallerOwner` and add a visible tooltip or note: "Only the family owner can change roles"
-- [ ] Disable role buttons while `updateRole.isPending`
-- [ ] Show inline error if `updateRole.error` is set
+- [x] Connect each role button (`Member`, `Admin`) to call `updateRole.mutate({ memberId: member.id, role: ... })`
+- [x] Remove the `Owner` button from the role picker (assigning Owner is not supported here)
+- [x] Disable all role buttons when `!isCallerOwner` and add a visible tooltip or note: "Only the family owner can change roles"
+- [x] Disable role buttons while `updateRole.isPending`
+- [x] Show inline error if `updateRole.error` is set
 
 ### Phase 4: Roles page — connect to real data and use `Badge`
 
