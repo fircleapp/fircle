@@ -120,10 +120,10 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 
 #### Tasks
 
-- [ ] Replace mock `familyMembers` import in `src/app/(app)/settings/roles/page.tsx` with `api.familyMember.listFamilyMembers.useQuery`
-- [ ] Convert the page to a `"use client"` component (or keep it server with a tRPC server caller)
-- [ ] Replace hand-rolled role badge `<span>` elements with `<Badge>` using appropriate variant + `className` color overrides matching existing `roleBadgeStyles`
-- [ ] Replace hand-rolled status badge `<span>` with `<MemberStatusBadge>` (already used in the same file for unclaimed members — ensure consistent use)
+- [x] Replace mock `familyMembers` import in `src/app/(app)/settings/roles/page.tsx` with `api.familyMember.listFamilyMembers.useQuery`
+- [x] Convert the page to a `"use client"` component (or keep it server with a tRPC server caller)
+- [x] Replace hand-rolled role badge `<span>` elements with `<Badge>` using appropriate variant + `className` color overrides matching existing `roleBadgeStyles`
+- [x] Replace hand-rolled status badge `<span>` with `<MemberStatusBadge>` (already used in the same file for unclaimed members — ensure consistent use)
 
 ## Acceptance Criteria
 
