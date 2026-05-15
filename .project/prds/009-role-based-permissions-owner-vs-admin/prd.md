@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/008-unclaimed-member-creation-and-claim-flow/prd.md
     description: "Unclaimed member creation and claim flow — established requireAdminMembership helper"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/15
+    description: "Implementation pull request - feat: implement role-based permissions"
 ---
 
 > **Instructions for AI Agents:**
