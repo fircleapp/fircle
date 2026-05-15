@@ -1,6 +1,6 @@
 ---
 title: "Role-Based Permissions — Owner vs Admin Enforcement"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -130,14 +130,14 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 
 ## Acceptance Criteria
 
-- [ ] An Admin calling `updateMemberRole` receives a `FORBIDDEN` error
-- [ ] An Owner can promote a Member to Admin and the change persists in the database
-- [ ] An Owner can demote an Admin to Member and the change persists
-- [ ] An Owner cannot demote themselves via `updateMemberRole` (server rejects with a clear error)
-- [ ] An Owner cannot target another Owner via `updateMemberRole` (server rejects)
-- [ ] Role management block is hidden when role changes are not controllable (viewer is not Owner or target member is Owner)
-- [ ] Role buttons call the mutation and invalidate the correct queries on success
-- [ ] The roles settings page shows real member data (not mock)
-- [ ] Role badges on the roles page use the `Badge` component
-- [ ] Member users do not see `Add family member` CTAs on the members page
-- [ ] Unauthorized direct access to `/members/new` is blocked (redirected to `/members`)
+- [x] An Admin calling `updateMemberRole` receives a `FORBIDDEN` error
+- [x] An Owner can promote a Member to Admin and the change persists in the database
+- [x] An Owner can demote an Admin to Member and the change persists
+- [x] An Owner cannot demote themselves via `updateMemberRole` (server rejects with a clear error)
+- [x] An Owner cannot target another Owner via `updateMemberRole` (server rejects)
+- [x] Role management block is hidden when role changes are not controllable (viewer is not Owner or target member is Owner)
+- [x] Role buttons call the mutation and invalidate the correct queries on success
+- [x] The roles settings page shows real member data (not mock)
+- [x] Role badges on the roles page use the `Badge` component
+- [x] Member users do not see `Add family member` CTAs on the members page
+- [x] Unauthorized direct access to `/members/new` is blocked (redirected to `/members`)
