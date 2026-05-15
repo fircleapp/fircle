@@ -1,6 +1,6 @@
 ---
 title: "Role-Based Permissions — Owner vs Admin Enforcement"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -56,7 +56,7 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 
 #### Tasks
 
-- [ ] Add `requireOwnerMembership` helper in `src/server/api/routers/family-member.ts` alongside `requireAdminMembership`:
+- [x] Add `requireOwnerMembership` helper in `src/server/api/routers/family-member.ts` alongside `requireAdminMembership`:
   ```ts
   async function requireOwnerMembership(
     db: Prisma.TransactionClient,
@@ -73,7 +73,7 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
     return membership
   }
   ```
-- [ ] Add `updateMemberRole` mutation to `familyMemberRouter` in `src/server/api/routers/family-member.ts`:
+- [x] Add `updateMemberRole` mutation to `familyMemberRouter` in `src/server/api/routers/family-member.ts`:
   - Input: `{ memberId: z.string().cuid(), role: z.enum(["MEMBER", "ADMIN"]) }`
   - Resolve the target member, obtain `familyId`, call `requireOwnerMembership`
   - Reject if `memberId` resolves to the calling user (self-demotion guard)
