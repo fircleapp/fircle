@@ -184,8 +184,8 @@ export function PostComposerDialog({
     resetComposer();
   };
 
-  const addFiles = (files: FileList | null) => {
-    if (!files || files.length === 0) {
+  const addFiles = (files: File[]) => {
+    if (files.length === 0) {
       return;
     }
 
@@ -199,7 +199,7 @@ export function PostComposerDialog({
       }
 
       const remainingSlots = MAX_FILES_PER_POST - current.length;
-      const nextFiles = Array.from(files).slice(0, remainingSlots);
+      const nextFiles = files.slice(0, remainingSlots);
       if (nextFiles.length < files.length) {
         setPublishError(`Only ${MAX_FILES_PER_POST} files are allowed per post.`);
       }
@@ -393,7 +393,7 @@ export function PostComposerDialog({
             multiple
             className="hidden"
             onChange={(event) => {
-              addFiles(event.target.files);
+              addFiles(Array.from(event.currentTarget.files ?? []));
               event.currentTarget.value = "";
             }}
           />
@@ -404,7 +404,7 @@ export function PostComposerDialog({
             multiple
             className="hidden"
             onChange={(event) => {
-              addFiles(event.target.files);
+              addFiles(Array.from(event.currentTarget.files ?? []));
               event.currentTarget.value = "";
             }}
           />

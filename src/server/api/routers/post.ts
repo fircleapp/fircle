@@ -9,6 +9,21 @@ import {
 
 const MAX_MEDIA_PER_POST = 10;
 
+function isAbsoluteUrl(value: string) {
+  try {
+    // URL constructor throws when value is not an absolute URL.
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isAllowedMediaUrl(value: string) {
+  const trimmedValue = value.trim();
+  return isAbsoluteUrl(trimmedValue) || trimmedValue.startsWith("/api/media/");
+}
+
 const createPostInputSchema = z
   .object({
     familyId: z.string().cuid(),
@@ -20,7 +35,13 @@ const createPostInputSchema = z
           provider: z.string().trim().min(1).max(32),
           bucket: z.string().trim().min(1).max(255),
           objectKey: z.string().trim().min(1).max(2048),
-          url: z.string().url().max(4096),
+          url: z
+            .string()
+            .trim()
+            .max(4096)
+            .refine(isAllowedMediaUrl, {
+              message: "Media url must be an absolute URL or an internal media route",
+            }),
           mimeType: z.string().trim().toLowerCase().min(3).max(120),
           sizeBytes: z.number().int().positive(),
           width: z.number().int().positive().optional(),
