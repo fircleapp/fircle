@@ -138,6 +138,12 @@ This PRD intentionally sets the storage layer up for future Bring Your Own Stora
 - [x] Render per-media captions in gallery/carousel/viewer contexts without replacing the post-level caption.
 - [x] Preserve loading/empty/error states for good first-use UX.
 
+#### Implementation Notes
+
+- **Private object read path for R2 media**: During implementation, direct object URLs could return `InvalidArgument` / `Authorization` for private buckets. The app now uses an authenticated internal media route that validates family membership and redirects to short-lived signed `GET` URLs.
+- **Display URL source of truth**: Feed/query response mapping should derive display URLs from provider metadata (`provider`, `bucket`, `objectKey`) via the storage adapter, not by trusting previously persisted raw `url` values.
+- **Upload-only vs read-only responsibilities**: Upload intents remain direct-to-R2 with signed `PUT`, while read access is mediated through app auth to preserve private-family access controls.
+
 ### Phase 6: Security, Reliability, and Test Coverage
 
 **Goal:** Ensure production-safe behavior with clear constraints and automated verification.

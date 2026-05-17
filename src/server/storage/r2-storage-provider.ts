@@ -1,6 +1,6 @@
 import "server-only";
 
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { env } from "~/env";
@@ -13,20 +13,27 @@ import type {
 } from "./types";
 
 const DEFAULT_UPLOAD_EXPIRY_SECONDS = 300;
+const DEFAULT_READ_EXPIRY_SECONDS = 300;
 
 function trimSlashes(value: string) {
   return value.replace(/^\/+|\/+$/g, "");
 }
 
-function sanitizeBaseUrl(value: string) {
-  return value.replace(/\/+$/, "");
+function encodePathSegment(value: string) {
+  return encodeURIComponent(value);
+}
+
+function encodePath(value: string) {
+  return trimSlashes(value)
+    .split("/")
+    .map((segment) => encodePathSegment(segment))
+    .join("/");
 }
 
 export class R2StorageProvider implements StorageProvider {
   public readonly driver = "r2" as const;
 
   private readonly bucket: string;
-  private readonly publicBaseUrl: string;
   private readonly client: S3Client;
 
   public constructor() {
@@ -34,15 +41,18 @@ export class R2StorageProvider implements StorageProvider {
       throw new Error("R2StorageProvider requires STORAGE_DRIVER=r2");
     }
 
-    this.bucket = env.R2_BUCKET;
-    this.publicBaseUrl = sanitizeBaseUrl(env.R2_PUBLIC_BASE_URL);
+    this.bucket = String(env.R2_BUCKET);
+    const accountId = String(env.R2_ACCOUNT_ID);
+    const accessKeyId = String(env.R2_ACCESS_KEY_ID);
+    const secretAccessKey = String(env.R2_SECRET_ACCESS_KEY);
+
     this.client = new S3Client({
       region: "auto",
-      endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
       forcePathStyle: true,
       credentials: {
-        accessKeyId: env.R2_ACCESS_KEY_ID,
-        secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+        accessKeyId,
+        secretAccessKey,
       },
     });
   }
@@ -77,21 +87,34 @@ export class R2StorageProvider implements StorageProvider {
     };
   }
 
+  public async signReadUrl(object: StoredObjectRef, expiresInSeconds?: number): Promise<string> {
+    if (object.provider !== this.driver) {
+      throw new Error(`Unsupported provider: ${String(object.provider)}`);
+    }
+
+    const expiresIn = Math.max(30, expiresInSeconds ?? DEFAULT_READ_EXPIRY_SECONDS);
+    const command = new GetObjectCommand({
+      Bucket: object.bucket,
+      Key: trimSlashes(object.objectKey),
+    });
+
+    return getSignedUrl(this.client, command, { expiresIn });
+  }
+
   public buildReadUrl(object: StoredObjectRef): string {
     if (object.provider !== this.driver) {
-      throw new Error(`Unsupported provider: ${object.provider}`);
+      throw new Error(`Unsupported provider: ${String(object.provider)}`);
     }
     if (object.bucket !== this.bucket) {
       throw new Error(`Unexpected bucket for R2 object: ${object.bucket}`);
     }
-
-    const key = trimSlashes(object.objectKey);
-    return `${this.publicBaseUrl}/${key}`;
+    const key = encodePath(object.objectKey);
+    return `/api/media/r2/${encodePathSegment(object.bucket)}/${key}`;
   }
 
   public async deleteObject(object: StoredObjectRef): Promise<void> {
     if (object.provider !== this.driver) {
-      throw new Error(`Unsupported provider: ${object.provider}`);
+      throw new Error(`Unsupported provider: ${String(object.provider)}`);
     }
 
     await this.client.send(

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { getStorageProvider } from "~/server/storage";
 
 import {
   createTRPCRouter,
@@ -110,6 +111,20 @@ function toPostMediaType(mimeType: string): "IMAGE" | "VIDEO" {
   throw new TRPCError({
     code: "BAD_REQUEST",
     message: `Unsupported media mime type: ${mimeType}`,
+  });
+}
+
+function toReadUrl(input: { provider: string; bucket: string; objectKey: string; fallbackUrl: string }) {
+  const storage = getStorageProvider();
+
+  if (input.provider !== storage.driver) {
+    return input.fallbackUrl;
+  }
+
+  return storage.buildReadUrl({
+    provider: input.provider,
+    bucket: input.bucket,
+    objectKey: input.objectKey,
   });
 }
 
@@ -233,37 +248,55 @@ export const postRouter = createTRPCRouter({
             name: createdPost.authorMember.name,
             avatarUrl: createdPost.authorMember.image ?? "",
           },
-          media: createdPost.media.map((media) => ({
-            id: media.id,
-            type: media.type,
-            provider: media.provider,
-            bucket: media.bucket,
-            objectKey: media.objectKey,
-            url: media.url,
-            mimeType: media.mimeType,
-            sizeBytes: media.sizeBytes,
-            width: media.width,
-            height: media.height,
-            durationMs: media.durationMs,
-            caption: media.caption,
-            sortOrder: media.sortOrder,
-            createdAt: media.createdAt,
-          })),
-          mediaItems: createdPost.media.map((media) => ({
-            id: media.id,
-            type: media.type === "IMAGE" ? "image" : "video",
-            url: media.url,
-            alt: media.caption ?? createdPost.caption ?? "Post media",
-            durationLabel:
-              media.durationMs !== null && media.durationMs !== undefined
-                ? `${Math.floor(media.durationMs / 60000)
-                    .toString()
-                    .padStart(2, "0")}:${Math.floor((media.durationMs % 60000) / 1000)
-                    .toString()
-                    .padStart(2, "0")}`
-                : undefined,
-            caption: media.caption,
-          })),
+          media: createdPost.media.map((media) => {
+            const readUrl = toReadUrl({
+              provider: media.provider,
+              bucket: media.bucket,
+              objectKey: media.objectKey,
+              fallbackUrl: media.url,
+            });
+
+            return {
+              id: media.id,
+              type: media.type,
+              provider: media.provider,
+              bucket: media.bucket,
+              objectKey: media.objectKey,
+              url: readUrl,
+              mimeType: media.mimeType,
+              sizeBytes: media.sizeBytes,
+              width: media.width,
+              height: media.height,
+              durationMs: media.durationMs,
+              caption: media.caption,
+              sortOrder: media.sortOrder,
+              createdAt: media.createdAt,
+            };
+          }),
+          mediaItems: createdPost.media.map((media) => {
+            const readUrl = toReadUrl({
+              provider: media.provider,
+              bucket: media.bucket,
+              objectKey: media.objectKey,
+              fallbackUrl: media.url,
+            });
+
+            return {
+              id: media.id,
+              type: media.type === "IMAGE" ? "image" : "video",
+              url: readUrl,
+              alt: media.caption ?? createdPost.caption ?? "Post media",
+              durationLabel:
+                media.durationMs !== null && media.durationMs !== undefined
+                  ? `${Math.floor(media.durationMs / 60000)
+                      .toString()
+                      .padStart(2, "0")}:${Math.floor((media.durationMs % 60000) / 1000)
+                      .toString()
+                      .padStart(2, "0")}`
+                  : undefined,
+              caption: media.caption,
+            };
+          }),
           taggedMembers: [],
           reactionCount: 0,
           commentCount: 0,
@@ -357,37 +390,55 @@ export const postRouter = createTRPCRouter({
           name: post.authorMember.name,
           avatarUrl: post.authorMember.image ?? "",
         },
-        media: post.media.map((media) => ({
-          id: media.id,
-          type: media.type,
-          provider: media.provider,
-          bucket: media.bucket,
-          objectKey: media.objectKey,
-          url: media.url,
-          mimeType: media.mimeType,
-          sizeBytes: media.sizeBytes,
-          width: media.width,
-          height: media.height,
-          durationMs: media.durationMs,
-          caption: media.caption,
-          sortOrder: media.sortOrder,
-          createdAt: media.createdAt,
-        })),
-        mediaItems: post.media.map((media) => ({
-          id: media.id,
-          type: media.type === "IMAGE" ? "image" : "video",
-          url: media.url,
-          alt: media.caption ?? post.caption ?? "Post media",
-          durationLabel:
-            media.durationMs !== null && media.durationMs !== undefined
-              ? `${Math.floor(media.durationMs / 60000)
-                  .toString()
-                  .padStart(2, "0")}:${Math.floor((media.durationMs % 60000) / 1000)
-                  .toString()
-                  .padStart(2, "0")}`
-              : undefined,
-          caption: media.caption,
-        })),
+        media: post.media.map((media) => {
+          const readUrl = toReadUrl({
+            provider: media.provider,
+            bucket: media.bucket,
+            objectKey: media.objectKey,
+            fallbackUrl: media.url,
+          });
+
+          return {
+            id: media.id,
+            type: media.type,
+            provider: media.provider,
+            bucket: media.bucket,
+            objectKey: media.objectKey,
+            url: readUrl,
+            mimeType: media.mimeType,
+            sizeBytes: media.sizeBytes,
+            width: media.width,
+            height: media.height,
+            durationMs: media.durationMs,
+            caption: media.caption,
+            sortOrder: media.sortOrder,
+            createdAt: media.createdAt,
+          };
+        }),
+        mediaItems: post.media.map((media) => {
+          const readUrl = toReadUrl({
+            provider: media.provider,
+            bucket: media.bucket,
+            objectKey: media.objectKey,
+            fallbackUrl: media.url,
+          });
+
+          return {
+            id: media.id,
+            type: media.type === "IMAGE" ? "image" : "video",
+            url: readUrl,
+            alt: media.caption ?? post.caption ?? "Post media",
+            durationLabel:
+              media.durationMs !== null && media.durationMs !== undefined
+                ? `${Math.floor(media.durationMs / 60000)
+                    .toString()
+                    .padStart(2, "0")}:${Math.floor((media.durationMs % 60000) / 1000)
+                    .toString()
+                    .padStart(2, "0")}`
+                : undefined,
+            caption: media.caption,
+          };
+        }),
         taggedMembers: [],
         reactionCount: 0,
         commentCount: 0,

@@ -28,6 +28,8 @@ export interface StorageProvider {
 
   signUpload(input: UploadIntentRequest): Promise<UploadIntentResponse>;
 
+  signReadUrl(object: StoredObjectRef, expiresInSeconds?: number): Promise<string>;
+
   buildReadUrl(object: StoredObjectRef): string;
 
   deleteObject(object: StoredObjectRef): Promise<void>;
