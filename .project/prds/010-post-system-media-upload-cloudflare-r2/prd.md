@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/008-unclaimed-member-creation-and-claim-flow/prd.md
     description: "FamilyMember identity model used for post ownership and future tagging"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/16
+    description: "Implementation pull request - feat: post system with media uploads"
 ---
 
 > **Instructions for AI Agents:**
