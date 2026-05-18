@@ -31,6 +31,9 @@ export function PostMixedMediaStack({ items, onItemClick }: PostMixedMediaStackP
       {visibleItems.map((item, index) => {
         const horizontalOffset = index * stackOffset;
         const isTopCard = index === visibleItems.length - 1;
+        const overlayTitle = item.alt && item.alt !== item.caption ? item.alt : "";
+        const mediaAriaLabel = item.alt || item.caption || "Post media";
+        const hasOverlayText = Boolean(overlayTitle || item.caption);
 
         return (
           <article
@@ -53,20 +56,24 @@ export function PostMixedMediaStack({ items, onItemClick }: PostMixedMediaStackP
                   playsInline
                   preload="metadata"
                   className="h-full w-full object-cover"
-                  aria-label={item.alt}
+                  aria-label={mediaAriaLabel}
                 />
               ) : (
-                <img src={item.url} alt={item.alt} className="h-full w-full object-cover" />
+                <img src={item.url} alt={mediaAriaLabel} className="h-full w-full object-cover" />
               )}
 
-              <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/35 to-transparent p-3 text-white">
-                <p
-                  className={`text-xs ${item.type === "video" ? "max-w-[75%]" : "max-w-full"} line-clamp-1 font-medium`}
-                >
-                  {item.alt}
-                </p>
-                {item.caption ? <p className="mt-0.5 line-clamp-2 text-[11px] text-white/80">{item.caption}</p> : null}
-              </div>
+              {hasOverlayText ? (
+                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/35 to-transparent p-3 text-white">
+                  {overlayTitle ? (
+                    <p
+                      className={`text-xs ${item.type === "video" ? "max-w-[75%]" : "max-w-full"} line-clamp-1 font-medium`}
+                    >
+                      {overlayTitle}
+                    </p>
+                  ) : null}
+                  {item.caption ? <p className="mt-0.5 line-clamp-2 text-[11px] text-white/80">{item.caption}</p> : null}
+                </div>
+              ) : null}
 
               {item.type === "video" ? (
                 <PlayCircle

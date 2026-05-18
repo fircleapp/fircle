@@ -216,7 +216,7 @@ function mapFeedMediaItem<T extends {
   url: string;
   durationMs: number | null;
   caption: string | null;
-}>(media: T, postCaption: string | null) {
+}>(media: T) {
   const readUrl = toReadUrl({
     provider: media.provider,
     bucket: media.bucket,
@@ -228,7 +228,7 @@ function mapFeedMediaItem<T extends {
     id: media.id,
     type: media.type === "IMAGE" ? "image" : "video",
     url: readUrl,
-    alt: media.caption ?? postCaption ?? "Post media",
+    alt: media.caption ?? "",
     durationLabel: formatDuration(media.durationMs),
     caption: media.caption,
   };
@@ -270,7 +270,7 @@ function mapPostResponse(post: {
       avatarUrl: post.authorMember.image ?? "",
     },
     media: post.media.map((media) => mapMediaRecord(media)),
-    mediaItems: post.media.map((media) => mapFeedMediaItem(media, post.caption)),
+    mediaItems: post.media.map((media) => mapFeedMediaItem(media)),
     taggedMembers: [],
     reactionCount: 0,
     commentCount: 0,
