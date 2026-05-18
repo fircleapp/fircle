@@ -28,12 +28,14 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
   }
 
   const visibleItems = items.slice(0, 4);
+  const overflowCount = Math.max(items.length - visibleItems.length, 0);
 
   return (
     <div className={`grid gap-2 ${getGridClass(visibleItems.length)}`}>
       {visibleItems.map((item, index) => {
         const shouldSpanTwo = visibleItems.length === 3 && index === 2;
         const isVideo = item.type === "video";
+        const isOverflowTile = overflowCount > 0 && index === visibleItems.length - 1;
         const overlayTitle = item.alt && item.alt !== item.caption ? item.alt : "";
         const mediaAriaLabel = item.alt || item.caption || "Post media";
         const hasOverlayText = Boolean(overlayTitle || item.caption);
@@ -60,7 +62,7 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
                 <img src={item.url} alt={mediaAriaLabel} className="h-full w-full object-cover" />
               )}
 
-              {hasOverlayText ? (
+              {hasOverlayText && !isOverflowTile ? (
                 <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/35 to-transparent p-3 text-white">
                   {overlayTitle ? (
                     <p
@@ -73,17 +75,25 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
                 </div>
               ) : null}
 
-              {isVideo ? (
+              {isVideo && !isOverflowTile ? (
                 <PlayCircle
                   className="pointer-events-none absolute left-1/2 top-1/2 size-7 -translate-x-1/2 -translate-y-1/2 text-white sm:size-10 fill-white/85"
                   aria-hidden="true"
                 />
               ) : null}
 
-              {isVideo && item.durationLabel ? (
+              {isVideo && item.durationLabel && !isOverflowTile ? (
                 <span className="absolute bottom-2 right-2 rounded-full border border-white/30 bg-black/65 px-2 py-0.5 text-[11px] text-white">
                   {item.durationLabel}
                 </span>
+              ) : null}
+
+              {isOverflowTile ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/55 text-white">
+                  <span className="rounded-full border border-white/35 bg-black/55 px-3 py-1 text-sm font-semibold">
+                    +{overflowCount}
+                  </span>
+                </div>
               ) : null}
             </div>
           </article>
