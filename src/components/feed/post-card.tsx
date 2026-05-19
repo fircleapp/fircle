@@ -45,6 +45,7 @@ type PostCardProps = {
   showHeaderTimestamp?: boolean;
   footerMeta?: string;
   showActionsSeparator?: boolean;
+  currentMemberSlug?: string;
 };
 
 function renderBody(
@@ -100,6 +101,7 @@ export function PostCard({
   showHeaderTimestamp = true,
   footerMeta,
   showActionsSeparator = false,
+  currentMemberSlug,
 }: PostCardProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -114,7 +116,11 @@ export function PostCard({
   const imageItems = post.mediaItems.filter((item) => item.type === "image");
   const videoItems = post.mediaItems.filter((item) => item.type === "video");
   const isClickable = !pathname?.startsWith("/post/");
-  const authorHref = post.author.slug ? `/member/${post.author.slug}` : undefined;
+  const authorHref = post.author.slug
+    ? post.author.slug === currentMemberSlug
+      ? "/profile"
+      : `/member/${post.author.slug}`
+    : undefined;
 
   function navigateToPost() {
     router.push(`/post/${post.id}`);

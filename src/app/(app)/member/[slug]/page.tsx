@@ -53,6 +53,11 @@ export default function MemberProfilePage() {
 
   const familyId = managementContext.data?.family?.id;
 
+  const currentUserQuery = api.familyMember.getCurrentUserMemberProfile.useQuery(
+    { familyId: familyId ?? "" },
+    { enabled: Boolean(familyId), retry: false, refetchOnWindowFocus: false },
+  );
+
   const memberProfileQuery = api.familyMember.getMemberProfileBySlug.useQuery(
     {
       familyId: familyId ?? "",
@@ -177,7 +182,7 @@ export default function MemberProfilePage() {
                   {memberPosts.length > 0 ? (
                     <div className="space-y-4">
                       {memberPosts.map((post) => (
-                        <PostCard key={post.id} post={post} />
+                        <PostCard key={post.id} post={post} currentMemberSlug={currentUserQuery.data?.slug} />
                       ))}
                     </div>
                   ) : (
@@ -195,7 +200,7 @@ export default function MemberProfilePage() {
                   {taggedPosts.length > 0 ? (
                     <div className="space-y-4">
                       {taggedPosts.map((post) => (
-                        <PostCard key={post.id} post={post} />
+                        <PostCard key={post.id} post={post} currentMemberSlug={currentUserQuery.data?.slug} />
                       ))}
                     </div>
                   ) : (
@@ -213,7 +218,7 @@ export default function MemberProfilePage() {
                   {likedPosts.length > 0 ? (
                     <div className="space-y-4">
                       {likedPosts.map((post) => (
-                        <PostCard key={post.id} post={post} />
+                        <PostCard key={post.id} post={post} currentMemberSlug={currentUserQuery.data?.slug} />
                       ))}
                     </div>
                   ) : (

@@ -83,12 +83,12 @@ function FeedEmptyState() {
   );
 }
 
-function FeedList({ posts }: { posts: PostCardData[] }) {
+function FeedList({ posts, currentMemberSlug }: { posts: PostCardData[]; currentMemberSlug?: string }) {
   return (
     <ul className="space-y-3 pb-20 md:pb-8">
       {posts.map((post) => (
         <li key={post.id}>
-          <PostCard post={post} />
+          <PostCard post={post} currentMemberSlug={currentMemberSlug} />
         </li>
       ))}
     </ul>
@@ -196,7 +196,7 @@ export default function FeedPage() {
               </Button>
             </section>
           ) : posts.length > 0 ? (
-            <FeedList posts={posts} />
+            <FeedList posts={posts} currentMemberSlug={memberQuery.data?.slug} />
           ) : (
             <FeedEmptyState />
           )}

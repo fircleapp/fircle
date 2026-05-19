@@ -359,6 +359,7 @@ export default function SinglePostPage() {
         showHeaderTimestamp={false}
         footerMeta={fullPostTimestamp}
         showActionsSeparator
+        currentMemberSlug={memberProfileQuery.data?.slug}
       />
 
       <div className="mt-6">

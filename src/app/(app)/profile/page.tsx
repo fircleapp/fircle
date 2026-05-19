@@ -136,7 +136,7 @@ export default function ProfilePage() {
                   {memberPosts.length > 0 ? (
                     <div className="space-y-4">
                       {memberPosts.map((post) => (
-                        <PostCard key={post.id} post={post} />
+                        <PostCard key={post.id} post={post} currentMemberSlug={member?.slug} />
                       ))}
                     </div>
                   ) : (
@@ -154,7 +154,7 @@ export default function ProfilePage() {
                   {taggedPosts.length > 0 ? (
                     <div className="space-y-4">
                       {taggedPosts.map((post) => (
-                        <PostCard key={post.id} post={post} />
+                        <PostCard key={post.id} post={post} currentMemberSlug={member?.slug} />
                       ))}
                     </div>
                   ) : (
@@ -172,7 +172,7 @@ export default function ProfilePage() {
                   {likedPosts.length > 0 ? (
                     <div className="space-y-4">
                       {likedPosts.map((post) => (
-                        <PostCard key={post.id} post={post} />
+                        <PostCard key={post.id} post={post} currentMemberSlug={member?.slug} />
                       ))}
                     </div>
                   ) : (
