@@ -128,6 +128,18 @@ export default function FeedPage() {
 
   const familyId = managementContext.data?.family?.id;
 
+  const memberQuery = api.familyMember.getCurrentUserMemberProfile.useQuery(
+    { familyId: familyId ?? "" },
+    { enabled: Boolean(familyId), retry: false, refetchOnWindowFocus: false },
+  );
+
+  const currentUser = memberQuery.data
+    ? {
+        name: memberQuery.data.name,
+        avatarUrl: memberQuery.data.image ?? undefined,
+      }
+    : undefined;
+
   const feedQuery = api.post.getFeed.useQuery(
     {
       familyId: familyId ?? "",
@@ -160,7 +172,7 @@ export default function FeedPage() {
           </header>
 
           <div className="supports-backdrop-filter:bg-background/80 sticky top-0 z-20 -mx-1 rounded-3xl bg-background/95 px-1 pb-2 pt-1 backdrop-blur">
-            <ComposerEntry onOpenComposer={openComposer} />
+            <ComposerEntry user={currentUser} onOpenComposer={openComposer} />
           </div>
 
           {hasNoFamily ? (
