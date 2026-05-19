@@ -1,6 +1,6 @@
 ---
 title: "Post Like System"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -41,12 +41,12 @@ This PRD introduces a durable like system for posts, allowing authenticated fami
 ## Implementation Plan
 
 ### Phase 1: Data Model & Migration
-- [ ] Add `PostLike` model to `prisma/schema.prisma`:
+- [x] Add `PostLike` model to `prisma/schema.prisma`:
   - Fields: id (CUID), postId (FK), memberIdWhoLiked (FK), createdAt
   - Unique constraint on (postId, memberIdWhoLiked)
   - Cascade delete on post/member removal
-- [ ] Create and apply migration for PostLike
-- [ ] Confirm Prisma client exposes new relation fields
+- [x] Create and apply migration for PostLike
+- [x] Confirm Prisma client exposes new relation fields
 
 ### Phase 2: Backend API & Response Shape
 - [ ] Update post router response mapping to include real `reactionCount` and `likedByCurrentUser`
