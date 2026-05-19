@@ -201,7 +201,7 @@ export function PostCard({ post, showHeaderTimestamp = true, footerMeta }: PostC
       ) : null}
 
       <div
-        className="mt-4 flex flex-wrap items-center gap-2 border-border/70 pt-2"
+        className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/70 pt-2"
         onClick={(event) => event.stopPropagation()}
       >
         <Button type="button" variant="ghost" size="sm" className="rounded-2xl px-3">
