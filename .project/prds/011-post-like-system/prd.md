@@ -47,6 +47,9 @@ This PRD introduces a durable like system for posts, allowing authenticated fami
   - Cascade delete on post/member removal
 - [x] Create and apply migration for PostLike
 - [x] Confirm Prisma client exposes new relation fields
+- [x] Update `prisma/seed.mjs` to mock `PostLike` records for seeded family posts
+  - Deterministic pattern across seeded members/posts
+  - Idempotent behavior by clearing likes for seeded posts before re-creating
 
 ### Phase 2: Backend API & Response Shape
 - [ ] Update post router response mapping to include real `reactionCount` and `likedByCurrentUser`
