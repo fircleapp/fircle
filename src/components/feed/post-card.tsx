@@ -42,6 +42,7 @@ type PostCardProps = {
   post: PostCardData;
   showHeaderTimestamp?: boolean;
   footerMeta?: string;
+  showActionsSeparator?: boolean;
 };
 
 function renderBody(
@@ -92,7 +93,12 @@ function getInitials(name: string) {
     .join("");
 }
 
-export function PostCard({ post, showHeaderTimestamp = true, footerMeta }: PostCardProps) {
+export function PostCard({
+  post,
+  showHeaderTimestamp = true,
+  footerMeta,
+  showActionsSeparator = false,
+}: PostCardProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -201,7 +207,9 @@ export function PostCard({ post, showHeaderTimestamp = true, footerMeta }: PostC
       ) : null}
 
       <div
-        className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/70 pt-2"
+        className={`mt-4 flex flex-wrap items-center gap-2 pt-2 ${
+          showActionsSeparator ? "border-t border-border/70" : ""
+        }`}
         onClick={(event) => event.stopPropagation()}
       >
         <Button type="button" variant="ghost" size="sm" className="rounded-2xl px-3">

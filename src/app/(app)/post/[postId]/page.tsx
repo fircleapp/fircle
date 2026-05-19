@@ -353,7 +353,12 @@ export default function SinglePostPage() {
         Back
       </Button>
 
-      <PostCard post={post} showHeaderTimestamp={false} footerMeta={fullPostTimestamp} />
+      <PostCard
+        post={post}
+        showHeaderTimestamp={false}
+        footerMeta={fullPostTimestamp}
+        showActionsSeparator
+      />
 
       <div className="mt-6">
         <CommentInput user={currentUser} />
