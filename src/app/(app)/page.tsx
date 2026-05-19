@@ -1,13 +1,12 @@
 "use client";
 
 import { ImageOff } from "~/components/ui/icons";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { ComposerEntry } from "~/components/feed/composer-entry";
-import type { ComposerOpenMode } from "~/components/feed/composer-entry";
+import { useGlobalComposer } from "~/components/feed/global-composer-provider";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
-import { PostComposerDialog } from "~/components/feed/post-composer-dialog";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 
@@ -120,8 +119,7 @@ function FeedSkeletonList() {
 }
 
 export default function FeedPage() {
-  const [composerOpen, setComposerOpen] = useState(false);
-  const [composerMode, setComposerMode] = useState<ComposerOpenMode | undefined>(undefined);
+  const { openComposer } = useGlobalComposer();
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -149,11 +147,6 @@ export default function FeedPage() {
 
   const isLoading = managementContext.isLoading || (Boolean(familyId) && feedQuery.isLoading);
   const hasNoFamily = !managementContext.isLoading && !familyId;
-
-  const openComposer = (mode?: ComposerOpenMode) => {
-    setComposerMode(mode);
-    setComposerOpen(true);
-  };
 
   return (
     <>
@@ -196,13 +189,6 @@ export default function FeedPage() {
           )}
         </div>
       </section>
-
-      <PostComposerDialog
-        open={composerOpen}
-        onOpenChange={setComposerOpen}
-        familyId={familyId}
-        initialMode={composerMode}
-      />
     </>
   );
 }

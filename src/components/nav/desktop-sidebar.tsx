@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, House, Plus, Settings, User, Users } from "~/components/ui/icons";
 
+import { useGlobalComposer } from "~/components/feed/global-composer-provider";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
@@ -25,6 +26,7 @@ function isActivePath(pathname: string, href: string) {
 
 export function DesktopSidebar() {
   const pathname = usePathname();
+  const { openComposer } = useGlobalComposer();
 
   return (
     <aside className="fixed top-0 left-0 hidden h-screen w-72 border-r border-border bg-background md:flex md:flex-col">
@@ -59,17 +61,18 @@ export function DesktopSidebar() {
           );
         })}
         <Button
-          asChild
+          type="button"
           title="Create"
+          onClick={() => openComposer()}
           className={cn(
             "h-12 w-full justify-start gap-3 rounded-full px-4 text-base",
             "bg-primary text-primary-foreground hover:bg-primary/80 text-center"
           )}
         >
-          <Link href="/create" aria-label="Create" className="mx-auto">
+          <span aria-label="Create" className="mx-auto inline-flex items-center gap-3">
             <Plus className="size-6" />
             <span>Create</span>
-          </Link>
+          </span>
         </Button>
       </nav>
 
