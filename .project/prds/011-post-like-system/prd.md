@@ -63,10 +63,10 @@ This PRD introduces a durable like system for posts, allowing authenticated fami
 - [x] Add backend tests for toggle behavior, guards, and rate limiting
 
 ### Phase 3: Frontend Integration
-- [ ] Extend post card data contract to include `likedByCurrentUser`
-- [ ] Wire heart button to toggleLike mutation with optimistic update and rollback
-- [ ] Invalidate/refetch feed queries on mutation success
-- [ ] Add pending/disabled state and accessibility attributes (aria-pressed, aria-label)
+- [x] Extend post card data contract to include `likedByCurrentUser`
+- [x] Wire heart button to toggleLike mutation with optimistic update and rollback
+- [x] Invalidate/refetch feed queries on mutation success
+- [x] Add pending/disabled state and accessibility attributes (aria-pressed, aria-label)
 - [ ] Manual QA for mobile/desktop, error handling, and persistence
 
 ## Acceptance Criteria
