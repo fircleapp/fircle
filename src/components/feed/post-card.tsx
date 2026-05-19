@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
 
 import { Heart, Comment, Share } from "~/components/ui/icons";
 
@@ -28,6 +29,7 @@ export type PostCardData = {
   type: "text" | "photo" | "video" | "mixed";
   author: {
     name: string;
+    slug?: string;
     avatarUrl: string;
   };
   createdAtLabel: string;
@@ -112,6 +114,7 @@ export function PostCard({
   const imageItems = post.mediaItems.filter((item) => item.type === "image");
   const videoItems = post.mediaItems.filter((item) => item.type === "video");
   const isClickable = !pathname?.startsWith("/post/");
+  const authorHref = post.author.slug ? `/member/${post.author.slug}` : undefined;
 
   function navigateToPost() {
     router.push(`/post/${post.id}`);
@@ -140,20 +143,41 @@ export function PostCard({
       }
     >
       <header className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Avatar className="size-10 border border-border">
-            <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-            <AvatarFallback className="text-xs font-semibold text-foreground">
-              {getInitials(post.author.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium text-sm text-foreground">{post.author.name}</p>
-            {showHeaderTimestamp ? (
-              <p className="text-muted-foreground text-xs">{post.createdAtLabel}</p>
-            ) : null}
+        {authorHref ? (
+          <Link
+            href={authorHref}
+            className="flex items-center gap-3 rounded-2xl outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <Avatar className="size-10 border border-border">
+              <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+              <AvatarFallback className="text-xs font-semibold text-foreground">
+                {getInitials(post.author.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium text-sm text-foreground">{post.author.name}</p>
+              {showHeaderTimestamp ? (
+                <p className="text-muted-foreground text-xs">{post.createdAtLabel}</p>
+              ) : null}
+            </div>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Avatar className="size-10 border border-border">
+              <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+              <AvatarFallback className="text-xs font-semibold text-foreground">
+                {getInitials(post.author.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium text-sm text-foreground">{post.author.name}</p>
+              {showHeaderTimestamp ? (
+                <p className="text-muted-foreground text-xs">{post.createdAtLabel}</p>
+              ) : null}
+            </div>
           </div>
-        </div>
+        )}
 
         {post.taggedMembers.length > 0 && post.type !== "text" ? (
           <TaggedMemberAvatarStack members={post.taggedMembers} />

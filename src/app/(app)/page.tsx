@@ -30,7 +30,7 @@ function formatCreatedAtLabel(dateInput: Date | string) {
 function mapFeedItemToPostCardData(item: {
   id: string;
   type: "TEXT" | "PHOTO" | "VIDEO" | "MIXED";
-  author: { name: string; avatarUrl: string };
+  author: { name: string; slug: string; avatarUrl: string };
   createdAt: Date | string;
   caption: string | null;
   mediaItems: Array<{
@@ -47,6 +47,7 @@ function mapFeedItemToPostCardData(item: {
     type: item.type.toLowerCase() as PostCardData["type"],
     author: {
       name: item.author.name,
+      slug: item.author.slug,
       avatarUrl: item.author.avatarUrl,
     },
     createdAtLabel: formatCreatedAtLabel(item.createdAt),

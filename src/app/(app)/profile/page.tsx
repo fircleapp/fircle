@@ -75,7 +75,7 @@ export default function ProfilePage() {
   const memberPosts: PostCardData[] = (memberPostsQuery.data?.items ?? []).map((item) => ({
     id: item.id,
     type: item.type.toLowerCase() as PostCardData["type"],
-    author: { name: item.author.name, avatarUrl: item.author.avatarUrl },
+    author: { name: item.author.name, slug: item.author.slug, avatarUrl: item.author.avatarUrl },
     createdAtLabel: formatCreatedAtLabel(item.createdAt),
     body: item.caption ?? "",
     mediaItems: item.mediaItems.map((m) => ({

@@ -246,7 +246,7 @@ function mapPostResponse(post: {
   type: "TEXT" | "PHOTO" | "VIDEO" | "MIXED";
   caption: string | null;
   createdAt: Date;
-  authorMember: { id: string; name: string; image: string | null };
+  authorMember: { id: string; name: string; slug: string; image: string | null };
   media: Array<{
     id: string;
     type: "IMAGE" | "VIDEO";
@@ -274,6 +274,7 @@ function mapPostResponse(post: {
     author: {
       id: post.authorMember.id,
       name: post.authorMember.name,
+      slug: post.authorMember.slug,
       avatarUrl: post.authorMember.image ?? "",
     },
     media: post.media.map((media) => mapMediaRecord(media)),
@@ -360,6 +361,7 @@ export const postRouter = createTRPCRouter({
               select: {
                 id: true,
                 name: true,
+                slug: true,
                 image: true,
               },
             },
@@ -417,6 +419,7 @@ export const postRouter = createTRPCRouter({
             select: {
               id: true,
               name: true,
+              slug: true,
               image: true,
             },
           },
@@ -488,6 +491,7 @@ export const postRouter = createTRPCRouter({
           select: {
             id: true,
             name: true,
+            slug: true,
             image: true,
           },
         },
@@ -561,6 +565,7 @@ export const postRouter = createTRPCRouter({
             select: {
               id: true,
               name: true,
+              slug: true,
               image: true,
             },
           },
