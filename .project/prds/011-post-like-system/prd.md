@@ -52,15 +52,15 @@ This PRD introduces a durable like system for posts, allowing authenticated fami
   - Idempotent behavior by clearing likes for seeded posts before re-creating
 
 ### Phase 2: Backend API & Response Shape
-- [ ] Update post router response mapping to include real `reactionCount` and `likedByCurrentUser`
-- [ ] Update `getFeed`, `getById`, and `getPostsByMember` to select like counts and current user's like state efficiently
-- [ ] Add protected `toggleLike` mutation:
+- [x] Update post router response mapping to include real `reactionCount` and `likedByCurrentUser`
+- [x] Update `getFeed`, `getById`, and `getPostsByMember` to select like counts and current user's like state efficiently
+- [x] Add protected `toggleLike` mutation:
   - Input: familyId, postId
   - Auth: requireFamilyMembership
   - Logic: create like if absent, delete if present (idempotent)
   - Allow self-likes
   - Rate limit per member (e.g., 100/min)
-- [ ] Add backend tests for toggle behavior, guards, and rate limiting
+- [x] Add backend tests for toggle behavior, guards, and rate limiting
 
 ### Phase 3: Frontend Integration
 - [ ] Extend post card data contract to include `likedByCurrentUser`
