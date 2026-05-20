@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/011-post-like-system/prd.md
     description: "Optimistic interaction pattern, rate limiting, and post engagement response shape"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/19
+    description: "Implementation pull request - feat: implement post comment system"
 ---
 
 > **Instructions for AI Agents:**
