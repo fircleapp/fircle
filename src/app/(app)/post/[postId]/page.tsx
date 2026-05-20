@@ -261,6 +261,11 @@ export default function SinglePostPage() {
     return applyLikeOverrides(items, likeOverrides);
   }, [commentsQuery.data?.items, likeOverrides]);
 
+  const totalCommentCount = useMemo(
+    () => comments.reduce((sum, comment) => sum + 1 + comment.replyCount, 0),
+    [comments],
+  );
+
   const isLoading =
     managementContext.isLoading ||
     (Boolean(familyId) && postQuery.isLoading) ||
@@ -291,10 +296,6 @@ export default function SinglePostPage() {
     };
   }
 
-  function hasMoreReplies(comment: CommentApiItem) {
-    return getReplyPaginationState(comment).hasMore;
-  }
-
   function isRepliesLoading(commentId: string) {
     return replyPaginationByParentId[commentId]?.isLoading ?? false;
   }
@@ -318,7 +319,7 @@ export default function SinglePostPage() {
 
     try {
       let nextCursor = initialState.nextCursor;
-      let hasMore = initialState.hasMore;
+      let hasMore: boolean = initialState.hasMore;
 
       do {
         const result = await trpcUtils.post.getComments.fetch({
@@ -349,8 +350,9 @@ export default function SinglePostPage() {
           };
         });
 
-        nextCursor = result.nextCursor;
-        hasMore = Boolean(result.nextCursor);
+        const responseNextCursor = typeof result.nextCursor === "string" ? result.nextCursor : null;
+        nextCursor = responseNextCursor;
+        hasMore = responseNextCursor !== null;
       } while (loadAll && hasMore);
 
       setReplyPaginationByParentId((previous) => ({
@@ -829,7 +831,7 @@ export default function SinglePostPage() {
         </p>
 
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          {comments.length} {comments.length === 1 ? "Comment" : "Comments"}
+          {totalCommentCount} {totalCommentCount === 1 ? "Comment" : "Comments"}
         </h2>
 
         {commentsQuery.error ? (
@@ -860,7 +862,9 @@ export default function SinglePostPage() {
           onStartEdit={handleStartEdit}
           onDelete={handleDeleteComment}
           isLikePending={isLikePending}
-          hasMoreReplies={hasMoreReplies}
+          hasMoreReplies={(comment) =>
+            getReplyPaginationState(comment as CommentApiItem).hasMore
+          }
           isRepliesLoading={isRepliesLoading}
           onShowMoreReplies={(comment) => {
             void loadRepliesForComment(comment as CommentApiItem, false);
