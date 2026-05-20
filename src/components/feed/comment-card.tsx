@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {
@@ -78,15 +80,23 @@ export function CommentCard({
   showReply = true,
   children,
 }: CommentCardProps) {
+  const authorHref = isOwnComment ? "/profile" : `/member/${comment.author.slug}`;
+
   return (
     <article className="rounded-2xl border border-border/80 bg-card/90 px-4 py-3">
       <header className="flex items-center gap-3">
-        <Avatar className="size-9 shrink-0 border border-border">
-          <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
-          <AvatarFallback className="text-xs font-semibold text-foreground">
-            {getInitials(comment.author.name)}
-          </AvatarFallback>
-        </Avatar>
+        <Link
+          href={authorHref}
+          className="rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          aria-label={`Open ${comment.author.name}'s profile`}
+        >
+          <Avatar className="size-9 shrink-0 border border-border">
+            <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
+            <AvatarFallback className="text-xs font-semibold text-foreground">
+              {getInitials(comment.author.name)}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium leading-none text-foreground">{comment.author.name}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">{formatCreatedAtLabel(comment.createdAt)}</p>
