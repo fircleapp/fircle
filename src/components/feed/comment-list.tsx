@@ -50,7 +50,7 @@ export function CommentList({
 
           {comment.replies.length > 0
               ? comment.replies.map((reply) => (
-                  <div key={reply.id} className="mt-3 ml-4 relative">
+                  <div key={reply.id} className="mt-5 ml-4 relative">
                     <div className="w-px h-full bg-border/80 absolute -top-6 left-8.5 -z-1" />
                     <CommentCard
                       comment={reply}
