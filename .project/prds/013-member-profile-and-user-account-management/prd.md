@@ -158,11 +158,11 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
 
 ## Acceptance Criteria
 
-- [ ] Settings includes an Account section with a working current-password-required password change flow.
-- [ ] Admin panel on member profile supports temporary password reset for claimed members only.
+- [x] Settings includes an Account section with a working current-password-required password change flow.
+- [x] Admin panel on member profile supports temporary password reset for claimed members only.
 - [ ] Profile edit dialog saves real data (name and image) for both self and admin edit contexts.
 - [ ] Avatar uploads use signed upload flow and persist usable profile image URLs.
-- [ ] Liked posts display correctly in Liked tabs on both `/profile` and `/member/[slug]`.
-- [ ] All new backend procedures enforce family membership and role constraints correctly.
-- [ ] Automated checks (lint/typecheck/tests) pass for the implemented changes.
+- [x] Liked posts display correctly in Liked tabs on both `/profile` and `/member/[slug]`.
+- [x] All new backend procedures enforce family membership and role constraints correctly.
+- [x] Automated checks (lint/typecheck/tests) pass for the implemented changes.
 - [x] Manual QA confirms functional behavior on desktop and mobile for all covered flows.
