@@ -1,6 +1,6 @@
 ---
 title: "Post Commenting System"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -146,8 +146,8 @@ The implementation should follow the same architectural patterns already used by
   - [x] `aria-pressed` on like toggles.
   - [x] `aria-live` messaging for async errors or status updates.
   - [x] Keyboard-friendly focus behavior for inputs, buttons, and destructive actions.
-- [ ] Validate mobile responsiveness for thread layout, nested replies, and composer actions in narrow viewports.
-- [ ] Perform manual QA for create, reply, edit, delete, and like flows across desktop and mobile.
+- [x] Validate mobile responsiveness for thread layout, nested replies, and composer actions in narrow viewports.
+- [x] Perform manual QA for create, reply, edit, delete, and like flows across desktop and mobile.
 
 ## Acceptance Criteria
 
@@ -159,5 +159,5 @@ The implementation should follow the same architectural patterns already used by
 - [x] All comment mutations enforce family membership and reject cross-post or cross-family parent comment references.
 - [x] Thread queries paginate predictably using stable cursors, even when multiple comments share the same timestamp.
 - [x] Optimistic UI updates are used for comment creation and comment likes, with rollback on failure.
-- [ ] The post detail comment experience works on mobile and desktop and preserves existing accessibility patterns.
-- [ ] New backend tests pass, and the full affected code passes project lint, type checks, and relevant automated tests.
+- [x] The post detail comment experience works on mobile and desktop and preserves existing accessibility patterns.
+- [x] New backend tests pass, and the full affected code passes project lint, type checks, and relevant automated tests.
