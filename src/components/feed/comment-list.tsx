@@ -2,6 +2,7 @@
 
 import { CommentCard } from "~/components/feed/comment-card";
 import type { FeedComment } from "~/components/feed/comment-card";
+import { Button } from "~/components/ui/button";
 
 type CommentListProps = {
   comments: FeedComment[];
@@ -11,6 +12,10 @@ type CommentListProps = {
   onStartEdit: (commentId: string) => void;
   onDelete: (commentId: string) => void;
   isLikePending?: (commentId: string) => boolean;
+  hasMoreReplies?: (comment: FeedComment) => boolean;
+  isRepliesLoading?: (commentId: string) => boolean;
+  onShowMoreReplies?: (comment: FeedComment) => void;
+  onShowAllReplies?: (comment: FeedComment) => void;
   renderInlineComposer?: (comment: FeedComment) => React.ReactNode;
 };
 
@@ -22,6 +27,10 @@ export function CommentList({
   onStartEdit,
   onDelete,
   isLikePending,
+  hasMoreReplies,
+  isRepliesLoading,
+  onShowMoreReplies,
+  onShowAllReplies,
   renderInlineComposer,
 }: CommentListProps) {
   if (comments.length === 0) {
@@ -36,6 +45,13 @@ export function CommentList({
     <ul className="space-y-5">
       {comments.map((comment) => (
         <li key={comment.id} className="relative">
+          {(() => {
+            const hiddenReplyCount = Math.max(comment.replyCount - comment.replies.length, 0);
+            const canShowMore = hasMoreReplies?.(comment) ?? hiddenReplyCount > 0;
+            const repliesLoading = isRepliesLoading?.(comment.id) ?? false;
+
+            return (
+              <>
           <CommentCard
             comment={comment}
             isOwnComment={comment.author.id === currentMemberId}
@@ -67,6 +83,36 @@ export function CommentList({
                   </div>
                 ))
               : null}
+
+          {canShowMore || repliesLoading ? (
+            <div className="mt-3 ml-4 flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="rounded-2xl px-3"
+                onClick={() => onShowMoreReplies?.(comment)}
+                disabled={repliesLoading}
+              >
+                {repliesLoading ? "Loading..." : "Show more replies"}
+              </Button>
+              {hiddenReplyCount > 1 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-2xl px-3"
+                  onClick={() => onShowAllReplies?.(comment)}
+                  disabled={repliesLoading}
+                >
+                  Show all replies ({hiddenReplyCount})
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+              </>
+            );
+          })()}
         </li>
       ))}
     </ul>

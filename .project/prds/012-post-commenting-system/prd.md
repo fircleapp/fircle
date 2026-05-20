@@ -40,6 +40,7 @@ The implementation should follow the same architectural patterns already used by
 - **Separate `Comment` and `CommentLike` models**: Comments should not be overloaded onto posts or reused through polymorphic tables. Dedicated models keep the schema explicit and easier to validate.
 - **Reuse post interaction patterns**: Comment likes should follow the same `toggleLike` style mutation and optimistic behavior already established for post likes.
 - **Thread integrity is enforced server-side**: If a reply is created, the referenced parent comment must belong to the same post and family context as the new comment.
+- **Progressive reply expansion in v1**: Top-level comments load with a small preview of replies, and users can expand a thread with explicit "show more" and "show all replies" controls backed by paginated reply queries.
 - **Mentions are out of scope**: Comment bodies remain plain text in v1. Mention parsing and notifications can build on top of this system later.
 
 ### User Stories
@@ -122,6 +123,10 @@ The implementation should follow the same architectural patterns already used by
 - [x] Wire the post detail page to the new comment queries and mutations using `api` hooks from `src/trpc/react.tsx`.
 - [x] Support top-level comment creation with optimistic insertion and rollback on failure.
 - [x] Support reply creation beneath a parent comment with clear visual nesting and mobile-safe spacing.
+- [x] Add progressive reply expansion controls on parent comments:
+  - [x] Show an inline "Show more replies" action when additional replies exist beyond the preview.
+  - [x] Show an inline "Show all replies" action for quickly loading the rest of a thread.
+  - [x] Append fetched replies in stable chronological order without duplicate entries.
 - [x] Support editing an existing comment in place with pending and error states.
 - [x] Support deleting an existing comment with confirmation UI to reduce accidental removal.
 - [x] Support comment like toggling with optimistic UI behavior and `aria-pressed` semantics.

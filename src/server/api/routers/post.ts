@@ -898,10 +898,24 @@ export const postRouter = createTRPCRouter({
         }
       }
 
-      const baseWhere = {
-        postId: post.id,
-        ...(cursor
+      const paginationWhere = cursor
+        ? input.parentCommentId
           ? {
+              OR: [
+                {
+                  createdAt: {
+                    gt: cursor.createdAt,
+                  },
+                },
+                {
+                  createdAt: cursor.createdAt,
+                  id: {
+                    gt: cursor.id,
+                  },
+                },
+              ],
+            }
+          : {
               OR: [
                 {
                   createdAt: {
@@ -916,7 +930,11 @@ export const postRouter = createTRPCRouter({
                 },
               ],
             }
-          : {}),
+        : {};
+
+      const baseWhere = {
+        postId: post.id,
+        ...paginationWhere,
       };
 
       const comments = input.parentCommentId
@@ -926,7 +944,7 @@ export const postRouter = createTRPCRouter({
               ...baseWhere,
               parentCommentId: input.parentCommentId,
             },
-            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+            orderBy: [{ createdAt: "asc" }, { id: "asc" }],
             select: {
               id: true,
               postId: true,

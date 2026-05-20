@@ -93,6 +93,14 @@ type LikeOverride = {
   likeCount: number;
 };
 
+type ReplyPaginationState = {
+  nextCursor: string | null;
+  hasMore: boolean;
+  isLoading: boolean;
+};
+
+const REPLIES_PAGE_SIZE = 20;
+
 type CommentApiItem = {
   id: string;
   postId: string;
@@ -157,6 +165,32 @@ function updateCommentInTree(
   });
 }
 
+function encodeCommentCursor(createdAt: Date | string, id: string) {
+  const createdAtIso = (createdAt instanceof Date ? createdAt : new Date(createdAt)).toISOString();
+  return `${createdAtIso}__${id}`;
+}
+
+function mergeReplies(existing: CommentApiItem[], incoming: CommentApiItem[]) {
+  const byId = new Map<string, CommentApiItem>();
+
+  for (const reply of existing) {
+    byId.set(reply.id, reply);
+  }
+
+  for (const reply of incoming) {
+    byId.set(reply.id, reply);
+  }
+
+  return Array.from(byId.values()).sort((a, b) => {
+    const createdAtDiff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    if (createdAtDiff !== 0) {
+      return createdAtDiff;
+    }
+
+    return a.id.localeCompare(b.id);
+  });
+}
+
 export default function SinglePostPage() {
   const router = useRouter();
   const params = useParams<{ postId: string }>();
@@ -172,6 +206,9 @@ export default function SinglePostPage() {
   const [commentActionStatus, setCommentActionStatus] = useState<string | null>(null);
   const [likeOverrides, setLikeOverrides] = useState<Record<string, LikeOverride>>({});
   const [pendingLikeIds, setPendingLikeIds] = useState<string[]>([]);
+  const [replyPaginationByParentId, setReplyPaginationByParentId] = useState<
+    Record<string, ReplyPaginationState>
+  >({});
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -233,6 +270,108 @@ export default function SinglePostPage() {
 
   function isLikePending(commentId: string) {
     return pendingLikeIds.includes(commentId);
+  }
+
+  function getReplyPaginationState(comment: CommentApiItem): ReplyPaginationState {
+    const existing = replyPaginationByParentId[comment.id];
+    if (existing) {
+      return existing;
+    }
+
+    const hasMore = comment.replyCount > comment.replies.length;
+    const nextCursor =
+      comment.replies.length > 0
+        ? encodeCommentCursor(comment.replies[comment.replies.length - 1]!.createdAt, comment.replies[comment.replies.length - 1]!.id)
+        : null;
+
+    return {
+      nextCursor,
+      hasMore,
+      isLoading: false,
+    };
+  }
+
+  function hasMoreReplies(comment: CommentApiItem) {
+    return getReplyPaginationState(comment).hasMore;
+  }
+
+  function isRepliesLoading(commentId: string) {
+    return replyPaginationByParentId[commentId]?.isLoading ?? false;
+  }
+
+  async function loadRepliesForComment(comment: CommentApiItem, loadAll: boolean) {
+    if (!commentsInput) return;
+
+    const initialState = getReplyPaginationState(comment);
+    if (!initialState.hasMore || initialState.isLoading) {
+      return;
+    }
+
+    setCommentActionError(null);
+    setReplyPaginationByParentId((previous) => ({
+      ...previous,
+      [comment.id]: {
+        ...initialState,
+        isLoading: true,
+      },
+    }));
+
+    try {
+      let nextCursor = initialState.nextCursor;
+      let hasMore = initialState.hasMore;
+
+      do {
+        const result = await trpcUtils.post.getComments.fetch({
+          familyId: commentsInput.familyId,
+          postId: commentsInput.postId,
+          parentCommentId: comment.id,
+          limit: REPLIES_PAGE_SIZE,
+          ...(nextCursor ? { cursor: nextCursor } : {}),
+        });
+
+        const incomingReplies = result.items as CommentApiItem[];
+
+        trpcUtils.post.getComments.setData(commentsInput, (previous) => {
+          if (!previous) return previous;
+
+          return {
+            ...previous,
+            items: previous.items.map((item) => {
+              if (item.id !== comment.id) {
+                return item;
+              }
+
+              return {
+                ...item,
+                replies: mergeReplies(item.replies as CommentApiItem[], incomingReplies),
+              };
+            }),
+          };
+        });
+
+        nextCursor = result.nextCursor;
+        hasMore = Boolean(result.nextCursor);
+      } while (loadAll && hasMore);
+
+      setReplyPaginationByParentId((previous) => ({
+        ...previous,
+        [comment.id]: {
+          nextCursor,
+          hasMore,
+          isLoading: false,
+        },
+      }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to load replies.";
+      setCommentActionError(message);
+      setReplyPaginationByParentId((previous) => ({
+        ...previous,
+        [comment.id]: {
+          ...initialState,
+          isLoading: false,
+        },
+      }));
+    }
   }
 
   function clearInlineEditors() {
@@ -721,6 +860,14 @@ export default function SinglePostPage() {
           onStartEdit={handleStartEdit}
           onDelete={handleDeleteComment}
           isLikePending={isLikePending}
+          hasMoreReplies={hasMoreReplies}
+          isRepliesLoading={isRepliesLoading}
+          onShowMoreReplies={(comment) => {
+            void loadRepliesForComment(comment as CommentApiItem, false);
+          }}
+          onShowAllReplies={(comment) => {
+            void loadRepliesForComment(comment as CommentApiItem, true);
+          }}
           renderInlineComposer={(comment) => {
             if (activeEditCommentId === comment.id) {
               return (
