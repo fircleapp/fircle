@@ -254,7 +254,7 @@ function mapPostResponse(post: {
   createdAt: Date;
   authorMember: { id: string; name: string; slug: string; image: string | null };
   likes: Array<{ id: string }>;
-  _count: { likes: number };
+  _count: { likes: number; comments: number };
   media: Array<{
     id: string;
     type: "IMAGE" | "VIDEO";
@@ -290,7 +290,7 @@ function mapPostResponse(post: {
     taggedMembers: [],
     likedByCurrentUser: post.likes.length > 0,
     reactionCount: post._count.likes,
-    commentCount: 0,
+    commentCount: post._count.comments,
   };
 }
 
@@ -404,6 +404,7 @@ export const postRouter = createTRPCRouter({
             _count: {
               select: {
                 likes: true,
+                comments: true,
               },
             },
           },
@@ -475,6 +476,7 @@ export const postRouter = createTRPCRouter({
           _count: {
             select: {
               likes: true,
+              comments: true,
             },
           },
         },
@@ -560,6 +562,7 @@ export const postRouter = createTRPCRouter({
         _count: {
           select: {
             likes: true,
+            comments: true,
           },
         },
       },
@@ -647,6 +650,7 @@ export const postRouter = createTRPCRouter({
           _count: {
             select: {
               likes: true,
+              comments: true,
             },
           },
         },

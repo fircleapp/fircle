@@ -1,6 +1,6 @@
 ---
 title: "Post Commenting System"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -59,28 +59,28 @@ The implementation should follow the same architectural patterns already used by
 
 #### Tasks
 
-- [ ] Update `prisma/schema.prisma` to add a `Comment` model with fields:
-  - [ ] `id` as CUID primary key.
-  - [ ] `postId` relation to `Post` with cascade delete.
-  - [ ] `authorMemberId` relation to `FamilyMember` with cascade delete.
-  - [ ] `parentCommentId` optional self-reference for replies.
-  - [ ] `content` string field for plain-text body.
-  - [ ] `createdAt` and `updatedAt` timestamps.
-- [ ] Add `CommentLike` model with fields:
-  - [ ] `id` as CUID primary key.
-  - [ ] `commentId` relation to `Comment` with cascade delete.
-  - [ ] `memberIdWhoLiked` relation to `FamilyMember` with cascade delete.
-  - [ ] `createdAt` timestamp.
-  - [ ] Unique constraint on `(commentId, memberIdWhoLiked)`.
-- [ ] Add indexes to support thread queries and reply lookups, including combinations covering `postId`, `parentCommentId`, `createdAt`, and `id` ordering.
-- [ ] Generate and apply a Prisma migration for the comment schema.
-- [ ] Regenerate the Prisma client in `generated/prisma`.
-- [ ] Update `prisma/seed.mjs` to create representative mock comments and replies for seeded posts:
-  - [ ] Seed top-level comments across multiple posts.
-  - [ ] Seed depth-1 replies linked through `parentCommentId`.
-  - [ ] Seed deterministic `CommentLike` records so local/dev environments exercise engagement states.
-  - [ ] Keep the seed behavior idempotent by clearing or rebuilding comment-related records for seeded posts before recreating them.
-- [ ] Update post query selections and response mapping in `src/server/api/routers/post.ts` so `commentCount` is sourced from Prisma `_count` instead of hard-coded placeholder values.
+- [x] Update `prisma/schema.prisma` to add a `Comment` model with fields:
+  - [x] `id` as CUID primary key.
+  - [x] `postId` relation to `Post` with cascade delete.
+  - [x] `authorMemberId` relation to `FamilyMember` with cascade delete.
+  - [x] `parentCommentId` optional self-reference for replies.
+  - [x] `content` string field for plain-text body.
+  - [x] `createdAt` and `updatedAt` timestamps.
+- [x] Add `CommentLike` model with fields:
+  - [x] `id` as CUID primary key.
+  - [x] `commentId` relation to `Comment` with cascade delete.
+  - [x] `memberIdWhoLiked` relation to `FamilyMember` with cascade delete.
+  - [x] `createdAt` timestamp.
+  - [x] Unique constraint on `(commentId, memberIdWhoLiked)`.
+- [x] Add indexes to support thread queries and reply lookups, including combinations covering `postId`, `parentCommentId`, `createdAt`, and `id` ordering.
+- [x] Generate and apply a Prisma migration for the comment schema.
+- [x] Regenerate the Prisma client in `generated/prisma`.
+- [x] Update `prisma/seed.mjs` to create representative mock comments and replies for seeded posts:
+  - [x] Seed top-level comments across multiple posts.
+  - [x] Seed depth-1 replies linked through `parentCommentId`.
+  - [x] Seed deterministic `CommentLike` records so local/dev environments exercise engagement states.
+  - [x] Keep the seed behavior idempotent by clearing or rebuilding comment-related records for seeded posts before recreating them.
+- [x] Update post query selections and response mapping in `src/server/api/routers/post.ts` so `commentCount` is sourced from Prisma `_count` instead of hard-coded placeholder values.
 
 ### Phase 2: Backend Comment API
 
