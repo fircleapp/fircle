@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/011-post-like-system/prd.md
     description: "Post like model and interaction patterns used for liked-post profile listing"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/20
+    description: "Implementation pull request - feat: member profile and user account management"
 ---
 
 > **Instructions for AI Agents:**
