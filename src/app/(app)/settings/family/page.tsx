@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { z } from "zod";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { AlertCircle, Camera, Loader } from "~/components/ui/icons";
@@ -25,6 +26,19 @@ const ACCEPTED_FAMILY_IMAGE_MIME_TYPES = new Set([
 ]);
 
 const MAX_FAMILY_IMAGE_BYTES = 15 * 1024 * 1024;
+
+const managementContextSchema = z.object({
+  family: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string().nullable(),
+      image: z.string().nullable(),
+    })
+    .nullable(),
+  role: z.enum(["OWNER", "ADMIN", "MEMBER"]).nullable(),
+  canManageInvites: z.boolean(),
+});
 
 function getInitials(name: string) {
   return name
@@ -77,6 +91,7 @@ function uploadFileWithProgress(
 
 export default function FamilySettingsPage() {
   const [familyName, setFamilyName] = useState("");
+  const [familyDescription, setFamilyDescription] = useState("");
   const [familyImageUrl, setFamilyImageUrl] = useState("");
   const [selectedFamilyImageFile, setSelectedFamilyImageFile] = useState<File | null>(null);
   const [selectedImagePreviewUrl, setSelectedImagePreviewUrl] = useState<string | null>(null);
@@ -91,25 +106,36 @@ export default function FamilySettingsPage() {
     retry: false,
     refetchOnWindowFocus: false,
   });
+
+  const parsedManagementContext = useMemo(
+    () => managementContextSchema.safeParse(managementContext.data as unknown),
+    [managementContext.data],
+  );
+
+  const managementContextData = parsedManagementContext.success
+    ? parsedManagementContext.data
+    : null;
+
   const updateFamilyIdentity = api.invite.updateFamilyIdentity.useMutation();
   const trpcUtils = api.useUtils();
 
-  const familyId = managementContext.data?.family?.id;
+  const familyId = managementContextData?.family?.id;
   const canManageFamilyIdentity =
-    managementContext.data?.role === "ADMIN" || managementContext.data?.role === "OWNER";
+    managementContextData?.role === "ADMIN" || managementContextData?.role === "OWNER";
   const previewImage = selectedImagePreviewUrl ?? familyImageUrl;
   const previewName = familyName.trim().length > 0 ? familyName : "Family";
 
   useEffect(() => {
-    const family = managementContext.data?.family;
+    const family = managementContextData?.family;
     if (!family) {
       return;
     }
 
     setFamilyName(family.name);
+    setFamilyDescription(family.description ?? "");
     setFamilyImageUrl(family.image ?? "");
     setSaveError(null);
-  }, [managementContext.data?.family]);
+  }, [managementContextData?.family]);
 
   useEffect(() => {
     return () => {
@@ -177,6 +203,7 @@ export default function FamilySettingsPage() {
     }
 
     const normalizedFamilyName = familyName.trim();
+    const normalizedFamilyDescription = familyDescription.trim();
     if (normalizedFamilyName.length === 0) {
       setSaveError("Family name is required.");
       return;
@@ -229,6 +256,8 @@ export default function FamilySettingsPage() {
       await updateFamilyIdentity.mutateAsync({
         familyId,
         name: normalizedFamilyName,
+        description:
+          normalizedFamilyDescription.length > 0 ? normalizedFamilyDescription : null,
         image: nextFamilyImageUrl.length > 0 ? nextFamilyImageUrl : null,
       });
 
@@ -362,6 +391,26 @@ export default function FamilySettingsPage() {
               disabled={isSaving || !canManageFamilyIdentity || !familyId}
               required
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="family-description" className="text-sm font-medium">
+              Description
+            </label>
+            <textarea
+              id="family-description"
+              value={familyDescription}
+              onChange={(event) => {
+                setFamilyDescription(event.target.value);
+                setSaveError(null);
+                setSaveSuccess(null);
+              }}
+              placeholder="Optional short description for your family"
+              className="block min-h-18 w-full max-w-xl rounded-2xl border border-input bg-transparent px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+              maxLength={500}
+              disabled={isSaving || !canManageFamilyIdentity || !familyId}
+            />
+            <p className="text-muted-foreground text-xs">{familyDescription.length}/500</p>
           </div>
 
           {saveError ? (

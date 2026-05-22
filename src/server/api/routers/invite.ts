@@ -35,6 +35,7 @@ const familyImageInputSchema = z.union([z.string().url().max(2048), internalMedi
 const updateFamilyIdentityInputSchema = z.object({
   familyId: z.string().cuid(),
   name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(500).nullable(),
   image: familyImageInputSchema.nullable(),
 })
 
@@ -325,14 +326,10 @@ export const inviteRouter = createTRPCRouter({
   getManagementContext: protectedProcedure.query(async ({ ctx }) => {
     const memberships = await ctx.db.familyMember.findMany({
       where: { userId: ctx.session.user.id },
-      include: {
-        family: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
+      select: {
+        familyId: true,
+        role: true,
+        createdAt: true,
       },
       orderBy: { createdAt: "asc" },
     })
@@ -343,12 +340,25 @@ export const inviteRouter = createTRPCRouter({
 
     const selectedMembership = manageableMembership ?? memberships[0] ?? null
 
+    const selectedFamily = selectedMembership
+      ? await ctx.db.family.findUnique({
+          where: { id: selectedMembership.familyId },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            image: true,
+          },
+        })
+      : null
+
     return {
-      family: selectedMembership
+      family: selectedFamily
         ? {
-            id: selectedMembership.family.id,
-            name: selectedMembership.family.name,
-            image: selectedMembership.family.image,
+            id: selectedFamily.id,
+            name: selectedFamily.name,
+            description: selectedFamily.description,
+            image: selectedFamily.image,
           }
         : null,
       role: selectedMembership?.role ?? null,
@@ -384,11 +394,13 @@ export const inviteRouter = createTRPCRouter({
         where: { id: input.familyId },
         data: {
           name: input.name,
+          description: input.description,
           image: input.image,
         },
         select: {
           id: true,
           name: true,
+          description: true,
           image: true,
         },
       })
