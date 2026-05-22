@@ -25,6 +25,20 @@ import { normalizeEmail } from "~/lib/email"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
 
+const internalMediaUrlSchema = z
+  .string()
+  .max(2048)
+  .refine((value) => value.startsWith("/api/media/r2/"), "Invalid url")
+
+const familyImageInputSchema = z.union([z.string().url().max(2048), internalMediaUrlSchema])
+
+const updateFamilyIdentityInputSchema = z.object({
+  familyId: z.string().cuid(),
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(500).nullable(),
+  image: familyImageInputSchema.nullable(),
+})
+
 export const inviteRouter = createTRPCRouter({
   /**
    * Public query: Get invite details by code for pre-acceptance viewing.
@@ -312,13 +326,10 @@ export const inviteRouter = createTRPCRouter({
   getManagementContext: protectedProcedure.query(async ({ ctx }) => {
     const memberships = await ctx.db.familyMember.findMany({
       where: { userId: ctx.session.user.id },
-      include: {
-        family: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+      select: {
+        familyId: true,
+        role: true,
+        createdAt: true,
       },
       orderBy: { createdAt: "asc" },
     })
@@ -329,11 +340,25 @@ export const inviteRouter = createTRPCRouter({
 
     const selectedMembership = manageableMembership ?? memberships[0] ?? null
 
+    const selectedFamily = selectedMembership
+      ? await ctx.db.family.findUnique({
+          where: { id: selectedMembership.familyId },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            image: true,
+          },
+        })
+      : null
+
     return {
-      family: selectedMembership
+      family: selectedFamily
         ? {
-            id: selectedMembership.family.id,
-            name: selectedMembership.family.name,
+            id: selectedFamily.id,
+            name: selectedFamily.name,
+            description: selectedFamily.description,
+            image: selectedFamily.image,
           }
         : null,
       role: selectedMembership?.role ?? null,
@@ -341,6 +366,47 @@ export const inviteRouter = createTRPCRouter({
         selectedMembership?.role === "ADMIN" || selectedMembership?.role === "OWNER",
     }
   }),
+
+  updateFamilyIdentity: protectedProcedure
+    .input(updateFamilyIdentityInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await ctx.db.familyMember.findUnique({
+        where: {
+          familyId_userId: {
+            familyId: input.familyId,
+            userId: ctx.session.user.id,
+          },
+        },
+        select: {
+          id: true,
+          role: true,
+        },
+      })
+
+      if (!membership || (membership.role !== "ADMIN" && membership.role !== "OWNER")) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to manage family identity",
+        })
+      }
+
+      const updatedFamily = await ctx.db.family.update({
+        where: { id: input.familyId },
+        data: {
+          name: input.name,
+          description: input.description,
+          image: input.image,
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          image: true,
+        },
+      })
+
+      return updatedFamily
+    }),
 
   /**
    * Protected mutation: Create a new invite (admin-only).
