@@ -387,7 +387,6 @@ export default function FamilySettingsPage() {
                 setSaveSuccess(null);
               }}
               placeholder="e.g. The Walker Family"
-              className="max-w-sm"
               disabled={isSaving || !canManageFamilyIdentity || !familyId}
               required
             />
@@ -406,7 +405,7 @@ export default function FamilySettingsPage() {
                 setSaveSuccess(null);
               }}
               placeholder="Optional short description for your family"
-              className="block min-h-18 w-full max-w-xl rounded-2xl border border-input bg-transparent px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="block min-h-18 w-full rounded-2xl border border-input bg-transparent px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
               maxLength={500}
               disabled={isSaving || !canManageFamilyIdentity || !familyId}
             />
