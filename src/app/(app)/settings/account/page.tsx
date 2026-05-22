@@ -45,9 +45,40 @@ function slugifyMemberText(value: string): string {
   return normalized.length > 0 ? normalized : "member";
 }
 
-function getGeneratedSlug(name: string, nickname: string) {
-  const source = nickname.trim().length > 0 ? nickname : name;
-  return slugifyMemberText(source);
+function getSlugFromSource(source: "name" | "nickname", name: string, nickname: string) {
+  const primary = source === "nickname" ? nickname : name;
+  const secondary = source === "nickname" ? name : nickname;
+  const resolved = primary.trim().length > 0 ? primary : secondary;
+  return slugifyMemberText(resolved);
+}
+
+function matchesDerivedSlug(currentSlug: string, baseSlug: string) {
+  if (baseSlug.length === 0) {
+    return false;
+  }
+
+  return currentSlug === baseSlug || currentSlug.startsWith(`${baseSlug}-`);
+}
+
+function resolveInitialSlugSource(currentSlug: string, name: string, nickname: string): "name" | "nickname" {
+  const nameSlug = slugifyMemberText(name);
+  const nicknameSlug = nickname.trim().length > 0 ? slugifyMemberText(nickname) : "";
+  const matchesName = matchesDerivedSlug(currentSlug, nameSlug);
+  const matchesNickname = matchesDerivedSlug(currentSlug, nicknameSlug);
+
+  if (matchesNickname && !matchesName) {
+    return "nickname";
+  }
+
+  if (matchesName && !matchesNickname) {
+    return "name";
+  }
+
+  if (matchesNickname && nickname.trim().length > 0) {
+    return "nickname";
+  }
+
+  return "name";
 }
 
 function uploadFileWithProgress(
@@ -99,6 +130,7 @@ export default function AccountSettingsPage() {
   const [profileName, setProfileName] = useState("");
   const [profileNickname, setProfileNickname] = useState("");
   const [profileSlug, setProfileSlug] = useState("");
+  const [slugSource, setSlugSource] = useState<"name" | "nickname">("name");
   const [profileImageUrl, setProfileImageUrl] = useState("");
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
@@ -147,15 +179,17 @@ export default function AccountSettingsPage() {
       return;
     }
 
-    setProfileName(myMemberProfile.data.name);
-    setProfileNickname(myMemberProfile.data.nickname ?? "");
+    const nextName = myMemberProfile.data.name;
+    const nextNickname = myMemberProfile.data.nickname ?? "";
+    const nextSlug = myMemberProfile.data.slug;
+
+    setProfileName(nextName);
+    setProfileNickname(nextNickname);
+    setSlugSource(resolveInitialSlugSource(nextSlug, nextName, nextNickname));
+    setProfileSlug(nextSlug);
     setProfileImageUrl(myMemberProfile.data.image ?? "");
     setProfileError(null);
   }, [myMemberProfile.data]);
-
-  useEffect(() => {
-    setProfileSlug(getGeneratedSlug(profileName, profileNickname));
-  }, [profileName, profileNickname]);
 
   useEffect(() => {
     return () => {
@@ -207,6 +241,21 @@ export default function AccountSettingsPage() {
     setUploadProgress(0);
     setProfileImageUrl("");
     setProfileSuccess(null);
+  }
+
+  function handleProfileNameChange(value: string) {
+    setProfileName(value);
+    setProfileSlug(getSlugFromSource(slugSource, value, profileNickname));
+  }
+
+  function handleProfileNicknameChange(value: string) {
+    setProfileNickname(value);
+    setProfileSlug(getSlugFromSource(slugSource, profileName, value));
+  }
+
+  function handleSlugSourceChange(source: "name" | "nickname") {
+    setSlugSource(source);
+    setProfileSlug(getSlugFromSource(source, profileName, profileNickname));
   }
 
   async function handleProfileSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -456,7 +505,7 @@ export default function AccountSettingsPage() {
                 <Input
                   id="profile-full-name"
                   value={profileName}
-                  onChange={(event) => setProfileName(event.target.value)}
+                  onChange={(event) => handleProfileNameChange(event.target.value)}
                   placeholder="Enter full name"
                   disabled={isProfileSaving}
                   required
@@ -470,7 +519,7 @@ export default function AccountSettingsPage() {
                 <Input
                   id="profile-nickname"
                   value={profileNickname}
-                  onChange={(event) => setProfileNickname(event.target.value)}
+                  onChange={(event) => handleProfileNicknameChange(event.target.value)}
                   placeholder="Enter nickname (optional)"
                   disabled={isProfileSaving}
                 />
@@ -480,14 +529,43 @@ export default function AccountSettingsPage() {
                 <label htmlFor="profile-slug" className="text-sm font-medium">
                   Profile slug
                 </label>
-                <Input
-                  id="profile-slug"
-                  value={profileSlug}
-                  placeholder="your-profile-slug"
-                  readOnly
-                />
+                <div className="relative">
+                  <Input
+                    id="profile-slug"
+                    value={profileSlug}
+                    placeholder="your-profile-slug"
+                    readOnly
+                    className="pr-44"
+                  />
+                  <div className="absolute top-1/2 right-1.5 inline-flex -translate-y-1/2 rounded-xl border bg-muted/40 p-0.5">
+                    <button
+                      type="button"
+                      className={`rounded-xl px-2 py-1 text-[11px] font-medium transition ${
+                        slugSource === "name"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      onClick={() => handleSlugSourceChange("name")}
+                      disabled={isProfileSaving}
+                    >
+                      Full name
+                    </button>
+                    <button
+                      type="button"
+                      className={`rounded-xl px-2 py-1 text-[11px] font-medium transition ${
+                        slugSource === "nickname"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      onClick={() => handleSlugSourceChange("nickname")}
+                      disabled={isProfileSaving}
+                    >
+                      Nickname
+                    </button>
+                  </div>
+                </div>
                 <p className="text-muted-foreground text-xs">
-                  Automatically generated from nickname or full name.
+                  Automatically generated from the selected source.
                 </p>
               </div>
 
