@@ -11,6 +11,7 @@ import {
   MAX_VIDEO_BYTES,
   MAX_FILES_PER_POST,
   buildAvatarObjectKey,
+  buildFamilyImageObjectKey,
   buildMediaObjectKey,
   getMediaKind,
   validateMediaFileConstraints,
@@ -18,7 +19,7 @@ import {
 
 const uploadIntentSchema = z.object({
   familyId: z.string().cuid(),
-  uploadFor: z.enum(["post", "avatar"]).default("post"),
+  uploadFor: z.enum(["post", "avatar", "family-image"]).default("post"),
   memberId: z.string().cuid().optional(),
   files: z
     .array(
@@ -111,8 +112,8 @@ export async function POST(request: NextRequest) {
 
   const { uploadFor } = parsed.data;
 
-  if (uploadFor === "avatar" && parsed.data.files.length !== 1) {
-    return jsonError(400, "BAD_REQUEST", "Avatar uploads support exactly one file", {
+  if ((uploadFor === "avatar" || uploadFor === "family-image") && parsed.data.files.length !== 1) {
+    return jsonError(400, "BAD_REQUEST", `${uploadFor} uploads support exactly one file`, {
       limits: getConstraintPayload(uploadFor),
     });
   }
@@ -145,11 +146,19 @@ export async function POST(request: NextRequest) {
     targetMemberId = targetMember.id;
   }
 
+  if (uploadFor === "family-image") {
+    const isAdmin = membership.role === "ADMIN" || membership.role === "OWNER";
+
+    if (!isAdmin) {
+      return jsonError(403, "FORBIDDEN", "You do not have permission to upload a family image");
+    }
+  }
+
   for (const file of parsed.data.files) {
-    if (uploadFor === "avatar") {
+    if (uploadFor === "avatar" || uploadFor === "family-image") {
       const mediaKind = getMediaKind(file.mimeType);
       if (mediaKind !== "image") {
-        return jsonError(415, "UNSUPPORTED_MEDIA_TYPE", "Avatar uploads must be images", {
+        return jsonError(415, "UNSUPPORTED_MEDIA_TYPE", "This upload must be an image", {
           file,
           limits: getConstraintPayload(uploadFor),
         });
@@ -176,6 +185,12 @@ export async function POST(request: NextRequest) {
               mimeType: file.mimeType,
               fileName: file.fileName,
             })
+          : uploadFor === "family-image"
+            ? buildFamilyImageObjectKey({
+                familyId: membership.familyId,
+                mimeType: file.mimeType,
+                fileName: file.fileName,
+              })
           : buildMediaObjectKey({
               familyId: membership.familyId,
               memberId: membership.id,
