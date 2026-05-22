@@ -34,6 +34,22 @@ function getInitials(name: string) {
     .join("");
 }
 
+function slugifyMemberText(value: string): string {
+  const normalized = value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized.length > 0 ? normalized : "member";
+}
+
+function getGeneratedSlug(name: string, nickname: string) {
+  const source = nickname.trim().length > 0 ? nickname : name;
+  return slugifyMemberText(source);
+}
+
 function uploadFileWithProgress(
   url: string,
   file: File,
@@ -133,10 +149,13 @@ export default function AccountSettingsPage() {
 
     setProfileName(myMemberProfile.data.name);
     setProfileNickname(myMemberProfile.data.nickname ?? "");
-    setProfileSlug(myMemberProfile.data.slug);
     setProfileImageUrl(myMemberProfile.data.image ?? "");
     setProfileError(null);
   }, [myMemberProfile.data]);
+
+  useEffect(() => {
+    setProfileSlug(getGeneratedSlug(profileName, profileNickname));
+  }, [profileName, profileNickname]);
 
   useEffect(() => {
     return () => {
@@ -208,11 +227,6 @@ export default function AccountSettingsPage() {
 
     if (normalizedName.length === 0) {
       setProfileError("Name is required.");
-      return;
-    }
-
-    if (normalizedSlug.length === 0) {
-      setProfileError("Slug is required.");
       return;
     }
 
@@ -469,11 +483,12 @@ export default function AccountSettingsPage() {
                 <Input
                   id="profile-slug"
                   value={profileSlug}
-                  onChange={(event) => setProfileSlug(event.target.value)}
                   placeholder="your-profile-slug"
-                  disabled={isProfileSaving}
-                  required
+                  readOnly
                 />
+                <p className="text-muted-foreground text-xs">
+                  Automatically generated from nickname or full name.
+                </p>
               </div>
 
               {profileError ? (
