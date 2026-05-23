@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Dialog as DialogPrimitive } from "radix-ui";
 
 import { Tag, X } from "~/components/ui/icons";
@@ -20,6 +21,7 @@ type TaggedMember = {
   id?: string;
   name: string;
   avatarUrl: string;
+  slug?: string;
 };
 
 type MediaTagRecord = {
@@ -32,6 +34,7 @@ type MediaTagRecord = {
     id: string;
     name: string;
     avatarUrl: string;
+    slug?: string;
   };
 };
 
@@ -375,7 +378,16 @@ function MediaSlide({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-border/60 bg-card px-3 py-1 shadow-lg backdrop-blur-sm">
-                    <span className="text-sm font-medium">{tag.taggedMember.name}</span>
+                    {tag.taggedMember.slug ? (
+                      <Link
+                        href={`/member/${tag.taggedMember.slug}`}
+                        className="text-sm font-medium transition-colors hover:underline"
+                      >
+                        {tag.taggedMember.name}
+                      </Link>
+                    ) : (
+                      <span className="text-sm font-medium">{tag.taggedMember.name}</span>
+                    )}
                     {editorEnabled && (
                       <Button
                         size="icon-sm"
@@ -450,21 +462,43 @@ function TaggedMembersOverlay({ members }: { members: TaggedMember[] }) {
         Tagged in this media
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
-        {members.map((member) => (
-          <div
-            key={member.name}
-            className="inline-flex items-center gap-2 rounded-full bg-black/10 dark:bg-white/10 text-foreground dark:text-white px-2.5 py-1"
-            title={member.name}
-          >
-            <Avatar className="size-5">
-              <AvatarImage src={member.avatarUrl} alt={member.name} />
-              <AvatarFallback className="text-[10px] font-semibold text-foreground dark:text-white">
-                {getInitials(member.name)}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-xs font-medium">{member.name}</span>
-          </div>
-        ))}
+        {members.map((member) => {
+          const href = member.slug ? `/member/${member.slug}` : undefined;
+          const content = (
+            <>
+              <Avatar className="size-5">
+                <AvatarImage src={member.avatarUrl} alt={member.name} />
+                <AvatarFallback className="text-[10px] font-semibold text-foreground dark:text-white">
+                  {getInitials(member.name)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs font-medium">{member.name}</span>
+            </>
+          );
+
+          if (href) {
+            return (
+              <Link
+                key={member.name}
+                href={href}
+                className="inline-flex items-center gap-2 rounded-full bg-black/10 dark:bg-white/10 text-foreground dark:text-white px-2.5 py-1 transition-colors hover:bg-black/20 dark:hover:bg-white/20"
+                title={member.name}
+              >
+                {content}
+              </Link>
+            );
+          }
+
+          return (
+            <div
+              key={member.name}
+              className="inline-flex items-center gap-2 rounded-full bg-black/10 dark:bg-white/10 text-foreground dark:text-white px-2.5 py-1"
+              title={member.name}
+            >
+              {content}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -521,6 +555,7 @@ export function MediaViewerDialog({
           id: tag.taggedMember.id,
           name: tag.taggedMember.name,
           avatarUrl: tag.taggedMember.avatarUrl,
+          slug: tag.taggedMember.slug,
         });
       }
       return Array.from(byMemberId.values());
