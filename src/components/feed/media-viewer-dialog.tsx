@@ -325,7 +325,7 @@ function MediaSlide({
             >
               <button
                 type="button"
-                className="pointer-events-auto flex size-10 items-center justify-center rounded-full border border-white/50 bg-black/20 text-[10px] font-semibold text-white shadow transition-transform hover:scale-110 active:scale-95"
+                className="pointer-events-auto flex size-10 items-center justify-center rounded-full border border-white/10 bg-black/10 text-[10px] font-semibold text-white shadow transition-transform hover:scale-110 active:scale-95"
                 onClick={(e) => {
                   e.stopPropagation();
                   setActiveTagId(isActive ? null : tag.id);
