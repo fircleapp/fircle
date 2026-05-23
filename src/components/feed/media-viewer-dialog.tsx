@@ -175,56 +175,92 @@ function VideoTagEditorPanel({
   activeMutationPending?: boolean;
   editorError?: string | null;
 }) {
-  const [selectedMemberId, setSelectedMemberId] = React.useState(familyMembers[0]?.id ?? "");
+  const [search, setSearch] = React.useState("");
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    const id = setTimeout(() => inputRef.current?.focus(), 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  const filtered = search.trim()
+    ? familyMembers.filter((m) => m.name.toLowerCase().includes(search.toLowerCase()))
+    : familyMembers;
+
+  const taggedMemberIds = new Set(tags.map((t) => t.taggedMemberId));
+  const availableMembers = filtered.filter((m) => !taggedMemberIds.has(m.id));
 
   return (
-    <div className="absolute bottom-4 left-1/2 z-10 w-72 -translate-x-1/2 rounded-2xl border border-border/70 bg-card/95 p-3 shadow-2xl backdrop-blur-sm">
-      <div className="mb-2.5 flex items-center justify-between">
-        <p className="text-sm font-semibold">Tag members</p>
-        <Button type="button" size="sm" variant="ghost" className="h-7 rounded-full px-3 text-xs" onClick={onEditorClose}>
-          Done
-        </Button>
+    <div className="absolute bottom-4 left-1/2 z-10 w-72 -translate-x-1/2 rounded-2xl border border-border/70 bg-card/95 shadow-2xl backdrop-blur-sm">
+      <div className="flex items-center justify-between px-3 pb-1.5 pt-3">
+        <span className="text-xs font-semibold text-foreground">Tag members</span>
+        <button
+          type="button"
+          onClick={onEditorClose}
+          className="flex size-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <X className="size-3.5" />
+        </button>
       </div>
 
       {tags.length > 0 && (
-        <div className="mb-2.5 flex flex-wrap gap-1.5">
-          {tags.map((tag) => (
-            <div key={tag.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs">
-              <span className="font-medium">{tag.taggedMember.name}</span>
-              <button
-                type="button"
-                className="text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
-                onClick={() => void onTagDelete?.(tag.id)}
-                disabled={activeMutationPending}
-              >
-                <X className="size-3" />
-              </button>
-            </div>
-          ))}
+        <div className="border-t border-border px-3 py-2">
+          <div className="flex flex-wrap gap-1.5">
+            {tags.map((tag) => (
+              <div key={tag.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs">
+                <span className="font-medium">{tag.taggedMember.name}</span>
+                <button
+                  type="button"
+                  className="text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
+                  onClick={() => void onTagDelete?.(tag.id)}
+                  disabled={activeMutationPending}
+                >
+                  <X className="size-3" />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        <select
-          className="min-w-0 flex-1 rounded-xl border border-border bg-background px-2.5 py-1.5 text-sm"
-          value={selectedMemberId}
-          onChange={(e) => setSelectedMemberId(e.target.value)}
-        >
-          {familyMembers.map((m) => (
-            <option key={m.id} value={m.id}>{m.name}</option>
-          ))}
-        </select>
-        <Button
-          type="button"
-          size="sm"
-          onClick={() => { if (selectedMemberId) onTagCreate?.(selectedMemberId); }}
-          disabled={activeMutationPending || !selectedMemberId}
-        >
-          Add
-        </Button>
+      <div className="px-2 pb-1.5 pt-2">
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="Search members…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-xl border border-border bg-background px-2.5 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+        />
       </div>
 
-      {editorError ? <p className="mt-2 text-xs text-destructive">{editorError}</p> : null}
+      <div className="max-h-48 overflow-y-auto py-1">
+        {availableMembers.length === 0 ? (
+          <p className="px-3 py-2 text-sm text-muted-foreground">
+            {filtered.length === 0 ? "No members found" : "All members tagged"}
+          </p>
+        ) : (
+          availableMembers.map((member) => (
+            <button
+              key={member.id}
+              type="button"
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-muted/60 disabled:opacity-50"
+              onClick={() => onTagCreate?.(member.id)}
+              disabled={activeMutationPending}
+            >
+              <Avatar className="size-6 shrink-0">
+                <AvatarImage src={member.avatarUrl} alt={member.name} />
+                <AvatarFallback className="text-[10px]">{getInitials(member.name)}</AvatarFallback>
+              </Avatar>
+              <span className="truncate font-medium">{member.name}</span>
+            </button>
+          ))
+        )}
+      </div>
+
+      {editorError ? (
+        <p className="border-t border-border px-3 py-2 text-xs text-destructive">{editorError}</p>
+      ) : null}
     </div>
   );
 }
