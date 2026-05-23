@@ -73,19 +73,193 @@ function getTagAnchorStyle(tag: MediaTagRecord) {
   } as const;
 }
 
+function MemberPickerPopover({
+  pendingPoint,
+  members,
+  onSelect,
+  onDismiss,
+  isPending,
+  error,
+}: {
+  pendingPoint: { xPercent: number; yPercent: number };
+  members: { id: string; name: string; avatarUrl: string }[];
+  onSelect: (memberId: string) => void;
+  onDismiss: () => void;
+  isPending: boolean;
+  error: string | null;
+}) {
+  const [search, setSearch] = React.useState("");
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    const id = setTimeout(() => inputRef.current?.focus(), 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  const filtered = search.trim()
+    ? members.filter((m) => m.name.toLowerCase().includes(search.toLowerCase()))
+    : members;
+
+  const above = pendingPoint.yPercent > 55;
+  const fromRight = pendingPoint.xPercent > 65;
+
+  return (
+    <div
+      className={`absolute z-20 w-56 rounded-2xl border border-border/70 bg-card shadow-2xl backdrop-blur-sm ${
+        above ? "bottom-full mb-3" : "top-full mt-3"
+      } ${fromRight ? "right-0" : "left-0"}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center justify-between px-3 pb-1.5 pt-3">
+        <span className="text-xs font-semibold text-foreground">Tag a member</span>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="flex size-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <X className="size-3.5" />
+        </button>
+      </div>
+      <div className="px-2 pb-1.5">
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="Search members…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-xl border border-border bg-background px-2.5 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+        />
+      </div>
+      <div className="max-h-48 overflow-y-auto py-1">
+        {filtered.length === 0 ? (
+          <p className="px-3 py-2 text-sm text-muted-foreground">No members found</p>
+        ) : (
+          filtered.map((member) => (
+            <button
+              key={member.id}
+              type="button"
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-muted/60 disabled:opacity-50"
+              onClick={() => onSelect(member.id)}
+              disabled={isPending}
+            >
+              <Avatar className="size-6 shrink-0">
+                <AvatarImage src={member.avatarUrl} alt={member.name} />
+                <AvatarFallback className="text-[10px]">{getInitials(member.name)}</AvatarFallback>
+              </Avatar>
+              <span className="truncate font-medium">{member.name}</span>
+            </button>
+          ))
+        )}
+      </div>
+      {error ? (
+        <p className="border-t border-border px-3 py-2 text-xs text-destructive">{error}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function VideoTagEditorPanel({
+  tags,
+  familyMembers,
+  onTagCreate,
+  onTagDelete,
+  onEditorClose,
+  activeMutationPending,
+  editorError,
+}: {
+  tags: MediaTagRecord[];
+  familyMembers: { id: string; name: string; avatarUrl: string }[];
+  onTagCreate?: (memberId: string) => void;
+  onTagDelete?: (tagId: string) => void;
+  onEditorClose?: () => void;
+  activeMutationPending?: boolean;
+  editorError?: string | null;
+}) {
+  const [selectedMemberId, setSelectedMemberId] = React.useState(familyMembers[0]?.id ?? "");
+
+  return (
+    <div className="absolute bottom-4 left-1/2 z-10 w-72 -translate-x-1/2 rounded-2xl border border-border/70 bg-card/95 p-3 shadow-2xl backdrop-blur-sm">
+      <div className="mb-2.5 flex items-center justify-between">
+        <p className="text-sm font-semibold">Tag members</p>
+        <Button type="button" size="sm" variant="ghost" className="h-7 rounded-full px-3 text-xs" onClick={onEditorClose}>
+          Done
+        </Button>
+      </div>
+
+      {tags.length > 0 && (
+        <div className="mb-2.5 flex flex-wrap gap-1.5">
+          {tags.map((tag) => (
+            <div key={tag.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs">
+              <span className="font-medium">{tag.taggedMember.name}</span>
+              <button
+                type="button"
+                className="text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
+                onClick={() => void onTagDelete?.(tag.id)}
+                disabled={activeMutationPending}
+              >
+                <X className="size-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        <select
+          className="min-w-0 flex-1 rounded-xl border border-border bg-background px-2.5 py-1.5 text-sm"
+          value={selectedMemberId}
+          onChange={(e) => setSelectedMemberId(e.target.value)}
+        >
+          {familyMembers.map((m) => (
+            <option key={m.id} value={m.id}>{m.name}</option>
+          ))}
+        </select>
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => { if (selectedMemberId) onTagCreate?.(selectedMemberId); }}
+          disabled={activeMutationPending || !selectedMemberId}
+        >
+          Add
+        </Button>
+      </div>
+
+      {editorError ? <p className="mt-2 text-xs text-destructive">{editorError}</p> : null}
+    </div>
+  );
+}
+
 function MediaSlide({
   item,
   tags,
   taggedMembers,
   editorEnabled,
   onImageClick,
+  pendingPoint,
+  familyMembers,
+  onTagCreate,
+  onTagDelete,
+  onPickerDismiss,
+  onEditorClose,
+  activeMutationPending,
+  editorError,
 }: {
   item: MediaViewerItem;
   tags: MediaTagRecord[];
   taggedMembers: TaggedMember[];
   editorEnabled: boolean;
   onImageClick?: (event: React.MouseEvent<HTMLImageElement>) => void;
+  pendingPoint?: { xPercent: number; yPercent: number } | null;
+  familyMembers?: { id: string; name: string; avatarUrl: string }[];
+  onTagCreate?: (memberId: string) => void;
+  onTagDelete?: (tagId: string) => void;
+  onPickerDismiss?: () => void;
+  onEditorClose?: () => void;
+  activeMutationPending?: boolean;
+  editorError?: string | null;
 }) {
+  const [activeTagId, setActiveTagId] = React.useState<string | null>(null);
+
   if (item.type === "video") {
     return (
       <div className="relative flex h-full w-full items-center justify-center">
@@ -96,7 +270,19 @@ function MediaSlide({
           aria-label={item.alt}
         />
 
-        {taggedMembers.length ? <TaggedMembersOverlay members={taggedMembers} /> : null}
+        {!editorEnabled && taggedMembers.length ? <TaggedMembersOverlay members={taggedMembers} /> : null}
+
+        {editorEnabled && familyMembers ? (
+          <VideoTagEditorPanel
+            tags={tags}
+            familyMembers={familyMembers}
+            onTagCreate={onTagCreate}
+            onTagDelete={onTagDelete}
+            onEditorClose={onEditorClose}
+            activeMutationPending={activeMutationPending}
+            editorError={editorError}
+          />
+        ) : null}
 
         {item.caption ? (
           <p className="absolute bottom-2 left-2 max-w-[min(92vw,28rem)] rounded-xl border border-black/10 bg-white/75 px-3 py-2 text-sm text-foreground shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/60 dark:text-white">
@@ -108,38 +294,115 @@ function MediaSlide({
   }
 
   return (
-    <div className="relative flex h-full w-full items-center justify-center">
-      <div className="relative inline-flex max-h-full max-w-full">
+    <div
+      className="relative flex h-full w-full items-center justify-center"
+      onClick={() => setActiveTagId(null)}
+    >
+      <div className={`relative inline-flex max-h-full max-w-full${editorEnabled ? " rounded-lg ring-2 ring-white/30" : ""}`}>
         <img
           src={item.url}
           alt={item.alt}
           className={`max-h-full max-w-full rounded-lg object-contain ${editorEnabled ? "cursor-crosshair" : ""}`}
-          onClick={onImageClick}
+          onClick={(e) => {
+            setActiveTagId(null);
+            onImageClick?.(e);
+          }}
         />
 
+        {/* Existing tag markers */}
         {tags.map((tag) => {
           const style = getTagAnchorStyle(tag);
           if (!style) return null;
+          const isActive = activeTagId === tag.id;
+          const tagYPct = tag.yPercent ?? 50;
+          const tagXPct = tag.xPercent ?? 50;
 
           return (
-            <span
+            <div
               key={tag.id}
-              className="pointer-events-none absolute inline-flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/90 bg-black/65 text-[10px] font-semibold text-white shadow"
+              className="absolute -translate-x-1/2 -translate-y-1/2"
               style={style}
-              title={`${tag.taggedMember.name}`}
             >
-              •
-            </span>
+              <button
+                type="button"
+                className="pointer-events-auto flex size-6 items-center justify-center rounded-full border border-white/90 bg-black/65 text-[10px] font-semibold text-white shadow transition-transform hover:scale-110 active:scale-95"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveTagId(isActive ? null : tag.id);
+                }}
+                title={tag.taggedMember.name}
+              >
+                •
+              </button>
+
+              {isActive && (
+                <div
+                  className={`absolute z-10 ${tagYPct > 50 ? "bottom-full mb-2" : "top-full mt-2"} ${tagXPct > 65 ? "right-0" : tagXPct < 35 ? "left-0" : "left-1/2 -translate-x-1/2"}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-border/60 bg-card px-3 py-1.5 shadow-lg backdrop-blur-sm">
+                    <span className="text-sm font-medium">{tag.taggedMember.name}</span>
+                    {editorEnabled && (
+                      <button
+                        type="button"
+                        className="text-xs text-destructive transition-colors hover:text-destructive/80 disabled:opacity-50"
+                        onClick={() => {
+                          void onTagDelete?.(tag.id);
+                          setActiveTagId(null);
+                        }}
+                        disabled={activeMutationPending}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           );
         })}
+
+        {/* Pending point marker + member picker */}
+        {editorEnabled && pendingPoint ? (
+          <div
+            className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
+            style={{ left: `${pendingPoint.xPercent}%`, top: `${pendingPoint.yPercent}%` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="size-10 rounded border-2 border-white shadow-lg" />
+            {familyMembers ? (
+              <MemberPickerPopover
+                pendingPoint={pendingPoint}
+                members={familyMembers}
+                onSelect={(memberId) => onTagCreate?.(memberId)}
+                onDismiss={() => onPickerDismiss?.()}
+                isPending={activeMutationPending ?? false}
+                error={editorError ?? null}
+              />
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
-      {taggedMembers.length ? <TaggedMembersOverlay members={taggedMembers} /> : null}
+      {!editorEnabled && taggedMembers.length ? <TaggedMembersOverlay members={taggedMembers} /> : null}
 
       {item.caption ? (
         <p className="absolute bottom-2 left-2 max-w-[min(92vw,28rem)] rounded-xl border border-black/10 bg-white/75 px-3 py-2 text-sm text-foreground shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/60 dark:text-white">
           {item.caption}
         </p>
+      ) : null}
+
+      {editorEnabled ? (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={onEditorClose}
+            className="rounded-full px-6 shadow-xl"
+          >
+            Done tagging
+          </Button>
+        </div>
       ) : null}
     </div>
   );
@@ -182,8 +445,6 @@ export function MediaViewerDialog({
   const [current, setCurrent] = React.useState(startIndex);
   const [carouselApi, setCarouselApi] = React.useState<CarouselApi>();
   const [editorOpen, setEditorOpen] = React.useState(false);
-  const [selectedMemberId, setSelectedMemberId] = React.useState<string>("");
-  const [editingTagId, setEditingTagId] = React.useState<string | null>(null);
   const [pendingPoint, setPendingPoint] = React.useState<{ xPercent: number; yPercent: number } | null>(null);
   const trpcUtils = api.useUtils();
   const mediaViewportClass = "w-full max-w-7xl";
@@ -209,9 +470,7 @@ export function MediaViewerDialog({
   );
 
   const createPhotoTagMutation = api.tag.createPhotoTag.useMutation();
-  const updatePhotoTagMutation = api.tag.updatePhotoTag.useMutation();
   const createVideoTagMutation = api.tag.createVideoTag.useMutation();
-  const updateVideoTagMutation = api.tag.updateVideoTag.useMutation();
   const deleteTagMutation = api.tag.deleteTag.useMutation();
 
   const currentTags: MediaTagRecord[] = React.useMemo(
@@ -236,16 +495,12 @@ export function MediaViewerDialog({
 
   const activeMutationPending =
     createPhotoTagMutation.isPending ||
-    updatePhotoTagMutation.isPending ||
     createVideoTagMutation.isPending ||
-    updateVideoTagMutation.isPending ||
     deleteTagMutation.isPending;
 
   const editorError =
     createPhotoTagMutation.error?.message ??
-    updatePhotoTagMutation.error?.message ??
     createVideoTagMutation.error?.message ??
-    updateVideoTagMutation.error?.message ??
     deleteTagMutation.error?.message ??
     null;
 
@@ -264,85 +519,45 @@ export function MediaViewerDialog({
     await invalidatePostSurfaces();
   }
 
-  function startEditing(tag: MediaTagRecord) {
-    setEditingTagId(tag.id);
-    setSelectedMemberId(tag.taggedMemberId);
-    if (tag.xPercent !== null && tag.yPercent !== null) {
-      setPendingPoint({
-        xPercent: tag.xPercent,
-        yPercent: tag.yPercent,
-      });
-    } else {
-      setPendingPoint(null);
-    }
-  }
-
   async function handleDeleteTag(tagId: string) {
     if (!familyId) return;
     await deleteTagMutation.mutateAsync({
       familyId,
       tagId,
     });
-    if (editingTagId === tagId) {
-      setEditingTagId(null);
-    }
     await refetchCurrentTags();
   }
 
-  async function handleSaveTag() {
-    if (!familyId || !currentItem || !selectedMemberId) {
-      return;
-    }
-
-    if (currentItem.type === "video") {
-      if (editingTagId) {
-        await updateVideoTagMutation.mutateAsync({
-          familyId,
-          tagId: editingTagId,
-          taggedMemberId: selectedMemberId,
-        });
-      } else {
-        await createVideoTagMutation.mutateAsync({
-          familyId,
-          postMediaId: currentItem.id,
-          taggedMemberId: selectedMemberId,
-        });
-      }
-    } else {
-      if (editingTagId) {
-        const existing = currentTags.find((tag) => tag.id === editingTagId);
-        const xPercent = pendingPoint?.xPercent ?? existing?.xPercent;
-        const yPercent = pendingPoint?.yPercent ?? existing?.yPercent;
-
-        if (xPercent === null || xPercent === undefined || yPercent === null || yPercent === undefined) {
-          return;
-        }
-
-        await updatePhotoTagMutation.mutateAsync({
-          familyId,
-          tagId: editingTagId,
-          taggedMemberId: selectedMemberId,
-          xPercent,
-          yPercent,
-        });
-      } else {
-        if (!pendingPoint) {
-          return;
-        }
-
-        await createPhotoTagMutation.mutateAsync({
-          familyId,
-          postMediaId: currentItem.id,
-          taggedMemberId: selectedMemberId,
-          xPercent: pendingPoint.xPercent,
-          yPercent: pendingPoint.yPercent,
-        });
-      }
-    }
-
-    setEditingTagId(null);
+  async function handleCreatePhotoTag(memberId: string) {
+    if (!familyId || !currentItem || !pendingPoint) return;
+    await createPhotoTagMutation.mutateAsync({
+      familyId,
+      postMediaId: currentItem.id,
+      taggedMemberId: memberId,
+      xPercent: pendingPoint.xPercent,
+      yPercent: pendingPoint.yPercent,
+    });
     setPendingPoint(null);
     await refetchCurrentTags();
+  }
+
+  async function handleCreateVideoTag(memberId: string) {
+    if (!familyId || !currentItem) return;
+    await createVideoTagMutation.mutateAsync({
+      familyId,
+      postMediaId: currentItem.id,
+      taggedMemberId: memberId,
+    });
+    await refetchCurrentTags();
+  }
+
+  async function handleCreateTag(memberId: string) {
+    if (!currentItem) return;
+    if (currentItem.type === "image") {
+      await handleCreatePhotoTag(memberId);
+    } else {
+      await handleCreateVideoTag(memberId);
+    }
   }
 
   function handleImageClick(event: React.MouseEvent<HTMLImageElement>) {
@@ -367,7 +582,6 @@ export function MediaViewerDialog({
     if (open) {
       setCurrent(startIndex);
       carouselApi?.scrollTo(startIndex, true);
-      setEditingTagId(null);
       setPendingPoint(null);
     }
   }, [open, startIndex, carouselApi]);
@@ -383,18 +597,8 @@ export function MediaViewerDialog({
 
   React.useEffect(() => {
     if (!open) return;
-    setEditingTagId(null);
     setPendingPoint(null);
   }, [current, open]);
-
-  React.useEffect(() => {
-    if (!selectedMemberId) {
-      const firstMemberId = familyMembersQuery.data?.[0]?.id;
-      if (firstMemberId) {
-        setSelectedMemberId(firstMemberId);
-      }
-    }
-  }, [familyMembersQuery.data, selectedMemberId]);
 
   const isSingle = items.length === 1;
 
@@ -429,7 +633,7 @@ export function MediaViewerDialog({
                   className="rounded-full"
                   onClick={() => setEditorOpen((value) => !value)}
                 >
-                  {editorOpen ? "Close tag editor" : "Manage tags"}
+                  {editorOpen ? "Done tagging" : "Tag people"}
                 </Button>
               ) : null}
             </div>
@@ -439,100 +643,6 @@ export function MediaViewerDialog({
               <span className="sr-only">Close</span>
             </DialogPrimitive.Close>
           </div>
-
-          {editorOpen && currentItem && familyId ? (
-            <div className="mx-4 mb-3 rounded-2xl border border-border/70 bg-card/90 p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <label className="text-xs font-medium text-muted-foreground" htmlFor="media-tag-member">
-                  Member
-                </label>
-                <select
-                  id="media-tag-member"
-                  className="min-w-48 rounded-xl border border-border bg-background px-2.5 py-1.5 text-sm"
-                  value={selectedMemberId}
-                  onChange={(event) => setSelectedMemberId(event.target.value)}
-                >
-                  {(familyMembersQuery.data ?? []).map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name}
-                    </option>
-                  ))}
-                </select>
-
-                {currentItem.type === "image" ? (
-                  <span className="text-xs text-muted-foreground">
-                    {pendingPoint
-                      ? `Anchor: ${pendingPoint.xPercent.toFixed(2)}%, ${pendingPoint.yPercent.toFixed(2)}%`
-                      : "Click the image to place an anchor"}
-                  </span>
-                ) : (
-                  <span className="text-xs text-muted-foreground">Video tags use member assignment only</span>
-                )}
-
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => void handleSaveTag()}
-                  disabled={
-                    activeMutationPending ||
-                    !selectedMemberId ||
-                    familyMembersQuery.isLoading ||
-                    (currentItem.type === "image" && !editingTagId && !pendingPoint)
-                  }
-                >
-                  {editingTagId ? "Update tag" : "Add tag"}
-                </Button>
-
-                {editingTagId ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setEditingTagId(null);
-                      setPendingPoint(null);
-                    }}
-                    disabled={activeMutationPending}
-                  >
-                    Cancel edit
-                  </Button>
-                ) : null}
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                {currentTags.map((tag) => (
-                  <div key={tag.id} className="inline-flex items-center gap-2 rounded-full border border-border px-2 py-1 text-xs">
-                    <span>{tag.taggedMember.name}</span>
-                    {tag.xPercent !== null && tag.yPercent !== null ? (
-                      <span className="text-muted-foreground">({tag.xPercent.toFixed(1)}%, {tag.yPercent.toFixed(1)}%)</span>
-                    ) : null}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 rounded-full px-2 text-xs"
-                      onClick={() => startEditing(tag)}
-                      disabled={activeMutationPending}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 rounded-full px-2 text-xs text-destructive"
-                      onClick={() => void handleDeleteTag(tag.id)}
-                      disabled={activeMutationPending}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-              </div>
-
-              {editorError ? <p className="mt-2 text-xs text-destructive">{editorError}</p> : null}
-            </div>
-          ) : null}
 
           {/* Media area */}
           <div className="flex flex-1 items-center justify-center overflow-hidden px-2 pb-3 sm:px-4 sm:pb-4">
@@ -547,7 +657,15 @@ export function MediaViewerDialog({
                         ? taggedMembers
                         : (items[0]!.taggedMembers ?? [])
                     }
-                    editorEnabled={editorOpen && currentItem?.id === items[0]!.id && items[0]!.type === "image"}
+                    editorEnabled={editorOpen && currentItem?.id === items[0]!.id}
+                    pendingPoint={currentItem?.id === items[0]!.id ? pendingPoint : null}
+                    familyMembers={(familyMembersQuery.data ?? []).map((m) => ({ id: m.id, name: m.name, avatarUrl: m.image ?? "" }))}
+                    onTagCreate={(memberId) => void handleCreateTag(memberId)}
+                    onTagDelete={(tagId) => void handleDeleteTag(tagId)}
+                    onPickerDismiss={() => setPendingPoint(null)}
+                    onEditorClose={() => { setEditorOpen(false); setPendingPoint(null); }}
+                    activeMutationPending={activeMutationPending}
+                    editorError={editorError}
                     onImageClick={(event) => {
                       if (currentItem?.id === items[0]!.id) {
                         handleImageClick(event);
@@ -570,7 +688,15 @@ export function MediaViewerDialog({
                           item={item}
                           tags={current === index ? currentTags : (item.tags ?? [])}
                           taggedMembers={current === index ? taggedMembers : (item.taggedMembers ?? [])}
-                          editorEnabled={editorOpen && current === index && item.type === "image"}
+                          editorEnabled={editorOpen && current === index}
+                          pendingPoint={current === index ? pendingPoint : null}
+                          familyMembers={(familyMembersQuery.data ?? []).map((m) => ({ id: m.id, name: m.name, avatarUrl: m.image ?? "" }))}
+                          onTagCreate={(memberId) => void handleCreateTag(memberId)}
+                          onTagDelete={(tagId) => void handleDeleteTag(tagId)}
+                          onPickerDismiss={() => setPendingPoint(null)}
+                          onEditorClose={() => { setEditorOpen(false); setPendingPoint(null); }}
+                          activeMutationPending={activeMutationPending}
+                          editorError={editorError}
                           onImageClick={(event) => {
                             if (current === index) {
                               handleImageClick(event);
