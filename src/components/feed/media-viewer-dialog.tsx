@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 
-import { X } from "~/components/ui/icons";
+import { Tag, X } from "~/components/ui/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {
@@ -325,7 +325,7 @@ function MediaSlide({
             >
               <button
                 type="button"
-                className="pointer-events-auto flex size-6 items-center justify-center rounded-full border border-white/90 bg-black/65 text-[10px] font-semibold text-white shadow transition-transform hover:scale-110 active:scale-95"
+                className="pointer-events-auto flex size-10 items-center justify-center rounded-full border border-white/50 bg-black/20 text-[10px] font-semibold text-white shadow transition-transform hover:scale-110 active:scale-95"
                 onClick={(e) => {
                   e.stopPropagation();
                   setActiveTagId(isActive ? null : tag.id);
@@ -340,20 +340,21 @@ function MediaSlide({
                   className={`absolute z-10 ${tagYPct > 50 ? "bottom-full mb-2" : "top-full mt-2"} ${tagXPct > 65 ? "right-0" : tagXPct < 35 ? "left-0" : "left-1/2 -translate-x-1/2"}`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-border/60 bg-card px-3 py-1.5 shadow-lg backdrop-blur-sm">
+                  <div className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-border/60 bg-card px-3 py-1 shadow-lg backdrop-blur-sm">
                     <span className="text-sm font-medium">{tag.taggedMember.name}</span>
                     {editorEnabled && (
-                      <button
-                        type="button"
-                        className="text-xs text-destructive transition-colors hover:text-destructive/80 disabled:opacity-50"
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        className="text-xs -mr-2 text-destructive transition-colors hover:text-destructive/80 disabled:opacity-50"
                         onClick={() => {
                           void onTagDelete?.(tag.id);
                           setActiveTagId(null);
                         }}
                         disabled={activeMutationPending}
                       >
-                        Remove
-                      </button>
+                        <X />
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -393,14 +394,14 @@ function MediaSlide({
       ) : null}
 
       {editorEnabled ? (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+        <div className="absolute bottom-0 left-1/2 space-y-3 -translate-x-1/2 bg-gradient-to-b from-background/0 via-background/60 to-background/90 w-full text-center py-10 px-2">
+          <p className="text-sm">Click on the photo to start tagging. Click on a tag to remove it.</p>
           <Button
-            type="button"
-            size="sm"
+            variant="default"
             onClick={onEditorClose}
-            className="rounded-full px-6 shadow-xl"
+            className="rounded-full px-6 shadow-xl w-full md:w-1/3"
           >
-            Done tagging
+            Done Tagging
           </Button>
         </div>
       ) : null}
@@ -628,12 +629,17 @@ export function MediaViewerDialog({
               {familyId && currentItem ? (
                 <Button
                   type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="rounded-full"
+                  size="icon"
+                  variant="secondary"
+                  className="rounded-full size-10"
+                  aria-label={editorOpen ? "Done tagging" : "Tag people"}
+                  title={editorOpen ? "Done tagging" : "Tag people"}
                   onClick={() => setEditorOpen((value) => !value)}
                 >
-                  {editorOpen ? "Done tagging" : "Tag people"}
+                  <Tag className="size-5" />
+                  <span className="sr-only">
+                    {editorOpen ? "Done tagging" : "Tag people"}
+                  </span>
                 </Button>
               ) : null}
             </div>
