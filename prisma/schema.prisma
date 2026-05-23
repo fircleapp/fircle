@@ -72,6 +72,7 @@ model FamilyMember {
   comments  Comment[]   @relation("CommentAuthor")
   postLikes PostLike[]
   commentLikes CommentLike[]
+  mediaTags MediaTag[]
 
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
   user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -143,11 +144,30 @@ model PostMedia {
   sortOrder  Int
   createdAt  DateTime      @default(now())
   post       Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  mediaTags  MediaTag[]
 
   @@index([postId])
   @@index([sortOrder])
   @@index([createdAt])
   @@index([postId, sortOrder])
+}
+
+model MediaTag {
+  id             String       @id @default(cuid())
+  postMediaId    String
+  taggedMemberId String
+  xPercent       Decimal?     @db.Decimal(5, 2)
+  yPercent       Decimal?     @db.Decimal(5, 2)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  postMedia      PostMedia    @relation(fields: [postMediaId], references: [id], onDelete: Cascade)
+  taggedMember   FamilyMember @relation(fields: [taggedMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([postMediaId, taggedMemberId])
+  @@index([postMediaId])
+  @@index([taggedMemberId])
+  @@index([postMediaId, taggedMemberId])
 }
 
 model PostLike {

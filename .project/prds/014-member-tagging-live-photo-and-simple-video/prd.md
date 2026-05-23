@@ -1,6 +1,6 @@
 ---
 title: "Member Tagging - Live Photo Anchors and Simple Video Assignment"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -66,12 +66,12 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 
 #### Tasks
 
-- [ ] Add media tag model(s) in [prisma/schema.prisma](prisma/schema.prisma) to link post media to family members.
-- [ ] Include optional coordinate fields for photo anchors and enforce coordinate validation rules at API level.
-- [ ] Add relations from PostMedia and FamilyMember to the tagging model(s), preserving cascade delete behavior.
-- [ ] Add indexes for media-centric and member-centric lookup patterns.
-- [ ] Add uniqueness rule to prevent duplicate member assignment on the same media item.
-- [ ] Create migration in [prisma/migrations](prisma/migrations) and regenerate Prisma client in [generated/prisma](generated/prisma).
+- [x] Add media tag model(s) in [prisma/schema.prisma](prisma/schema.prisma) to link post media to family members.
+- [x] Include optional coordinate fields for photo anchors and enforce coordinate validation rules at API level.
+- [x] Add relations from PostMedia and FamilyMember to the tagging model(s), preserving cascade delete behavior.
+- [x] Add indexes for media-centric and member-centric lookup patterns.
+- [x] Add uniqueness rule to prevent duplicate member assignment on the same media item.
+- [x] Create migration in [prisma/migrations](prisma/migrations) and regenerate Prisma client in [generated/prisma](generated/prisma).
 
 ### Phase 2: Tagging API with Authorization and Validation
 
