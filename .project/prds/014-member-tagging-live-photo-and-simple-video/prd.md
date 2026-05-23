@@ -97,6 +97,9 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 - [ ] Ensure getById and feed responses include stable tag payloads for each media item.
 - [ ] Ensure response contracts preserve the hierarchy: tags are nested under each media item, media remains nested under the post.
 - [ ] Add derived de-duplicated tagged-member projection per post for multi-media cards so UI can render a unique member stack without duplicate avatars.
+- [ ] Add a member-centric tagged posts query in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) for the profile Tagged In tab (for example, getTaggedPostsByMember), returning posts where the target member is tagged in at least one media item.
+- [ ] Ensure tagged-post query de-duplicates by post when a member is tagged in multiple media under the same post.
+- [ ] Ensure tagged-post query still returns per-media tag payloads so media-viewer overlays remain accurate inside tagged-tab cards.
 - [ ] Preserve backward compatibility for existing consumers that currently assume empty or missing tagged member arrays.
 
 ### Phase 4: Frontend Tagging UX (Post-Publish)
@@ -110,6 +113,8 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 - [ ] Build simple video tagging UI in [src/components/feed](src/components/feed) for member assignment list editing only.
 - [ ] Render per-media tagged members in the viewer using TaggedMembersOverlay so the displayed tags always match the active media.
 - [ ] For post cards that contain multiple media, render a unique combined tagged-member set across the post's media using TaggedMemberAvatarStack.
+- [ ] Replace tagged-tab placeholders in [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx) with live data from the tagged-post query.
+- [ ] Ensure tagged-tab cards keep existing post-card behavior while showing only posts where the profiled member is tagged in media.
 - [ ] Keep composer unchanged in [src/components/feed/post-composer-dialog.tsx](src/components/feed/post-composer-dialog.tsx).
 - [ ] Render real tagged-member data via [src/components/feed/tagged-member-avatar-stack.tsx](src/components/feed/tagged-member-avatar-stack.tsx) and viewer surfaces.
 
@@ -121,7 +126,9 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 
 - [ ] Add router tests at [src/server/api/routers/tag.test.ts](src/server/api/routers/tag.test.ts) covering authz matrix, family isolation, and CRUD behavior.
 - [ ] Update [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts) for tag payload integration coverage.
+- [ ] Add tests for tagged-post query behavior in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts), including post de-duplication and family-scope enforcement.
 - [ ] Add component-level tests for critical tag-edit interactions where practical.
+- [ ] Add frontend validation for Tagged In tabs on [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx), including empty-state and populated-state behavior.
 - [ ] Run lint, typecheck, and tests via project scripts in [package.json](package.json).
 - [ ] Execute manual QA for mobile and desktop across photo and video tagging flows.
 - [ ] Verify additive migration plan for future timeline model (no breaking field renames, no response contract regressions).
@@ -138,6 +145,8 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 - [ ] For posts with multiple media, the post card displays unique tagged members across all media via TaggedMemberAvatarStack.
 - [ ] Frontend supports post-publish tag editing for photos and videos and displays persisted results after reload.
 - [ ] Tag management entry is available from media-viewer-dialog where the target media is being viewed.
+- [ ] The Tagged In tab on [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx) lists posts where the target member is tagged in media.
+- [ ] Tagged In tab results are post-level unique even when the same member is tagged in multiple media items within one post.
 - [ ] Existing composer flow remains unchanged and functional.
 - [ ] All touched tests pass; no regression in existing post/comment/like/profile flows.
 - [ ] Schema and API choices remain additive and documented for later timeline or moment-based video tagging.
