@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
-
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { PrismaClient } from "../../../../generated/prisma";

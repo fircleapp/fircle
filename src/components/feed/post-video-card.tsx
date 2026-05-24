@@ -10,8 +10,8 @@ type PostVideoCardProps = {
 
 export function PostVideoCard({ title, caption, url, durationLabel, onClick }: PostVideoCardProps) {
   const overlayTitle = title && title !== caption ? title : undefined;
-  const ariaLabel = title || caption || "Post video";
-  const hasOverlayText = Boolean(overlayTitle || caption);
+  const ariaLabel = title ?? caption ?? "Post video";
+  const hasOverlayText = Boolean(overlayTitle ?? caption);
 
   return (
     <article

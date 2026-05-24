@@ -129,7 +129,7 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 - [x] Add tests for tagged-post query behavior in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts), including post de-duplication and family-scope enforcement.
 - [ ] Add component-level tests for critical tag-edit interactions where practical.
 - [x] Add frontend validation for Tagged In tabs on [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx), including empty-state and populated-state behavior.
-- [ ] Run lint, typecheck, and tests via project scripts in [package.json](package.json).
+- [x] Run lint, typecheck, and tests via project scripts in [package.json](package.json).
 - [x] Execute manual QA for mobile and desktop across photo and video tagging flows.
 - [x] Verify additive migration plan for future timeline model (no breaking field renames, no response contract regressions).
 
