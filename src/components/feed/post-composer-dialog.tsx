@@ -169,7 +169,7 @@ export function PostComposerDialog({
       textarea: captionTextareaRef.current,
       triggerIndex: activeMentionQuery.tokenStart,
     });
-  }, [activeMentionQuery, caption]);
+  }, [activeMentionQuery]);
 
   const canPublish = useMemo(
     () =>

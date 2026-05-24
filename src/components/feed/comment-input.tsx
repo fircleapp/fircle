@@ -81,7 +81,7 @@ export function CommentInput({
       textarea: textareaRef.current,
       triggerIndex: activeMentionQuery.tokenStart,
     });
-  }, [activeMentionQuery, value]);
+  }, [activeMentionQuery]);
 
   useEffect(() => {
     const textarea = textareaRef.current;

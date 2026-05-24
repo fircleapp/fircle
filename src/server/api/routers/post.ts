@@ -1402,60 +1402,52 @@ export const postRouter = createTRPCRouter({
         });
       }
 
-      const updatedComment = input.mentions.length > 0
-        ? await ctx.db.$transaction(async (tx) => {
-            await tx.comment.update({
-              where: {
-                id: comment.id,
-              },
-              data: {
-                content: input.content,
-              },
-              select: {
-                id: true,
-              },
-            });
+      const updatedComment = await ctx.db.$transaction(async (tx) => {
+        await tx.comment.update({
+          where: {
+            id: comment.id,
+          },
+          data: {
+            content: input.content,
+          },
+          select: {
+            id: true,
+          },
+        });
 
-            await tx.commentMention.deleteMany({
-              where: {
-                commentId: comment.id,
-              },
-            });
+        await tx.commentMention.deleteMany({
+          where: {
+            commentId: comment.id,
+          },
+        });
 
-            await tx.commentMention.createMany({
-              data: input.mentions.map((mention) => ({
-                commentId: comment.id,
-                mentionedMemberId: mention.memberId,
-                start: mention.start,
-                end: mention.end,
-              })),
-            });
-
-            const updated = await tx.comment.findUnique({
-              where: {
-                id: comment.id,
-              },
-              select: commentResponseSelect(membership.id),
-            });
-
-            if (!updated) {
-              throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: "Failed to load updated comment",
-              });
-            }
-
-            return updated;
-          })
-        : await ctx.db.comment.update({
-            where: {
-              id: comment.id,
-            },
-            data: {
-              content: input.content,
-            },
-            select: commentResponseSelect(membership.id),
+        if (input.mentions.length > 0) {
+          await tx.commentMention.createMany({
+            data: input.mentions.map((mention) => ({
+              commentId: comment.id,
+              mentionedMemberId: mention.memberId,
+              start: mention.start,
+              end: mention.end,
+            })),
           });
+        }
+
+        const updated = await tx.comment.findUnique({
+          where: {
+            id: comment.id,
+          },
+          select: commentResponseSelect(membership.id),
+        });
+
+        if (!updated) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to load updated comment",
+          });
+        }
+
+        return updated;
+      });
 
       return mapCommentResponse(updatedComment);
     }),

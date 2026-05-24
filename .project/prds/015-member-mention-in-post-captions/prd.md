@@ -136,15 +136,15 @@ Out-of-scope for this PRD:
 
 #### Tasks
 
-- [ ] Update post-to-card mappings to pass mention data in:
+- [x] Update post-to-card mappings to pass mention data in:
   - [x] [src/app/(app)/page.tsx](src/app/(app)/page.tsx)
   - [x] [src/app/(app)/post/[postId]/page.tsx](src/app/(app)/post/[postId]/page.tsx)
   - [x] [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx)
   - [x] [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx)
-- [ ] Add or extend backend tests in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts) for mention validation, persistence, and response mapping.
-- [ ] Add backend tests for comment mention create/update mapping and family-bound validation in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts).
-- [ ] Add mention helper tests (token detection/range adjustment) for shared post/comment mention logic where practical.
-- [ ] Execute lint, typecheck, and relevant test suites via [package.json](package.json) scripts.
+- [x] Add or extend backend tests in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts) for mention validation, persistence, and response mapping.
+- [x] Add backend tests for comment mention create/update mapping and family-bound validation in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts).
+- [x] Add mention helper tests (token detection/range adjustment) for shared post/comment mention logic where practical.
+- [x] Execute lint, typecheck, and relevant test suites via [package.json](package.json) scripts.
 - [ ] Perform manual QA across desktop and mobile for mention authoring, submission, rendering, and navigation in both posts and comments.
 
 ## Acceptance Criteria
