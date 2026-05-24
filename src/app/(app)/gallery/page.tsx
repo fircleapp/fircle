@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
-
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { GalleryBentoGrid } from "~/components/gallery/gallery-bento-grid";

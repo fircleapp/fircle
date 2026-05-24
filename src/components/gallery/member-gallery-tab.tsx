@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-
 import { useMemo, useState } from "react";
 
 import { MediaViewerDialog } from "~/components/feed/media-viewer-dialog";
@@ -84,11 +82,11 @@ export function MemberGalleryTab({ familyId, memberId, memberName }: MemberGalle
   );
 
   const publishedItems = useMemo<FamilyGalleryItem[]>(() => {
-    return (memberGalleryQuery.data?.publishedMedia ?? []) as FamilyGalleryItem[];
+    return memberGalleryQuery.data?.publishedMedia ?? [];
   }, [memberGalleryQuery.data?.publishedMedia]);
 
   const taggedItems = useMemo<FamilyGalleryItem[]>(() => {
-    return (memberGalleryQuery.data?.taggedMedia ?? []) as FamilyGalleryItem[];
+    return memberGalleryQuery.data?.taggedMedia ?? [];
   }, [memberGalleryQuery.data?.taggedMedia]);
 
   const allItems = useMemo<FamilyGalleryItem[]>(() => {

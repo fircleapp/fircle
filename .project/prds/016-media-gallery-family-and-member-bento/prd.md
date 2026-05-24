@@ -115,22 +115,22 @@ The feature also adds a new `Gallery` navigation entry in the sidebar/navigation
 
 #### Tasks
 
-- [ ] Add server tests under `test/server/api/` for family media query filtering and cursor ordering.
-- [ ] Add server tests for member gallery aggregation (published vs tagged, dedupe behavior, family scoping).
-- [ ] Validate navigation and route rendering on desktop and mobile shell variants.
-- [ ] Validate media viewer interactions from gallery tiles for both image and video items.
-- [ ] Run lint and targeted tests (`pnpm lint`, relevant `vitest` suites) and fix regressions.
+- [x] Add server tests under `test/server/api/` for family media query filtering and cursor ordering.
+- [x] Add server tests for member gallery aggregation (published vs tagged, dedupe behavior, family scoping).
+- [x] Validate navigation and route rendering on desktop and mobile shell variants.
+- [x] Validate media viewer interactions from gallery tiles for both image and video items.
+- [x] Run lint and targeted tests (`pnpm lint`, relevant `vitest` suites) and fix regressions.
 
 ## Acceptance Criteria
 
-- [ ] A new authenticated route `/gallery` exists and is reachable from both desktop sidebar and mobile bottom navigation.
-- [ ] `/gallery` shows family media content from direct `PostMedia` queries, newest first, with cursor-safe media-level ordering.
-- [ ] Gallery presentation uses a bento-style layout with responsive behavior and no major overlap/breakpoint defects.
-- [ ] Clicking a gallery tile opens media using the existing viewer experience.
-- [ ] Profile pages (`/profile` and `/member/[slug]`) include a new `Gallery` tab.
+- [x] A new authenticated route `/gallery` exists and is reachable from both desktop sidebar and mobile bottom navigation.
+- [x] `/gallery` shows family media content from direct `PostMedia` queries, newest first, with cursor-safe media-level ordering.
+- [x] Gallery presentation uses a bento-style layout with responsive behavior and no major overlap/breakpoint defects.
+- [x] Clicking a gallery tile opens media using the existing viewer experience.
+- [x] Profile pages (`/profile` and `/member/[slug]`) include a new `Gallery` tab.
 - [ ] Member gallery shows two clear sections derived from `PostMedia`: published media and media-tagged items.
-- [ ] Member tagged gallery is derived from media tags only, not caption/comment mentions.
-- [ ] Empty states are shown when no gallery data exists for family or member contexts.
-- [ ] New queries are family-scoped and enforce existing membership/authorization constraints.
-- [ ] Gallery query/mutation surface is exposed through a dedicated `mediaRouter` in the root app router.
-- [ ] Lint and targeted tests pass for modified areas.
+- [x] Member tagged gallery is derived from media tags only, not caption/comment mentions.
+- [x] Empty states are shown when no gallery data exists for family or member contexts.
+- [x] New queries are family-scoped and enforce existing membership/authorization constraints.
+- [x] Gallery query/mutation surface is exposed through a dedicated `mediaRouter` in the root app router.
+- [x] Lint and targeted tests pass for modified areas.
