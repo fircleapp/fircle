@@ -339,7 +339,7 @@ function MediaSlide({
           />
         ) : null}
 
-        {item.caption ? (
+        {item.caption && !editorEnabled ? (
           <p className="absolute bottom-2 left-2 max-w-[min(92vw,28rem)] rounded-xl border border-black/10 bg-white/75 px-3 py-2 text-sm text-foreground shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/60 dark:text-white">
             {item.caption}
           </p>
@@ -456,7 +456,7 @@ function MediaSlide({
 
       {!editorEnabled && taggedMembers.length ? <TaggedMembersOverlay members={taggedMembers} /> : null}
 
-      {item.caption ? (
+      {item.caption && !editorEnabled ? (
         <p className="absolute bottom-2 left-2 max-w-[min(92vw,28rem)] rounded-xl border border-black/10 bg-white/75 px-3 py-2 text-sm text-foreground shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-black/60 dark:text-white">
           {item.caption}
         </p>
