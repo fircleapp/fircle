@@ -90,11 +90,11 @@ The feature also adds a new `Gallery` navigation entry in the sidebar/navigation
 
 #### Tasks
 
-- [ ] Create reusable gallery UI components in `src/components/gallery/` (tile primitives, bento layout container, empty/loading states).
-- [ ] Implement deterministic tile spanning strategy (hero + supporting tiles) based on recency/index to avoid hydration mismatch.
-- [ ] Render mixed media (image/video) tiles with clear visual affordances for video.
-- [ ] Wire tile click actions to existing media viewer dialog experience.
-- [ ] Ensure responsive behavior across mobile/tablet/desktop breakpoints with graceful fallback to simpler grid when media count is low.
+- [x] Create reusable gallery UI components in `src/components/gallery/` (tile primitives, bento layout container, empty/loading states).
+- [x] Implement deterministic tile spanning strategy (hero + supporting tiles) based on recency/index to avoid hydration mismatch.
+- [x] Render mixed media (image/video) tiles with clear visual affordances for video.
+- [x] Wire tile click actions to existing media viewer dialog experience.
+- [x] Ensure responsive behavior across mobile/tablet/desktop breakpoints with graceful fallback to simpler grid when media count is low.
 
 ### Phase 4: Member Profile Gallery Tab
 
