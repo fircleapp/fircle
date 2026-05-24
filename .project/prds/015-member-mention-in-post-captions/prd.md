@@ -85,19 +85,19 @@ Out-of-scope for this PRD:
 
 #### Tasks
 
-- [ ] Extend `createPostInputSchema` in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) with mention payloads (`memberId`, range fields).
-- [ ] Extend comment input schemas in [src/server/api/routers/post.ts](src/server/api/routers/post.ts):
-  - [ ] `createCommentInputSchema` mention payload support.
-  - [ ] `updateCommentInputSchema` mention payload support.
-- [ ] Validate mention constraints server-side:
-  - [ ] Mention ranges are in-bounds and non-overlapping.
-  - [ ] Mention count is bounded.
-  - [ ] Mentioned members belong to the same family as the post/comment context.
-- [ ] Persist mentions transactionally in `post.create` mutation in [src/server/api/routers/post.ts](src/server/api/routers/post.ts).
-- [ ] Persist comment mentions transactionally in `createComment` and `updateComment` procedures in [src/server/api/routers/post.ts](src/server/api/routers/post.ts).
-- [ ] Extend post response select/mapping in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) to include normalized mention records (member id, slug, name, avatar, ranges).
-- [ ] Extend comment response mapping in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) to include normalized mention records.
-- [ ] Ensure `getFeed`, `getById`, profile/member post queries, and `getComments` outputs include mention data required by UI layers.
+- [x] Extend `createPostInputSchema` in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) with mention payloads (`memberId`, range fields).
+- [x] Extend comment input schemas in [src/server/api/routers/post.ts](src/server/api/routers/post.ts):
+  - [x] `createCommentInputSchema` mention payload support.
+  - [x] `updateCommentInputSchema` mention payload support.
+- [x] Validate mention constraints server-side:
+  - [x] Mention ranges are in-bounds and non-overlapping.
+  - [x] Mention count is bounded.
+  - [x] Mentioned members belong to the same family as the post/comment context.
+- [x] Persist mentions transactionally in `post.create` mutation in [src/server/api/routers/post.ts](src/server/api/routers/post.ts).
+- [x] Persist comment mentions transactionally in `createComment` and `updateComment` procedures in [src/server/api/routers/post.ts](src/server/api/routers/post.ts).
+- [x] Extend post response select/mapping in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) to include normalized mention records (member id, slug, name, avatar, ranges).
+- [x] Extend comment response mapping in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) to include normalized mention records.
+- [x] Ensure `getFeed`, `getById`, profile/member post queries, and `getComments` outputs include mention data required by UI layers.
 
 ### Phase 3: Mention Authoring UX for Composer and Comments
 
