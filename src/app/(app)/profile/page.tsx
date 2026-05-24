@@ -159,7 +159,7 @@ export default function ProfilePage() {
   const isLoading = managementContext.isLoading || memberQuery.isLoading
 
   return (
-    <section className="px-4 py-8 sm:px-6">
+    <section className="max-w-3xl mx-auto px-4 py-8 sm:px-6">
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center text-muted-foreground">Loading profile...</div>

@@ -194,7 +194,7 @@ export default function MemberProfilePage() {
   const hasLookupError = memberProfileQuery.error != null;
 
   return (
-    <section className="px-4 py-8 sm:px-6">
+    <section className="max-w-3xl mx-auto px-4 py-8 sm:px-6">
       {isLoading ? (
         <Alert>
           <AlertCircle className="size-5" aria-hidden="true" />
