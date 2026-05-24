@@ -61,6 +61,7 @@ type PostCardProps = {
   showActionsSeparator?: boolean;
   currentMemberSlug?: string;
   familyId?: string;
+  isAdmin?: boolean;
 };
 
 function renderBody(
@@ -118,6 +119,7 @@ export function PostCard({
   showActionsSeparator = false,
   currentMemberSlug,
   familyId,
+  isAdmin = false,
 }: PostCardProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -217,6 +219,8 @@ export function PostCard({
       ? "/profile"
       : `/member/${post.author.slug}`
     : undefined;
+  const canManageTags =
+    isAdmin || (Boolean(post.author.slug) && Boolean(currentMemberSlug) && post.author.slug === currentMemberSlug);
 
   function navigateToPost() {
     router.push(`/post/${post.id}`);
@@ -392,6 +396,7 @@ export function PostCard({
         open={viewerOpen}
         onOpenChange={setViewerOpen}
         familyId={familyId}
+        canManageTags={canManageTags}
       />
     </article>
   );

@@ -140,6 +140,7 @@ export default function ProfilePage() {
   const memberPosts: PostCardData[] = (memberPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
   const taggedPosts: PostCardData[] = (taggedPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
   const likedPosts: PostCardData[] = (likedPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
+  const isAdmin = managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
 
   const isLoading = managementContext.isLoading || memberQuery.isLoading
 
@@ -187,6 +188,7 @@ export default function ProfilePage() {
                           post={post}
                           currentMemberSlug={member?.slug}
                           familyId={familyId}
+                          isAdmin={isAdmin}
                         />
                       ))}
                     </div>
@@ -210,6 +212,7 @@ export default function ProfilePage() {
                           post={post}
                           currentMemberSlug={member?.slug}
                           familyId={familyId}
+                          isAdmin={isAdmin}
                         />
                       ))}
                     </div>
@@ -233,6 +236,7 @@ export default function ProfilePage() {
                           post={post}
                           currentMemberSlug={member?.slug}
                           familyId={familyId}
+                          isAdmin={isAdmin}
                         />
                       ))}
                     </div>

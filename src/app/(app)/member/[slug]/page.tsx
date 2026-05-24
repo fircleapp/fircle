@@ -235,6 +235,7 @@ export default function MemberProfilePage() {
                           post={post}
                           currentMemberSlug={currentUserQuery.data?.slug}
                           familyId={familyId}
+                          isAdmin={isAdmin}
                         />
                       ))}
                     </div>
@@ -258,6 +259,7 @@ export default function MemberProfilePage() {
                           post={post}
                           currentMemberSlug={currentUserQuery.data?.slug}
                           familyId={familyId}
+                          isAdmin={isAdmin}
                         />
                       ))}
                     </div>
@@ -281,6 +283,7 @@ export default function MemberProfilePage() {
                           post={post}
                           currentMemberSlug={currentUserQuery.data?.slug}
                           familyId={familyId}
+                          isAdmin={isAdmin}
                         />
                       ))}
                     </div>

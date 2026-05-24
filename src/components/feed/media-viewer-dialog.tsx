@@ -54,6 +54,7 @@ type MediaViewerDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   familyId?: string;
+  canManageTags?: boolean;
 };
 
 function getInitials(name: string) {
@@ -510,6 +511,7 @@ export function MediaViewerDialog({
   open,
   onOpenChange,
   familyId,
+  canManageTags = false,
 }: MediaViewerDialogProps) {
   const [current, setCurrent] = React.useState(startIndex);
   const [carouselApi, setCarouselApi] = React.useState<CarouselApi>();
@@ -631,7 +633,7 @@ export function MediaViewerDialog({
   }
 
   function handleImageClick(event: React.MouseEvent<HTMLImageElement>) {
-    if (!editorOpen || !currentItem || currentItem.type !== "image") {
+    if (!editorOpen || currentItem?.type !== "image") {
       return;
     }
 
@@ -695,7 +697,7 @@ export function MediaViewerDialog({
                   {current + 1} / {items.length}
                 </span>
               ) : null}
-              {familyId && currentItem ? (
+              {familyId && currentItem && canManageTags ? (
                 <Button
                   className="flex size-10 items-center justify-center rounded-full dark:bg-white/10 dark:text-white dark:hover:bg-white/20 bg-black/10 text-foreground hover:bg-black/20 transition-colors active:translate-y-0 active:scale-100"
                   aria-label={editorOpen ? "Done tagging" : "Tag people"}

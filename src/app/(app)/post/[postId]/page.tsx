@@ -232,6 +232,7 @@ export default function SinglePostPage() {
   });
 
   const familyId = managementContext.data?.family?.id;
+  const isAdmin = managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
 
   const memberProfileQuery = api.familyMember.getCurrentUserMemberProfile.useQuery(
     { familyId: familyId ?? "" },
@@ -828,6 +829,7 @@ export default function SinglePostPage() {
         showActionsSeparator
         currentMemberSlug={memberProfileQuery.data?.slug}
         familyId={familyId}
+        isAdmin={isAdmin}
       />
 
       <div className="mt-6">
