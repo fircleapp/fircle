@@ -105,17 +105,17 @@ Out-of-scope for this PRD:
 
 #### Tasks
 
-- [ ] Add mention trigger detection from caret position in [src/components/feed/post-composer-dialog.tsx](src/components/feed/post-composer-dialog.tsx).
-- [ ] Reuse family member list query (`api.familyMember.listFamilyMembers`) for mention suggestions with client-side filtering.
-- [ ] Build contextual suggestion popup UI near the caption input, reusing existing member-list visual language from [src/components/feed/media-viewer-dialog.tsx](src/components/feed/media-viewer-dialog.tsx).
-- [ ] Implement keyboard interactions (`ArrowUp`, `ArrowDown`, `Enter`, `Escape`) and pointer selection.
-- [ ] On selection, replace active `@query` token with `@Display Name` and update local mention metadata/ranges.
-- [ ] Keep mention metadata synchronized as caption text changes before publish.
-- [ ] Include normalized mention payloads in `api.post.create` call path in [src/components/feed/post-composer-dialog.tsx](src/components/feed/post-composer-dialog.tsx).
-- [ ] Add mention support to comment entry components and call sites:
-  - [ ] [src/components/feed/comment-input.tsx](src/components/feed/comment-input.tsx) for top-level, reply, and edit input states.
-  - [ ] [src/app/(app)/post/[postId]/page.tsx](src/app/(app)/post/[postId]/page.tsx) for `createComment` and `updateComment` payload wiring.
-- [ ] Reuse shared mention helper logic across post and comment inputs to avoid behavior drift.
+- [x] Add mention trigger detection from caret position in [src/components/feed/post-composer-dialog.tsx](src/components/feed/post-composer-dialog.tsx).
+- [x] Reuse family member list query (`api.familyMember.listFamilyMembers`) for mention suggestions with client-side filtering.
+- [x] Build contextual suggestion popup UI near the caption input, reusing existing member-list visual language from [src/components/feed/media-viewer-dialog.tsx](src/components/feed/media-viewer-dialog.tsx).
+- [x] Implement keyboard interactions (`ArrowUp`, `ArrowDown`, `Enter`, `Escape`) and pointer selection.
+- [x] On selection, replace active `@query` token with `@Display Name` and update local mention metadata/ranges.
+- [x] Keep mention metadata synchronized as caption text changes before publish.
+- [x] Include normalized mention payloads in `api.post.create` call path in [src/components/feed/post-composer-dialog.tsx](src/components/feed/post-composer-dialog.tsx).
+- [x] Add mention support to comment entry components and call sites:
+  - [x] [src/components/feed/comment-input.tsx](src/components/feed/comment-input.tsx) for top-level, reply, and edit input states.
+  - [x] [src/app/(app)/post/[postId]/page.tsx](src/app/(app)/post/[postId]/page.tsx) for `createComment` and `updateComment` payload wiring.
+- [x] Reuse shared mention helper logic across post and comment inputs to avoid behavior drift.
 
 ### Phase 4: Mention Rendering and Navigation
 
