@@ -298,7 +298,22 @@ function MediaSlide({
   activeMutationPending?: boolean;
   editorError?: string | null;
 }) {
-  const [activeTagId, setActiveTagId] = React.useState<string | null>(null);
+  const [hoveredTagId, setHoveredTagId] = React.useState<string | null>(null);
+  const [pinnedTagId, setPinnedTagId] = React.useState<string | null>(null);
+
+  const clearActiveTag = React.useCallback(() => {
+    setHoveredTagId(null);
+    setPinnedTagId(null);
+  }, []);
+
+  const activeTagId = pinnedTagId ?? hoveredTagId;
+
+  React.useEffect(() => {
+    if (!pinnedTagId) return;
+    if (!tags.some((tag) => tag.id === pinnedTagId)) {
+      setPinnedTagId(null);
+    }
+  }, [tags, pinnedTagId]);
 
   if (item.type === "video") {
     return (
@@ -336,7 +351,7 @@ function MediaSlide({
   return (
     <div
       className="relative flex h-full w-full items-center justify-center"
-      onClick={() => setActiveTagId(null)}
+      onClick={clearActiveTag}
     >
       <div className={`relative inline-flex max-h-full max-w-full${editorEnabled ? " rounded-lg ring-2 ring-white/30" : ""}`}>
         <img
@@ -344,7 +359,7 @@ function MediaSlide({
           alt={item.alt}
           className={`max-h-full max-w-full rounded-lg object-contain ${editorEnabled ? "cursor-crosshair" : ""}`}
           onClick={(e) => {
-            setActiveTagId(null);
+            clearActiveTag();
             onImageClick?.(e);
           }}
         />
@@ -365,9 +380,15 @@ function MediaSlide({
             >
               <button
                 type="button"
-                className="pointer-events-auto flex size-10 items-center justify-center rounded-full border border-white/10 bg-black/10 text-[10px] font-semibold text-white shadow transition-transform hover:scale-110 active:scale-95"
-                onMouseEnter={() => setActiveTagId(tag.id)}
-                onMouseLeave={() => setActiveTagId(null)}
+                className={`pointer-events-auto flex size-10 items-center justify-center rounded-full border ${editorEnabled ? "border-white/20 bg-black/20" : "border-white/10 bg-black/10"} text-[10px] font-semibold text-white shadow transition-transform hover:scale-110 active:scale-95`}
+                onMouseEnter={() => setHoveredTagId(tag.id)}
+                onMouseLeave={() => setHoveredTagId(null)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setPinnedTagId((currentPinnedTagId) =>
+                    currentPinnedTagId === tag.id ? null : tag.id,
+                  );
+                }}
                 title={tag.taggedMember.name}
               >
                 •
@@ -394,9 +415,10 @@ function MediaSlide({
                         size="icon-sm"
                         variant="ghost"
                         className="text-xs -mr-2 text-destructive transition-colors hover:text-destructive/80 disabled:opacity-50"
-                        onClick={() => {
+                        onClick={(event) => {
+                          event.stopPropagation();
                           void onTagDelete?.(tag.id);
-                          setActiveTagId(null);
+                          clearActiveTag();
                         }}
                         disabled={activeMutationPending}
                       >
