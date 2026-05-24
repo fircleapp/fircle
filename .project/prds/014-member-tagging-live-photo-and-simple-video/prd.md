@@ -130,14 +130,14 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 - [ ] Add component-level tests for critical tag-edit interactions where practical.
 - [x] Add frontend validation for Tagged In tabs on [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx), including empty-state and populated-state behavior.
 - [ ] Run lint, typecheck, and tests via project scripts in [package.json](package.json).
-- [ ] Execute manual QA for mobile and desktop across photo and video tagging flows.
+- [x] Execute manual QA for mobile and desktop across photo and video tagging flows.
 - [x] Verify additive migration plan for future timeline model (no breaking field renames, no response contract regressions).
 
 ## Acceptance Criteria
 
 - [x] Data hierarchy is enforced and visible in API payloads: tags belong to media, media belongs to post, and posts may contain multiple media.
-- [ ] A user with author or admin-owner privileges can create, edit, and remove photo tags with anchor coordinates.
-- [ ] A user with author or admin-owner privileges can create, edit, and remove video tags as plain member assignments.
+- [x] A user with author or admin-owner privileges can create, edit, and remove photo tags with anchor coordinates.
+- [x] A user with author or admin-owner privileges can create, edit, and remove video tags as plain member assignments.
 - [x] Non-author non-admin family members cannot mutate tags on posts they do not control.
 - [x] Tags cannot reference members outside the current post family.
 - [x] Post and feed APIs return stable media tag payloads for frontend rendering.
