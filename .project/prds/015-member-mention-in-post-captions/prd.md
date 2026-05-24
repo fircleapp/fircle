@@ -1,6 +1,6 @@
 ---
 title: "Member Mention in Post Captions and Comments"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -145,20 +145,20 @@ Out-of-scope for this PRD:
 - [x] Add backend tests for comment mention create/update mapping and family-bound validation in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts).
 - [x] Add mention helper tests (token detection/range adjustment) for shared post/comment mention logic where practical.
 - [x] Execute lint, typecheck, and relevant test suites via [package.json](package.json) scripts.
-- [ ] Perform manual QA across desktop and mobile for mention authoring, submission, rendering, and navigation in both posts and comments.
+- [x] Perform manual QA across desktop and mobile for mention authoring, submission, rendering, and navigation in both posts and comments.
 
 ## Acceptance Criteria
 
-- [ ] In post composer main caption, typing `@` followed by text opens member suggestions filtered to family members.
-- [ ] Users can select a suggestion by keyboard or mouse and insert a mention at the current caret position.
-- [ ] Publishing a post with mentions persists structured mention records linked to the post and family members.
-- [ ] In comment inputs (top-level, reply, edit), typing `@` followed by text opens member suggestions filtered to family members.
-- [ ] Creating or editing a comment with mentions persists structured mention records linked to the comment and family members.
-- [ ] Posts without mentions continue to publish and render unchanged.
-- [ ] Feed and post detail render mentions as inline chips with member avatar and name.
-- [ ] Comment threads render mentions as inline chips with member avatar and name.
-- [ ] Clicking a mention chip navigates to the correct member profile destination.
-- [ ] Mention validation rejects invalid ranges, cross-family member IDs, and malformed payloads.
-- [ ] Existing post creation, media upload, media tagging, likes, and comments flows show no regression.
-- [ ] Backend mention tests and affected integration tests pass.
-- [ ] Post and comment mention UX behave correctly on desktop and mobile viewports.
+- [x] In post composer main caption, typing `@` followed by text opens member suggestions filtered to family members.
+- [x] Users can select a suggestion by keyboard or mouse and insert a mention at the current caret position.
+- [x] Publishing a post with mentions persists structured mention records linked to the post and family members.
+- [x] In comment inputs (top-level, reply, edit), typing `@` followed by text opens member suggestions filtered to family members.
+- [x] Creating or editing a comment with mentions persists structured mention records linked to the comment and family members.
+- [x] Posts without mentions continue to publish and render unchanged.
+- [x] Feed and post detail render mentions as inline chips with member avatar and name.
+- [x] Comment threads render mentions as inline chips with member avatar and name.
+- [x] Clicking a mention chip navigates to the correct member profile destination.
+- [x] Mention validation rejects invalid ranges, cross-family member IDs, and malformed payloads.
+- [x] Existing post creation, media upload, media tagging, likes, and comments flows show no regression.
+- [x] Backend mention tests and affected integration tests pass.
+- [x] Post and comment mention UX behave correctly on desktop and mobile viewports.
