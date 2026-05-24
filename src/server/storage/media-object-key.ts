@@ -38,7 +38,7 @@ function sanitizePathSegment(value: string) {
 }
 
 function getSafeExtension(fileName: string, mimeType: string) {
-  const fromName = fileName.toLowerCase().match(/\.([a-z0-9]{2,10})$/)?.[1];
+  const fromName = /\.([a-z0-9]{2,10})$/.exec(fileName.toLowerCase())?.[1];
   if (fromName) {
     return fromName;
   }

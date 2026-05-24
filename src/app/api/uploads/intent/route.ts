@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       select: { id: true, familyId: true },
     });
 
-    if (!targetMember || targetMember.familyId !== membership.familyId) {
+    if (targetMember?.familyId !== membership.familyId) {
       return jsonError(404, "NOT_FOUND", "Target member was not found in this family");
     }
 

@@ -51,7 +51,7 @@ Open-source MVP focused on becoming functional quickly for one family instance, 
 - [x] Unclaimed member profile creation
 - [x] Account claiming flow
 - [x] Post creation with media uploads
-- [ ] Member tagging in photos and videos
+- [x] Member tagging in photos and videos
 
 ## Roadmap
 

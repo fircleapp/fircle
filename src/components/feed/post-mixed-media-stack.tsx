@@ -32,8 +32,8 @@ export function PostMixedMediaStack({ items, onItemClick }: PostMixedMediaStackP
         const horizontalOffset = index * stackOffset;
         const isTopCard = index === visibleItems.length - 1;
         const overlayTitle = item.alt && item.alt !== item.caption ? item.alt : "";
-        const mediaAriaLabel = item.alt || item.caption || "Post media";
-        const hasOverlayText = Boolean(overlayTitle || item.caption);
+        const mediaAriaLabel = item.alt ?? item.caption ?? "Post media";
+        const hasOverlayText = Boolean(overlayTitle ?? item.caption);
 
         return (
           <article

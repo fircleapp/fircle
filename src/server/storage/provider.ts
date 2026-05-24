@@ -19,8 +19,6 @@ export function createStorageProvider(): StorageProvider {
 }
 
 export function getStorageProvider(): StorageProvider {
-  if (!cachedProvider) {
-    cachedProvider = createStorageProvider();
-  }
+  cachedProvider ??= createStorageProvider();
   return cachedProvider;
 }

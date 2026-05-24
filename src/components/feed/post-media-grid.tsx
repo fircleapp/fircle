@@ -59,8 +59,8 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
         const isVideo = item.type === "video";
         const isOverflowTile = overflowCount > 0 && index === visibleItems.length - 1;
         const overlayTitle = item.alt && item.alt !== item.caption ? item.alt : "";
-        const mediaAriaLabel = item.alt || item.caption || "Post media";
-        const hasOverlayText = Boolean(overlayTitle || item.caption);
+        const mediaAriaLabel = item.alt ?? item.caption ?? "Post media";
+        const hasOverlayText = Boolean(overlayTitle ?? item.caption);
 
         return (
           <article

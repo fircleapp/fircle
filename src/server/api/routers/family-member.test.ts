@@ -440,15 +440,21 @@ describe("familyMemberRouter.updateMemberProfile", () => {
       status: "claimed",
       role: "MEMBER",
     });
+    type UpdateMemberProfileCall = {
+      where: { id: string };
+      data: { name: string; image: string | null };
+    };
+    const firstUpdateCall = familyMemberUpdate.mock.calls[0]?.[0] as UpdateMemberProfileCall | undefined;
+    expect(firstUpdateCall).toBeDefined();
     expect(familyMemberUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: targetMemberId },
-        data: expect.objectContaining({
-          name: "Updated Name",
-          image: "https://example.com/avatar.jpg",
-        }),
       }),
     );
+    expect(firstUpdateCall?.data).toMatchObject({
+      name: "Updated Name",
+      image: "https://example.com/avatar.jpg",
+    });
   });
 
   it("rejects a non-admin member editing someone else", async () => {

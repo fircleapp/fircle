@@ -36,6 +36,7 @@ function mapFeedItemToPostCardData(item: {
   likedByCurrentUser?: boolean;
   reactionCount?: number;
   commentCount?: number;
+  taggedMembers?: Array<{ name: string; avatarUrl: string }>;
   mediaItems: Array<{
     id: string;
     type: string;
@@ -43,6 +44,19 @@ function mapFeedItemToPostCardData(item: {
     alt: string;
     durationLabel?: string;
     caption?: string | null;
+    taggedMembers?: Array<{ name: string; avatarUrl: string }>;
+    tags?: Array<{
+      id: string;
+      postMediaId: string;
+      taggedMemberId: string;
+      xPercent: number | null;
+      yPercent: number | null;
+      taggedMember: {
+        id: string;
+        name: string;
+        avatarUrl: string;
+      };
+    }>;
   }>;
 }): PostCardData {
   return {
@@ -62,8 +76,10 @@ function mapFeedItemToPostCardData(item: {
       alt: media.alt,
       caption: media.caption ?? undefined,
       durationLabel: media.durationLabel,
+      taggedMembers: media.taggedMembers,
+      tags: media.tags,
     })),
-    taggedMembers: [],
+    taggedMembers: item.taggedMembers ?? [],
     likedByCurrentUser: item.likedByCurrentUser ?? false,
     reactionCount: item.reactionCount ?? 0,
     commentCount: item.commentCount ?? 0,
@@ -91,16 +107,23 @@ function FeedList({
   posts,
   currentMemberSlug,
   familyId,
+  isAdmin,
 }: {
   posts: PostCardData[];
   currentMemberSlug?: string;
   familyId?: string;
+  isAdmin?: boolean;
 }) {
   return (
     <ul className="space-y-3 pb-20 md:pb-8">
       {posts.map((post) => (
         <li key={post.id}>
-          <PostCard post={post} currentMemberSlug={currentMemberSlug} familyId={familyId} />
+          <PostCard
+            post={post}
+            currentMemberSlug={currentMemberSlug}
+            familyId={familyId}
+            isAdmin={isAdmin}
+          />
         </li>
       ))}
     </ul>
@@ -140,6 +163,7 @@ export default function FeedPage() {
   });
 
   const familyId = managementContext.data?.family?.id;
+  const isAdmin = managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
 
   const memberQuery = api.familyMember.getCurrentUserMemberProfile.useQuery(
     { familyId: familyId ?? "" },
@@ -212,6 +236,7 @@ export default function FeedPage() {
               posts={posts}
               currentMemberSlug={memberQuery.data?.slug}
               familyId={familyId}
+              isAdmin={isAdmin}
             />
           ) : (
             <FeedEmptyState />
