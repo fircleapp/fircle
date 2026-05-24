@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/012-post-commenting-system/prd.md
     description: "Comment API and post-detail thread foundation"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/23
+    description: "Implementation pull request - feat: implement member mention in posts and comments"
 ---
 
 > **Instructions for AI Agents:**
