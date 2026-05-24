@@ -8,12 +8,14 @@ import {
   Tag,
   UserRoundX,
   FileText,
+  Image,
 } from "~/components/ui/icons";
 import { useParams } from "next/navigation";
 
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
 import { MemberAdminActionsPanel } from "~/components/members/member-admin-panel";
 import { PostCard } from "~/components/feed/post-card";
+import { MemberGalleryTab } from "~/components/gallery/member-gallery-tab";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
@@ -101,10 +103,11 @@ function mapApiPostToPostCardData(item: {
 }
 import { cn } from "~/lib/utils";
 
-type ProfileTab = "posts" | "tagged" | "liked";
+type ProfileTab = "posts" | "tagged" | "liked" | "gallery";
 
 const tabs: { id: ProfileTab; label: string; icon: typeof FileText }[] = [
   { id: "posts", label: "Posts", icon: FileText },
+  { id: "gallery", label: "Gallery", icon: Image },
   { id: "tagged", label: "Mentions & Tags", icon: Tag },
   { id: "liked", label: "Liked", icon: Heart },
 ];
@@ -284,6 +287,10 @@ export default function MemberProfilePage() {
                   )}
                 </>
               )}
+
+              {activeTab === "gallery" && member ? (
+                <MemberGalleryTab familyId={familyId} memberId={member.id} memberName={member.name} />
+              ) : null}
 
               {activeTab === "liked" && (
                 <>

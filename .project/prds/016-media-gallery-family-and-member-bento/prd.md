@@ -102,12 +102,12 @@ The feature also adds a new `Gallery` navigation entry in the sidebar/navigation
 
 #### Tasks
 
-- [ ] Add `gallery` tab to `src/app/(app)/profile/page.tsx`.
-- [ ] Add `gallery` tab to `src/app/(app)/member/[slug]/page.tsx`.
-- [ ] Implement `Published` and `Tagged` media subsections in the gallery tab UI.
-- [ ] Ensure tagged subsection uses media tags only (not text mentions).
-- [ ] Reuse gallery tile components for visual consistency with `/gallery` while preserving profile context.
-- [ ] Add clear empty-state messages when member has no published or tagged media.
+- [x] Add `gallery` tab to `src/app/(app)/profile/page.tsx`.
+- [x] Add `gallery` tab to `src/app/(app)/member/[slug]/page.tsx`.
+- [x] Implement `Published` and `Tagged` media subsections in the gallery tab UI.
+- [x] Ensure tagged subsection uses media tags only (not text mentions).
+- [x] Reuse gallery tile components for visual consistency with `/gallery` while preserving profile context.
+- [x] Add clear empty-state messages when member has no published or tagged media.
 
 ### Phase 5: Testing and Quality Validation
 
