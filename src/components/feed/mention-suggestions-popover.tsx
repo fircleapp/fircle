@@ -30,7 +30,7 @@ export function MentionSuggestionsPopover({
 }: MentionSuggestionsPopoverProps) {
   return (
     <div
-      className="absolute z-30 max-h-64 w-72 max-w-[calc(100%-0.5rem)] overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xl"
+      className="absolute z-30 max-h-64 w-fit max-w-[calc(100%-0.5rem)] overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xl"
       style={
         anchor
           ? {
@@ -46,12 +46,12 @@ export function MentionSuggestionsPopover({
       {members.length === 0 ? (
         <p className="px-3 py-2 text-sm text-muted-foreground">{emptyLabel}</p>
       ) : (
-        <ul className="max-h-56 overflow-y-auto py-1">
+        <ul className="max-h-56 overflow-y-auto p-1">
           {members.map((member, index) => (
             <li key={member.id}>
               <button
                 type="button"
-                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
+                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors rounded-xl ${
                   index === activeIndex ? "bg-muted/70" : "hover:bg-muted/50"
                 }`}
                 onMouseEnter={() => onHover(index)}
