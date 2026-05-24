@@ -1743,19 +1743,38 @@ describe("postRouter tag integrations", () => {
 
     const findManyArgs = postFindMany.mock.calls[0]?.[0] as {
       where: {
-        media: {
-          some: {
-            mediaTags: {
-              some: {
-                taggedMemberId: string;
+        OR: Array<
+          | {
+              media: {
+                some: {
+                  mediaTags: {
+                    some: {
+                      taggedMemberId: string;
+                    };
+                  };
+                };
               };
-            };
-          };
-        };
+            }
+          | {
+              mentions: {
+                some: {
+                  mentionedMemberId: string;
+                };
+              };
+            }
+        >;
       };
     };
 
-    expect(findManyArgs.where.media.some.mediaTags.some.taggedMemberId).toBe(memberId);
+    const mediaFilter = findManyArgs.where.OR.find((candidate) => "media" in candidate);
+    const mentionFilter = findManyArgs.where.OR.find((candidate) => "mentions" in candidate);
+
+    expect(mediaFilter && "media" in mediaFilter
+      ? mediaFilter.media.some.mediaTags.some.taggedMemberId
+      : null).toBe(memberId);
+    expect(mentionFilter && "mentions" in mentionFilter
+      ? mentionFilter.mentions.some.mentionedMemberId
+      : null).toBe(memberId);
     expect(result.nextCursor).toBeNull();
     expect(result.items).toHaveLength(1);
     expect(result.items[0]).toMatchObject({
@@ -1816,6 +1835,92 @@ describe("postRouter tag integrations", () => {
       }),
     ).rejects.toMatchObject({
       code: "NOT_FOUND",
+    });
+  });
+
+  it("returns posts where the target member is mentioned in caption", async () => {
+    const createdAt = new Date("2030-01-05T00:00:00.000Z");
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: viewerMemberId,
+          familyId,
+          name: "Viewer",
+          image: null,
+        }),
+        findFirst: vi.fn().mockResolvedValue({
+          id: memberId,
+        }),
+      },
+      post: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: "post-mention-1",
+            type: "TEXT",
+            caption: "Great job @Child One",
+            createdAt,
+            authorMember: {
+              id: "author-1",
+              name: "Poster",
+              slug: "poster",
+              image: null,
+            },
+            mentions: [
+              {
+                id: "mention-1",
+                postId: "post-mention-1",
+                mentionedMemberId: memberId,
+                start: 10,
+                end: 20,
+                createdAt,
+                updatedAt: createdAt,
+                mentionedMember: {
+                  id: memberId,
+                  name: "Child One",
+                  slug: "child-one",
+                  image: null,
+                },
+              },
+            ],
+            media: [],
+            likes: [],
+            _count: {
+              likes: 0,
+              comments: 0,
+            },
+          },
+        ]),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    const result = await caller.getTaggedPostsByMember({
+      familyId,
+      memberId,
+      limit: 20,
+    });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({
+      id: "post-mention-1",
+      mentions: [
+        {
+          id: "mention-1",
+          start: 10,
+          end: 20,
+          member: {
+            id: memberId,
+            slug: "child-one",
+          },
+        },
+      ],
     });
   });
 });

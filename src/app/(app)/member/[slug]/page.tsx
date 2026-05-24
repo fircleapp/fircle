@@ -105,7 +105,7 @@ type ProfileTab = "posts" | "tagged" | "liked";
 
 const tabs: { id: ProfileTab; label: string; icon: typeof FileText }[] = [
   { id: "posts", label: "Posts", icon: FileText },
-  { id: "tagged", label: "Tagged In", icon: Tag },
+  { id: "tagged", label: "Mentions & Tags", icon: Tag },
   { id: "liked", label: "Liked", icon: Heart },
 ];
 
@@ -278,8 +278,8 @@ export default function MemberProfilePage() {
                   ) : (
                     <EmptyState
                       icon={Tag}
-                      title="Not tagged yet"
-                      description={`Posts tagging ${member.name.split(" ")[0]} will appear here.`}
+                      title="No mentions or tags yet"
+                      description={`Posts that mention or tag ${member.name.split(" ")[0]} will appear here.`}
                     />
                   )}
                 </>

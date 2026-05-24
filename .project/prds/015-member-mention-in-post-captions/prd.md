@@ -59,6 +59,7 @@ Out-of-scope for this PRD:
 - **Range-backed rendering contract**: API responses include mention metadata sufficient for deterministic inline rendering and profile linking without regex-only matching.
 - **Clickable profile navigation**: Mention chips route to profile destinations by slug (consistent with existing post/comment author linking).
 - **Comment parity**: Top-level comments, replies, and edits all use the same mention detection and insertion behavior.
+- **Unified profile discovery surface**: Member/profile "Mentions & Tags" tab aggregates posts where the member is either media-tagged or text-mentioned, preventing split discovery paths.
 
 ### User Stories
 
@@ -144,6 +145,7 @@ Out-of-scope for this PRD:
   - [x] [src/app/(app)/post/[postId]/page.tsx](src/app/(app)/post/[postId]/page.tsx)
   - [x] [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx)
   - [x] [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx)
+- [x] Align profile/member tab naming and behavior to "Mentions & Tags" so the tab includes both media-tagged and text-mentioned posts.
 - [x] Add or extend backend tests in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts) for mention validation, persistence, and response mapping.
 - [x] Add backend tests for comment mention create/update mapping and family-bound validation in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts).
 - [x] Add mention helper tests (token detection/range adjustment) for shared post/comment mention logic where practical.
@@ -165,3 +167,4 @@ Out-of-scope for this PRD:
 - [x] Existing post creation, media upload, media tagging, likes, and comments flows show no regression.
 - [x] Backend mention tests and affected integration tests pass.
 - [x] Post and comment mention UX behave correctly on desktop and mobile viewports.
+- [x] Profile and member "Mentions & Tags" tab surfaces posts where the member is tagged in media or mentioned in caption text.

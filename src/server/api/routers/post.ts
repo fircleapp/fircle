@@ -1083,15 +1083,26 @@ export const postRouter = createTRPCRouter({
           authorMember: {
             familyId: input.familyId,
           },
-          media: {
-            some: {
-              mediaTags: {
+          OR: [
+            {
+              media: {
                 some: {
-                  taggedMemberId: input.memberId,
+                  mediaTags: {
+                    some: {
+                      taggedMemberId: input.memberId,
+                    },
+                  },
                 },
               },
             },
-          },
+            {
+              mentions: {
+                some: {
+                  mentionedMemberId: input.memberId,
+                },
+              },
+            },
+          ],
           ...(cursor
             ? {
                 OR: [
