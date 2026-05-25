@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { getStorageProvider } from "~/server/storage";
 import { checkRateLimit } from "~/lib/rate-limit";
 import type { db as appDb } from "~/server/db";
+import { createNotifications, getClaimedMemberIds } from "~/server/notifications";
 
 import {
   createTRPCRouter,
@@ -860,6 +861,30 @@ export const postRouter = createTRPCRouter({
               end: mention.end,
             })),
           });
+
+          const claimedMentionedMemberIds = await getClaimedMemberIds(
+            tx,
+            input.familyId,
+            input.mentions.map((mention) => mention.memberId),
+          );
+
+          const mentionSeeds = claimedMentionedMemberIds
+            .filter((memberId) => memberId !== membership.id)
+            .map((memberId) => ({
+              familyId: input.familyId,
+              recipientMemberId: memberId,
+              actorMemberId: membership.id,
+              category: "MENTION" as const,
+              eventType: "POST_MENTION_CREATED" as const,
+              sourceType: "postMention",
+              sourceId: `${post.id}:${memberId}`,
+              title: "You were mentioned in a post",
+              body: "A family member mentioned you in a post.",
+            }));
+
+          if (mentionSeeds.length > 0) {
+            await createNotifications(tx, mentionSeeds);
+          }
         }
 
         const createdPost = await tx.post.findUnique({
@@ -1159,6 +1184,7 @@ export const postRouter = createTRPCRouter({
         },
         select: {
           id: true,
+          authorMemberId: true,
         },
       });
 
@@ -1170,6 +1196,7 @@ export const postRouter = createTRPCRouter({
       }
 
       let parentCommentId: string | null = null;
+      let parentCommentAuthorMemberId: string | null = null;
       if (input.parentCommentId) {
         const parent = await ctx.db.comment.findFirst({
           where: {
@@ -1179,6 +1206,7 @@ export const postRouter = createTRPCRouter({
           },
           select: {
             id: true,
+            authorMemberId: true,
           },
         });
 
@@ -1190,6 +1218,7 @@ export const postRouter = createTRPCRouter({
         }
 
         parentCommentId = parent.id;
+        parentCommentAuthorMemberId = parent.authorMemberId;
       }
 
       const createdComment = input.mentions.length > 0
@@ -1214,6 +1243,71 @@ export const postRouter = createTRPCRouter({
                 end: mention.end,
               })),
             });
+
+            const notificationSeeds: Array<{
+              familyId: string;
+              recipientMemberId: string;
+              actorMemberId: string;
+              category: "MENTION" | "ENGAGEMENT";
+              eventType: "COMMENT_MENTION_CREATED" | "POST_COMMENT_CREATED" | "COMMENT_REPLIED";
+              sourceType: string;
+              sourceId: string;
+              title: string;
+              body: string;
+            }> = [];
+
+            const claimedMentionedMemberIds = await getClaimedMemberIds(
+              tx,
+              input.familyId,
+              input.mentions.map((mention) => mention.memberId),
+            );
+
+            for (const memberId of claimedMentionedMemberIds) {
+              if (memberId === membership.id) {
+                continue;
+              }
+
+              notificationSeeds.push({
+                familyId: input.familyId,
+                recipientMemberId: memberId,
+                actorMemberId: membership.id,
+                category: "MENTION",
+                eventType: "COMMENT_MENTION_CREATED",
+                sourceType: "commentMention",
+                sourceId: `${comment.id}:${memberId}`,
+                title: "You were mentioned in a comment",
+                body: "A family member mentioned you in a comment.",
+              });
+            }
+
+            const engagementRecipientId = parentCommentId
+              ? parentCommentAuthorMemberId
+              : post.authorMemberId;
+
+            if (engagementRecipientId && engagementRecipientId !== membership.id) {
+              const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [engagementRecipientId]);
+              const recipientMemberId = claimedRecipientIds[0];
+
+              if (recipientMemberId) {
+                notificationSeeds.push({
+                  familyId: input.familyId,
+                  recipientMemberId,
+                  actorMemberId: membership.id,
+                  category: "ENGAGEMENT",
+                  eventType: parentCommentId ? "COMMENT_REPLIED" : "POST_COMMENT_CREATED",
+                  sourceType: "comment",
+                  sourceId: comment.id,
+                  title: parentCommentId ? "Someone replied to your comment" : "Someone commented on your post",
+                  body: parentCommentId
+                    ? "A family member replied to your comment."
+                    : "A family member commented on your post.",
+                });
+              }
+            }
+
+            if (notificationSeeds.length > 0) {
+              await createNotifications(tx, notificationSeeds);
+            }
 
             const created = await tx.comment.findUnique({
               where: {
@@ -1240,6 +1334,40 @@ export const postRouter = createTRPCRouter({
             },
             select: commentResponseSelect(membership.id),
           });
+
+      if (input.mentions.length === 0) {
+        await ctx.db.$transaction(async (tx) => {
+          const engagementRecipientId = parentCommentId
+            ? parentCommentAuthorMemberId
+            : post.authorMemberId;
+
+          if (!engagementRecipientId || engagementRecipientId === membership.id) {
+            return;
+          }
+
+          const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [engagementRecipientId]);
+          const recipientMemberId = claimedRecipientIds[0];
+          if (!recipientMemberId) {
+            return;
+          }
+
+          await createNotifications(tx, [
+            {
+              familyId: input.familyId,
+              recipientMemberId,
+              actorMemberId: membership.id,
+              category: "ENGAGEMENT",
+              eventType: parentCommentId ? "COMMENT_REPLIED" : "POST_COMMENT_CREATED",
+              sourceType: "comment",
+              sourceId: createdComment.id,
+              title: parentCommentId ? "Someone replied to your comment" : "Someone commented on your post",
+              body: parentCommentId
+                ? "A family member replied to your comment."
+                : "A family member commented on your post.",
+            },
+          ]);
+        });
+      }
 
       return mapCommentResponse(createdComment);
     }),
@@ -1441,6 +1569,30 @@ export const postRouter = createTRPCRouter({
               end: mention.end,
             })),
           });
+
+          const claimedMentionedMemberIds = await getClaimedMemberIds(
+            tx,
+            input.familyId,
+            input.mentions.map((mention) => mention.memberId),
+          );
+
+          const mentionSeeds = claimedMentionedMemberIds
+            .filter((memberId) => memberId !== membership.id)
+            .map((memberId) => ({
+              familyId: input.familyId,
+              recipientMemberId: memberId,
+              actorMemberId: membership.id,
+              category: "MENTION" as const,
+              eventType: "COMMENT_MENTION_CREATED" as const,
+              sourceType: "commentMention",
+              sourceId: `${comment.id}:${memberId}`,
+              title: "You were mentioned in a comment",
+              body: "A family member mentioned you in a comment.",
+            }));
+
+          if (mentionSeeds.length > 0) {
+            await createNotifications(tx, mentionSeeds);
+          }
         }
 
         const updated = await tx.comment.findUnique({
@@ -1535,6 +1687,7 @@ export const postRouter = createTRPCRouter({
         },
         select: {
           id: true,
+          authorMemberId: true,
         },
       });
 
@@ -1573,6 +1726,26 @@ export const postRouter = createTRPCRouter({
             },
           });
           likedByCurrentUser = true;
+
+          if (comment.authorMemberId !== membership.id) {
+            const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [comment.authorMemberId]);
+            const recipientMemberId = claimedRecipientIds[0];
+            if (recipientMemberId) {
+              await createNotifications(tx, [
+                {
+                  familyId: input.familyId,
+                  recipientMemberId,
+                  actorMemberId: membership.id,
+                  category: "ENGAGEMENT",
+                  eventType: "COMMENT_LIKED",
+                  sourceType: "commentLike",
+                  sourceId: `${comment.id}:${membership.id}`,
+                  title: "Someone liked your comment",
+                  body: "A family member liked your comment.",
+                },
+              ]);
+            }
+          }
         }
 
         const likeCount = await tx.commentLike.count({
@@ -1613,6 +1786,7 @@ export const postRouter = createTRPCRouter({
         },
         select: {
           id: true,
+          authorMemberId: true,
         },
       });
 
@@ -1651,6 +1825,26 @@ export const postRouter = createTRPCRouter({
             },
           });
           likedByCurrentUser = true;
+
+          if (post.authorMemberId !== membership.id) {
+            const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [post.authorMemberId]);
+            const recipientMemberId = claimedRecipientIds[0];
+            if (recipientMemberId) {
+              await createNotifications(tx, [
+                {
+                  familyId: input.familyId,
+                  recipientMemberId,
+                  actorMemberId: membership.id,
+                  category: "ENGAGEMENT",
+                  eventType: "POST_LIKED",
+                  sourceType: "postLike",
+                  sourceId: `${post.id}:${membership.id}`,
+                  title: "Someone liked your post",
+                  body: "A family member liked your post.",
+                },
+              ]);
+            }
+          }
         }
 
         const reactionCount = await tx.postLike.count({

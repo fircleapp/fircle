@@ -105,16 +105,16 @@ Out of scope in this PRD:
 
 #### Tasks
 
-- [ ] Add shared notification creation service/helper in server domain layer (co-located under [src/server](src/server)).
-- [ ] Integrate event creation into tagging flows in [src/server/api/routers/tag.ts](src/server/api/routers/tag.ts):
-  - [ ] Media tag create/update should notify claimed tagged members.
-  - [ ] Skip self-notifications when actor and recipient are the same member.
-- [ ] Integrate event creation into mention flows in [src/server/api/routers/post.ts](src/server/api/routers/post.ts):
-  - [ ] Post mentions notify claimed mentioned members.
-  - [ ] Comment mentions notify claimed mentioned members.
-- [ ] Add notification coverage for post comments and likes as engagement events in the notification model and later producer phases.
-- [ ] Integrate initial admin-facing events in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) for invite/system foundation cases.
-- [ ] Record delivery-log rows as queued/pending metadata only (no external delivery provider calls).
+- [x] Add shared notification creation service/helper in server domain layer (co-located under [src/server](src/server)).
+- [x] Integrate event creation into tagging flows in [src/server/api/routers/tag.ts](src/server/api/routers/tag.ts):
+  - [x] Media tag create/update should notify claimed tagged members.
+  - [x] Skip self-notifications when actor and recipient are the same member.
+- [x] Integrate event creation into mention flows in [src/server/api/routers/post.ts](src/server/api/routers/post.ts):
+  - [x] Post mentions notify claimed mentioned members.
+  - [x] Comment mentions notify claimed mentioned members.
+- [x] Add notification coverage for post comments and likes as engagement events in the notification model and later producer phases.
+- [x] Integrate initial admin-facing events in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) for invite/system foundation cases.
+- [x] Record delivery-log rows as queued/pending metadata only (no external delivery provider calls).
 
 ### Phase 4: Notifications Page Live Data and Auto-Read Behavior
 
@@ -164,9 +164,9 @@ Out of scope in this PRD:
 
 - [ ] Notification domain models and migration are present and applied successfully.
 - [x] Notification router is registered and exposes unread count, list, mark one read, and mark all read procedures.
-- [ ] Tagging and mention flows create notification records for claimed recipients only.
-- [ ] Comment, reply, and like activity is recognized in the notification model as engagement-class activity.
-- [ ] Initial admin invite/system events create notification records in foundation scope.
+- [x] Tagging and mention flows create notification records for claimed recipients only.
+- [x] Comment, reply, and like activity is recognized in the notification model as engagement-class activity.
+- [x] Initial admin invite/system events create notification records in foundation scope.
 - [ ] /notifications renders database-backed notifications instead of static mocks.
 - [ ] Opening /notifications auto-marks unread items as read.
 - [ ] Desktop sidebar and mobile header show unread badges with 99+ cap behavior.
