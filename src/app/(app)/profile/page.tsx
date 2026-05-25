@@ -161,7 +161,7 @@ export default function ProfilePage() {
   return (
     <section className="px-4 py-8 sm:px-6">
       {isLoading ? (
-        <div className="max-w-3xl mx-auto flex items-center justify-center py-12">
+        <div className="max-w-2xl mx-auto flex items-center justify-center py-12">
           <div className="text-center text-muted-foreground">Loading profile...</div>
         </div>
       ) : member ? (
@@ -172,7 +172,7 @@ export default function ProfilePage() {
           </div>
 
           <section>
-            <div className="flex w-full max-w-3xl mx-auto border-b">
+            <div className="flex w-full max-w-2xl mx-auto border-b">
               {tabs.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -195,7 +195,7 @@ export default function ProfilePage() {
               {activeTab === "posts" && (
                 <>
                   {memberPosts.length > 0 ? (
-                    <div className="space-y-4 mx-auto max-w-3xl">
+                    <div className="space-y-4 mx-auto max-w-2xl">
                       {memberPosts.map((post) => (
                         <PostCard
                           key={post.id}
@@ -219,7 +219,7 @@ export default function ProfilePage() {
               {activeTab === "tagged" && (
                 <>
                   {taggedPosts.length > 0 ? (
-                    <div className="space-y-4 mx-auto max-w-3xl">
+                    <div className="space-y-4 mx-auto max-w-2xl">
                       {taggedPosts.map((post) => (
                         <PostCard
                           key={post.id}
@@ -249,7 +249,7 @@ export default function ProfilePage() {
               {activeTab === "liked" && (
                 <>
                   {likedPosts.length > 0 ? (
-                    <div className="space-y-4 mx-auto max-w-3xl">
+                    <div className="space-y-4 mx-auto max-w-2xl">
                       {likedPosts.map((post) => (
                         <PostCard
                           key={post.id}
@@ -273,7 +273,7 @@ export default function ProfilePage() {
           </section>
         </div>
       ) : (
-        <div className="max-w-3xl mx-auto rounded-3xl border border-dashed p-8 text-center">
+        <div className="max-w-2xl mx-auto rounded-3xl border border-dashed p-8 text-center">
           <div className="mx-auto grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
             <UserRoundX className="size-5" aria-hidden="true" />
           </div>
@@ -300,7 +300,7 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <div className="px-2 py-8 text-center mx-auto max-w-3xl">
+    <div className="px-2 py-8 text-center mx-auto max-w-2xl">
       <div className="mx-auto grid size-10 place-items-center rounded-full text-muted-foreground">
         <Icon className="size-5" aria-hidden="true" />
       </div>
