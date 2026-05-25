@@ -57,7 +57,7 @@ Open-source MVP focused on becoming functional quickly for one family instance, 
 - [x] Media Gallery (general and member)
 
 ### Active Focus (Phase 2)
-- [ ] Notifications platform foundation
+- [x] Notifications platform foundation
 - [ ] Transactional email notifications
 - [ ] Push notifications (web push)
 - [ ] PWA enablement for reliable install and push UX
