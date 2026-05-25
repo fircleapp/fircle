@@ -160,7 +160,7 @@ Out of scope in this PRD:
 
 #### Tasks
 
-- [ ] Add router tests in [test/server/api/routers](test/server/api/routers) for:
+- [x] Add router tests in [test/server/api/routers](test/server/api/routers) for:
   - [x] family/membership scoping and authorization.
   - [x] unread count accuracy.
   - [x] list ordering and pagination behavior.
