@@ -42,6 +42,7 @@ Out of scope in this PRD:
 - Sending web push notifications.
 - Service worker push plumbing and PWA install/push UX.
 - Notification preference management UI.
+- System-event producer rollout (SYSTEM_EVENT creation flows) beyond foundational typing/UI support.
 
 ### Design Decisions
 
@@ -191,3 +192,22 @@ Out of scope in this PRD:
 - [x] Mobile bottom nav remains unchanged in this PRD.
 - [x] No email or push delivery execution is introduced in this phase.
 - [x] Tests and lint for modified areas pass.
+
+### Future Extension: SYSTEM Notifications
+
+`SYSTEM_EVENT` is defined in the notification domain model and UI mapping, but producer pathways are intentionally deferred from this PRD's completed scope.
+
+Planned implementation extension:
+- Add explicit server-side producer hooks for `category: "SYSTEM"` and `eventType: "SYSTEM_EVENT"`.
+- Initial candidate triggers:
+  - family settings changes (name/image/policy updates),
+  - operational notices (maintenance/degraded features),
+  - security-oriented notices (account/session risk events).
+- Scope recipients intentionally (default: claimed OWNER/ADMIN members unless event is explicitly member-facing).
+- Store source metadata (`sourceType`, `sourceId`) for deterministic deep links and auditability.
+- Route notification cards to the appropriate destination context (for example: settings surfaces or incident detail context) using the existing `targetHref` pattern.
+
+Delivery/quality expectations for the extension:
+- Add producer tests verifying recipient scoping and deduplication semantics.
+- Add router/list tests ensuring `SYSTEM_EVENT` ordering and pagination behavior remain stable.
+- Add UI checks confirming copy/icon rendering and destination routing.
