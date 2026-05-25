@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { PrismaClient } from "../../../../generated/prisma";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { createNotifications, getClaimedMemberIds } from "~/server/notifications";
 
 const coordinateSchema = z.number().min(0).max(100);
 
@@ -426,6 +427,28 @@ export const tagRouter = createTRPCRouter({
         });
       }
 
+      await ctx.db.$transaction(async (tx) => {
+        const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [created.taggedMemberId]);
+        const recipientMemberId = claimedRecipientIds.find((id) => id !== membership.id);
+        if (!recipientMemberId) {
+          return;
+        }
+
+        await createNotifications(tx, [
+          {
+            familyId: input.familyId,
+            recipientMemberId,
+            actorMemberId: membership.id,
+            category: "TAG",
+            eventType: "MEDIA_TAG_CREATED",
+            sourceType: "mediaTag",
+            sourceId: created.id,
+            title: "You were tagged in media",
+            body: `${membership.role === "MEMBER" ? "A family member" : "A family admin"} tagged you in media.`,
+          },
+        ]);
+      });
+
       return mapTagResponse(created);
     }),
 
@@ -516,6 +539,28 @@ export const tagRouter = createTRPCRouter({
         });
       }
 
+      await ctx.db.$transaction(async (tx) => {
+        const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [updated.taggedMemberId]);
+        const recipientMemberId = claimedRecipientIds.find((id) => id !== membership.id);
+        if (!recipientMemberId) {
+          return;
+        }
+
+        await createNotifications(tx, [
+          {
+            familyId: input.familyId,
+            recipientMemberId,
+            actorMemberId: membership.id,
+            category: "TAG",
+            eventType: "MEDIA_TAG_UPDATED",
+            sourceType: "mediaTag",
+            sourceId: updated.id,
+            title: "Your media tag was updated",
+            body: "A tag involving you was updated.",
+          },
+        ]);
+      });
+
       return mapTagResponse(updated);
     }),
 
@@ -595,6 +640,28 @@ export const tagRouter = createTRPCRouter({
           message: "Failed to create video tag",
         });
       }
+
+      await ctx.db.$transaction(async (tx) => {
+        const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [created.taggedMemberId]);
+        const recipientMemberId = claimedRecipientIds.find((id) => id !== membership.id);
+        if (!recipientMemberId) {
+          return;
+        }
+
+        await createNotifications(tx, [
+          {
+            familyId: input.familyId,
+            recipientMemberId,
+            actorMemberId: membership.id,
+            category: "TAG",
+            eventType: "MEDIA_TAG_CREATED",
+            sourceType: "mediaTag",
+            sourceId: created.id,
+            title: "You were tagged in media",
+            body: "You were tagged in a video.",
+          },
+        ]);
+      });
 
       return mapTagResponse(created);
     }),
@@ -680,6 +747,28 @@ export const tagRouter = createTRPCRouter({
           message: "Failed to update video tag",
         });
       }
+
+      await ctx.db.$transaction(async (tx) => {
+        const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [updated.taggedMemberId]);
+        const recipientMemberId = claimedRecipientIds.find((id) => id !== membership.id);
+        if (!recipientMemberId) {
+          return;
+        }
+
+        await createNotifications(tx, [
+          {
+            familyId: input.familyId,
+            recipientMemberId,
+            actorMemberId: membership.id,
+            category: "TAG",
+            eventType: "MEDIA_TAG_UPDATED",
+            sourceType: "mediaTag",
+            sourceId: updated.id,
+            title: "Your media tag was updated",
+            body: "A video tag involving you was updated.",
+          },
+        ]);
+      });
 
       return mapTagResponse(updated);
     }),

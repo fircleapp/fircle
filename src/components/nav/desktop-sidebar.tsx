@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import { Bell, House, Image, Plus, Settings, User, Users } from "~/components/ui/icons";
 
 import { useGlobalComposer } from "~/components/feed/global-composer-provider";
+import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
 
 const items = [
   { href: "/", label: "Home", icon: House },
@@ -28,6 +30,27 @@ function isActivePath(pathname: string, href: string) {
 export function DesktopSidebar() {
   const pathname = usePathname();
   const { openComposer } = useGlobalComposer();
+  const shouldPollUnread = !pathname.startsWith("/notifications");
+
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const familyId = managementContext.data?.family?.id;
+  const unreadCountQuery = api.notification.getUnreadCount.useQuery(
+    {
+      familyId: familyId ?? "",
+    },
+    {
+      enabled: Boolean(familyId),
+      retry: false,
+      refetchOnWindowFocus: shouldPollUnread,
+      refetchInterval: shouldPollUnread ? 30_000 : false,
+    },
+  );
+
+  const unreadLabel = formatUnreadBadgeCount(unreadCountQuery.data?.count ?? 0);
 
   return (
     <aside className="fixed top-0 left-0 hidden h-screen w-72 border-r border-border bg-background md:flex md:flex-col">
@@ -55,7 +78,14 @@ export function DesktopSidebar() {
               )}
             >
               <Link href={item.href} aria-label={item.label}>
-                <Icon className="size-6" />
+                <span className="relative inline-flex">
+                  <Icon className="size-6" />
+                  {item.href === "/notifications" && unreadLabel ? (
+                    <span className="absolute -top-2 -right-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-background bg-red-500 px-1 text-[10px] font-semibold text-white">
+                      {unreadLabel}
+                    </span>
+                  ) : null}
+                </span>
                 <span>{item.label}</span>
               </Link>
             </Button>

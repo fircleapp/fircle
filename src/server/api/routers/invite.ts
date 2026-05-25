@@ -24,6 +24,7 @@ import {
 import { normalizeEmail } from "~/lib/email"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
+import { createNotifications, getClaimedAdminMemberIds } from "~/server/notifications"
 
 const internalMediaUrlSchema = z
   .string()
@@ -259,6 +260,24 @@ export const inviteRouter = createTRPCRouter({
               role: "MEMBER",
             },
           })
+
+          const adminRecipientIds = await getClaimedAdminMemberIds(tx, invite.familyId)
+          if (adminRecipientIds.length > 0) {
+            await createNotifications(
+              tx,
+              adminRecipientIds.map((recipientMemberId) => ({
+                familyId: invite.familyId,
+                recipientMemberId,
+                actorMemberId: null,
+                category: "INVITE" as const,
+                eventType: "INVITE_STATUS_CHANGED" as const,
+                sourceType: "invite",
+                sourceId: invite.id,
+                title: "An invite was claimed",
+                body: "A pending invite has been claimed.",
+              })),
+            )
+          }
 
           return user
         })
@@ -501,6 +520,28 @@ export const inviteRouter = createTRPCRouter({
         },
       })
 
+      await ctx.db.$transaction(async (tx) => {
+        const adminRecipientIds = await getClaimedAdminMemberIds(tx, input.familyId, [membership.id])
+        if (adminRecipientIds.length === 0) {
+          return
+        }
+
+        await createNotifications(
+          tx,
+          adminRecipientIds.map((recipientMemberId) => ({
+            familyId: input.familyId,
+            recipientMemberId,
+            actorMemberId: membership.id,
+            category: "INVITE" as const,
+            eventType: "INVITE_CREATED" as const,
+            sourceType: "invite",
+            sourceId: invite.id,
+            title: "A new invite was created",
+            body: "A family admin created a new invite.",
+          })),
+        )
+      })
+
       console.log(
         `[invite:created] id=${invite.id} code=${invite.code} type=${invite.type} familyId=${invite.familyId} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
       )
@@ -622,6 +663,28 @@ export const inviteRouter = createTRPCRouter({
           status: "REVOKED",
           revokedAt: new Date(),
         },
+      })
+
+      await ctx.db.$transaction(async (tx) => {
+        const adminRecipientIds = await getClaimedAdminMemberIds(tx, invite.familyId, [membership.id])
+        if (adminRecipientIds.length === 0) {
+          return
+        }
+
+        await createNotifications(
+          tx,
+          adminRecipientIds.map((recipientMemberId) => ({
+            familyId: invite.familyId,
+            recipientMemberId,
+            actorMemberId: membership.id,
+            category: "INVITE" as const,
+            eventType: "INVITE_STATUS_CHANGED" as const,
+            sourceType: "invite",
+            sourceId: invite.id,
+            title: "An invite was revoked",
+            body: "A family admin revoked an invite.",
+          })),
+        )
       })
 
       console.log(

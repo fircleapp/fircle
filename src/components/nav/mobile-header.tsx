@@ -1,11 +1,40 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Bell, Menu } from "~/components/ui/icons";
 
-import { Avatar, AvatarFallback } from "~/components/ui/avatar";
+import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
 import { Button } from "~/components/ui/button";
+import { api } from "~/trpc/react";
 
 export function MobileHeader() {
+  const pathname = usePathname();
+  const shouldPollUnread = !pathname.startsWith("/notifications");
+
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const familyId = managementContext.data?.family?.id;
+  const unreadCountQuery = api.notification.getUnreadCount.useQuery(
+    {
+      familyId: familyId ?? "",
+    },
+    {
+      enabled: Boolean(familyId),
+      retry: false,
+      refetchOnWindowFocus: shouldPollUnread,
+      refetchInterval: shouldPollUnread ? 30_000 : false,
+    },
+  );
+
+  const unreadCount = typeof unreadCountQuery.data?.count === "number"
+    ? unreadCountQuery.data.count
+    : 0;
+  const unreadLabel = formatUnreadBadgeCount(unreadCount);
+
   return (
     <header className="sticky top-0 z-30 flex h-14 w-full items-center border-b border-border bg-background/80 px-3 backdrop-blur-sm md:hidden">
       <div className="flex w-full items-center justify-between">
@@ -25,22 +54,22 @@ export function MobileHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <Button
-            type="button"
+            asChild
             variant="ghost"
             size="icon"
             title="Notifications"
             aria-label="Notifications"
             className="relative"
           >
-            <Bell className="size-5" />
-            <span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">
-              2
-            </span>
+            <Link href="/notifications">
+              <Bell className="size-5" />
+              {unreadLabel ? (
+                <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+                  {unreadLabel}
+                </span>
+              ) : null}
+            </Link>
           </Button>
-
-          <Avatar title="Profile" aria-hidden className="size-8 border border-border">
-            <AvatarFallback />
-          </Avatar>
         </div>
       </div>
     </header>
