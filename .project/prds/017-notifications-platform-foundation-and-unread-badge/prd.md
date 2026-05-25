@@ -1,6 +1,6 @@
 ---
 title: "Notifications Platform Foundation and Unread Navigation Badge"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/015-member-mention-in-post-captions/prd.md
     description: "Structured mention model and APIs that should emit mention notifications"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/26
+    description: "Implementation pull request - feat: implement notifications foundation"
 ---
 
 > **Instructions for AI Agents:**
