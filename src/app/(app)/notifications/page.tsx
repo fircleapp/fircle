@@ -6,6 +6,7 @@ import { Bell } from "~/components/ui/icons";
 
 import { NotificationCard } from "~/components/notifications/notification-card";
 import { Button } from "~/components/ui/button";
+import { Skeleton } from "~/components/ui/skeleton";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 type NotificationListItem = RouterOutputs["notification"]["listByFamily"]["items"][number];
@@ -156,7 +157,6 @@ export default function NotificationsPage() {
     <section className="mx-auto w-full max-w-2xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <header className="space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">Activity</p>
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Notifications</h1>
@@ -214,9 +214,7 @@ export default function NotificationsPage() {
           </div>
         </div>
       ) : isLoading ? (
-        <div className="rounded-3xl border bg-card px-6 py-14 text-center text-sm text-muted-foreground">
-          Loading notifications...
-        </div>
+        <NotificationsListSkeleton />
       ) : notificationsQuery.error ? (
         <div className="rounded-3xl border bg-card px-6 py-14 text-center">
           <p className="font-medium">Unable to load notifications</p>
@@ -270,5 +268,25 @@ export default function NotificationsPage() {
         </div>
       )}
     </section>
+  );
+}
+
+function NotificationsListSkeleton() {
+  return (
+    <div className="space-y-2" aria-hidden>
+      {Array.from({ length: 6 }).map((_, index) => (
+        <article
+          key={`notification-skeleton-${index}`}
+          className="flex items-start gap-4 rounded-2xl border bg-card px-4 py-3.5"
+        >
+          <Skeleton className="mt-0.5 size-9 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-3.5 w-10/12 rounded-full" />
+            <Skeleton className="h-3 w-8/12 rounded-full" />
+            <Skeleton className="h-2.5 w-20 rounded-full" />
+          </div>
+        </article>
+      ))}
+    </div>
   );
 }

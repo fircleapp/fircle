@@ -45,6 +45,14 @@ function getTileRadiusClass(count: number, index: number) {
   return "rounded-br-2xl";
 }
 
+function getTileAspectClass(count: number) {
+  if (count === 2) {
+    return "aspect-[4/3]";
+  }
+
+  return "aspect-video";
+}
+
 export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
   if (items.length === 0) {
     return null;
@@ -52,6 +60,7 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
 
   const visibleItems = items.slice(0, 4);
   const overflowCount = Math.max(items.length - visibleItems.length, 0);
+  const tileAspectClass = getTileAspectClass(visibleItems.length);
 
   return (
     <div className={`grid gap-0.5 ${getGridClass(visibleItems.length)}`}>
@@ -72,7 +81,7 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
               shouldSpanTwo ? "col-span-2" : ""
             } ${onItemClick ? "cursor-pointer" : ""}`}
           >
-            <div className="relative aspect-video">
+            <div className={`relative ${tileAspectClass}`}>
               {isVideo ? (
                 <video
                   src={item.url}

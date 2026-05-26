@@ -57,6 +57,13 @@ export default function GalleryPage() {
 
   const familyId = managementContext.data?.family?.id;
   const familyName = managementContext.data?.family?.name;
+  const isAdmin = managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
+
+  const currentMemberQuery = api.familyMember.getCurrentUserMemberProfile.useQuery(
+    { familyId: familyId ?? "" },
+    { enabled: Boolean(familyId), retry: false, refetchOnWindowFocus: false },
+  );
+  const currentMemberId = currentMemberQuery.data?.id;
 
   const familyGalleryQuery = mediaGalleryApi.media.getFamilyGallery.useQuery(
     {
@@ -138,6 +145,16 @@ export default function GalleryPage() {
     [galleryItems],
   );
 
+  const taggableMediaIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const item of galleryItems) {
+      if (isAdmin || (currentMemberId && item.post.author.id === currentMemberId)) {
+        ids.add(item.mediaItem.id);
+      }
+    }
+    return ids;
+  }, [currentMemberId, galleryItems, isAdmin]);
+
   const isLoadingGallery =
     managementContext.isLoading || (Boolean(familyId) && familyGalleryQuery.isLoading && !items.length);
   const hasNoFamily = !managementContext.isLoading && !familyId;
@@ -159,15 +176,10 @@ export default function GalleryPage() {
   return (
     <section className="w-full px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-6xl space-y-6">
-        <header className="space-y-1">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Memories
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Gallery</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-            {familyName
-              ? `Browse ${familyName} photo and video moments in a media-first timeline.`
-              : "Browse your family photo and video moments in a media-first timeline."}
+        <header className="space-y-1 mx-auto w-full max-w-2xl">
+          <h1 className="text-3xl font-semibold tracking-tight">Gallery</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Browse your family photo and video moments in a media-first timeline.
           </p>
         </header>
 
@@ -213,7 +225,8 @@ export default function GalleryPage() {
           open={viewerOpen}
           onOpenChange={setViewerOpen}
           familyId={familyId}
-          canManageTags={false}
+          canManageTags={taggableMediaIds.size > 0}
+          canManageTagsForItem={(item) => taggableMediaIds.has(item.id)}
         />
       </div>
     </section>

@@ -8,6 +8,7 @@ import { formatDistanceToNow } from "date-fns";
 import { MemberCard } from "~/components/members/member-card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Skeleton } from "~/components/ui/skeleton";
 import type { FamilyMemberStatus } from "~/lib/mocks/family-members";
 import { api } from "~/trpc/react";
 
@@ -79,11 +80,11 @@ export default function MembersPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <h1 className="font-semibold text-2xl tracking-tight">Family Members</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Keep your family circle complete by managing claimed and unclaimed member profiles.
+      <header className="mx-auto w-full max-w-2xl flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Family Members</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Keep your family circle complete by managing member profiles.
           </p>
         </div>
 
@@ -120,12 +121,8 @@ export default function MembersPage() {
         </div>
 
         {isLoading ? (
-          <div className="rounded-2xl border border-dashed px-6 py-10 text-center text-sm text-muted-foreground">
-            Loading family members...
-          </div>
-        ) : null}
-
-        {!isLoading && visibleMembers.length === 0 ? (
+          <MembersGridSkeleton />
+        ) : visibleMembers.length === 0 ? (
           <div className="grid min-h-56 place-items-center rounded-2xl border border-dashed px-6 py-10 text-center">
             <div className="max-w-md space-y-3">
               <div className="mx-auto grid size-11 place-items-center rounded-full bg-muted text-muted-foreground">
@@ -151,5 +148,26 @@ export default function MembersPage() {
         )}
       </section>
     </section>
+  );
+}
+
+function MembersGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-hidden>
+      {Array.from({ length: 6 }).map((_, index) => (
+        <article key={`member-skeleton-${index}`} className="rounded-3xl border bg-card p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <Skeleton className="size-12 shrink-0 rounded-full border" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <Skeleton className="h-4 w-28 rounded-full" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+              <Skeleton className="h-3 w-full rounded-full" />
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
   );
 }

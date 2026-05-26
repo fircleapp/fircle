@@ -6,9 +6,11 @@ import { useState } from "react";
 import { AlertCircle, ShieldCheck } from "~/components/ui/icons";
 
 import { ThemeToggle } from "~/components/theme-toggle";
+import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
 
 function getClaimErrorMessage(error: unknown) {
@@ -47,6 +49,7 @@ export default function ClaimAccountPage() {
 
   const claimMember = api.familyMember.claimMemberProfile.useMutation({
     onSuccess: () => {
+      beginNavigationProgress();
       router.replace("/auth/signin?claimed=1");
     },
     onError(error) {
@@ -83,12 +86,10 @@ export default function ClaimAccountPage() {
 
       <section className="w-full rounded-4xl border border-border/80 bg-card/90 p-7 shadow-2xl shadow-black/10 backdrop-blur sm:p-9">
         {claimPreviewQuery.isLoading ? (
-          <div className="space-y-6 text-center sm:text-left">
+          <div className="space-y-6" aria-hidden>
             <header className="space-y-2">
-              <h1 className="font-heading text-3xl font-semibold tracking-tight text-balance">
-                Claim family profile
-              </h1>
-              <p className="text-sm text-muted-foreground sm:text-base">Loading this claim link...</p>
+              <Skeleton className="h-8 w-56 rounded-full" />
+              <Skeleton className="h-4 w-72 max-w-full rounded-full" />
             </header>
           </div>
         ) : claimPreviewQuery.data?.state === "valid" ? (

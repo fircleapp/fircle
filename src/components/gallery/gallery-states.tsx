@@ -1,14 +1,15 @@
 import { Button } from "~/components/ui/button";
 import { Film, ImageOff } from "~/components/ui/icons";
+import { Skeleton } from "~/components/ui/skeleton";
 
 export function GalleryLoadingState() {
   return (
     <section className="space-y-4" aria-hidden>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, index) => (
-          <div
+          <Skeleton
             key={`gallery-loading-${index}`}
-            className="aspect-4/5 animate-pulse rounded-2xl border border-border/70 bg-muted/70"
+            className="aspect-4/5 rounded-2xl border border-border/70"
           />
         ))}
       </div>

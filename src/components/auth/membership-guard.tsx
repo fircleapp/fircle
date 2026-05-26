@@ -27,7 +27,8 @@ export function MembershipGuard({ children }: { children: React.ReactNode }) {
 
   if (managementContext.isLoading || (!hasFamilyMembership && !signOutTriggered.current)) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 text-center text-muted-foreground text-sm">
+      <div className="flex flex-col gap-2 min-h-dvh items-center justify-center px-4 text-center text-foreground text-sm">
+        <p className="font-semibold text-xl leading-none tracking-tight">Fircle</p>
         <Loader className="size-6 animate-spin" />
       </div>
     );

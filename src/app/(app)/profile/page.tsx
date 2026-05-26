@@ -8,7 +8,8 @@ import { MemberGalleryTab } from "~/components/gallery/member-gallery-tab";
 import { EditProfileDialog } from "~/components/members/edit-profile-dialog";
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
 import { Button } from "~/components/ui/button";
-import { FileText, Heart, Image, Tag, UserRoundX } from "~/components/ui/icons";
+import { Dash, Heart, Image, UserSquare, UserRoundX } from "~/components/ui/icons";
+import { Skeleton } from "~/components/ui/skeleton";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
@@ -96,10 +97,10 @@ function mapApiPostToPostCardData(item: {
 
 type ProfileTab = "posts" | "tagged" | "liked" | "gallery";
 
-const tabs: { id: ProfileTab; label: string; icon: typeof FileText }[] = [
-  { id: "posts", label: "Posts", icon: FileText },
+const tabs: { id: ProfileTab; label: string; icon: typeof Dash }[] = [
+  { id: "posts", label: "Posts", icon: Dash },
   { id: "gallery", label: "Gallery", icon: Image },
-  { id: "tagged", label: "Mentions & Tags", icon: Tag },
+  { id: "tagged", label: "Mentions & Tags", icon: UserSquare },
   { id: "liked", label: "Liked", icon: Heart },
 ];
 
@@ -155,15 +156,16 @@ export default function ProfilePage() {
   const taggedPosts: PostCardData[] = (taggedPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
   const likedPosts: PostCardData[] = (likedPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
   const isAdmin = managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
+  const isPostsLoading = memberPostsQuery.isLoading || (memberPostsQuery.isFetching && !memberPostsQuery.data);
+  const isTaggedLoading = taggedPostsQuery.isLoading || (taggedPostsQuery.isFetching && !taggedPostsQuery.data);
+  const isLikedLoading = likedPostsQuery.isLoading || (likedPostsQuery.isFetching && !likedPostsQuery.data);
 
   const isLoading = managementContext.isLoading || memberQuery.isLoading
 
   return (
     <section className="px-4 py-8 sm:px-6">
       {isLoading ? (
-        <div className="max-w-2xl mx-auto flex items-center justify-center py-12">
-          <div className="text-center text-muted-foreground">Loading profile...</div>
-        </div>
+        <ProfilePageSkeleton />
       ) : member ? (
         <div className="space-y-5">
           <MemberProfileHeader member={member} showStatus={false} />
@@ -178,15 +180,16 @@ export default function ProfilePage() {
                   key={id}
                   type="button"
                   onClick={() => setActiveTab(id)}
+                  aria-label={label}
                   className={cn(
-                    "flex flex-1 items-center justify-center gap-2 px-4 py-3.5 text-sm font-medium transition-colors first:rounded-tl-3xl last:rounded-tr-3xl",
+                    "flex flex-1 items-center justify-center gap-0 px-2 py-3.5 text-sm font-medium transition-colors first:rounded-tl-3xl last:rounded-tr-3xl sm:gap-2 sm:px-4",
                     activeTab === id
                       ? "border-b-2 border-primary text-primary"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <Icon className="size-4" aria-hidden="true" />
-                  {label}
+                  <Icon className="size-5 md:size-4 shrink-0" aria-hidden="true" />
+                  <span className="hidden max-w-32 truncate sm:block">{label}</span>
                 </button>
               ))}
             </div>
@@ -194,7 +197,9 @@ export default function ProfilePage() {
             <div className="pt-4">
               {activeTab === "posts" && (
                 <>
-                  {memberPosts.length > 0 ? (
+                  {isPostsLoading ? (
+                    <PostListSkeleton />
+                  ) : memberPosts.length > 0 ? (
                     <div className="space-y-4 mx-auto max-w-2xl">
                       {memberPosts.map((post) => (
                         <PostCard
@@ -206,19 +211,21 @@ export default function ProfilePage() {
                         />
                       ))}
                     </div>
-                  ) : (
+                  ) : memberPostsQuery.isSuccess ? (
                     <EmptyState
-                      icon={FileText}
+                      icon={Dash}
                       title="No posts yet"
                       description={`${member.name.split(" ")[0]} hasn't posted anything yet.`}
                     />
-                  )}
+                  ) : null}
                 </>
               )}
 
               {activeTab === "tagged" && (
                 <>
-                  {taggedPosts.length > 0 ? (
+                  {isTaggedLoading ? (
+                    <PostListSkeleton />
+                  ) : taggedPosts.length > 0 ? (
                     <div className="space-y-4 mx-auto max-w-2xl">
                       {taggedPosts.map((post) => (
                         <PostCard
@@ -230,13 +237,13 @@ export default function ProfilePage() {
                         />
                       ))}
                     </div>
-                  ) : (
+                  ) : taggedPostsQuery.isSuccess ? (
                     <EmptyState
-                      icon={Tag}
+                      icon={UserSquare}
                       title="No mentions or tags yet"
                       description={`Posts that mention or tag ${member.name.split(" ")[0]} will appear here.`}
                     />
-                  )}
+                  ) : null}
                 </>
               )}
 
@@ -248,7 +255,9 @@ export default function ProfilePage() {
 
               {activeTab === "liked" && (
                 <>
-                  {likedPosts.length > 0 ? (
+                  {isLikedLoading ? (
+                    <PostListSkeleton />
+                  ) : likedPosts.length > 0 ? (
                     <div className="space-y-4 mx-auto max-w-2xl">
                       {likedPosts.map((post) => (
                         <PostCard
@@ -260,13 +269,13 @@ export default function ProfilePage() {
                         />
                       ))}
                     </div>
-                  ) : (
+                  ) : likedPostsQuery.isSuccess ? (
                     <EmptyState
                       icon={Heart}
                       title="No liked posts"
                       description={`Posts ${member.name.split(" ")[0]} likes will show up here.`}
                     />
-                  )}
+                  ) : null}
                 </>
               )}
             </div>
@@ -295,7 +304,7 @@ function EmptyState({
   title,
   description,
 }: {
-  icon: typeof FileText;
+  icon: typeof Dash;
   title: string;
   description: string;
 }) {
@@ -306,6 +315,58 @@ function EmptyState({
       </div>
       <p className="mt-3 font-medium text-sm">{title}</p>
       <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+function ProfilePageSkeleton() {
+  return (
+    <div className="mx-auto max-w-2xl space-y-5" aria-hidden>
+      <header className="flex flex-col items-center gap-3 pb-2 pt-6 text-center">
+        <Skeleton className="size-24 rounded-full border-2 shadow-sm sm:size-28" />
+        <div className="space-y-2">
+          <Skeleton className="mx-auto h-8 w-56 rounded-full" />
+        </div>
+      </header>
+
+      <div className="flex justify-center">
+        <Skeleton className="h-9 w-36 rounded-full" />
+      </div>
+
+      <section className="space-y-4">
+        <div className="mx-auto flex w-full max-w-2xl gap-1 border-b pb-1">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={`profile-tab-skeleton-${index}`} className="h-10 flex-1 rounded-2xl" />
+          ))}
+        </div>
+
+        <PostListSkeleton />
+      </section>
+    </div>
+  );
+}
+
+function PostListSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-2xl space-y-4" aria-hidden>
+      {Array.from({ length: 2 }).map((_, index) => (
+        <article
+          key={`profile-tab-post-skeleton-${index}`}
+          className="rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5"
+        >
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-10 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-3.5 w-28 rounded-full" />
+              <Skeleton className="h-3 w-16 rounded-full" />
+            </div>
+          </div>
+          <Skeleton className="mt-4 h-3.5 w-11/12 rounded-full" />
+          <Skeleton className="mt-2 h-3.5 w-9/12 rounded-full" />
+          <Skeleton className="mt-4 aspect-video rounded-2xl" />
+          <Skeleton className="mt-4 h-3.5 w-32 rounded-full" />
+        </article>
+      ))}
     </div>
   );
 }

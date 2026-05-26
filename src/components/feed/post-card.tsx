@@ -8,6 +8,7 @@ import { Heart, Comment, Share } from "~/components/ui/icons";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
+import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { api } from "~/trpc/react";
 
 import { PostMediaGrid } from "./post-media-grid";
@@ -233,11 +234,21 @@ export function PostCard({
     isAdmin || (Boolean(post.author.slug) && Boolean(currentMemberSlug) && post.author.slug === currentMemberSlug);
 
   function navigateToPost() {
+    beginNavigationProgress();
     router.push(`/post/${post.id}`);
   }
 
   function handleOpenComments() {
-    router.push(`/post/${post.id}`);
+    if (!isClickable) {
+      document.getElementById("comments")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      return;
+    }
+
+    beginNavigationProgress();
+    router.push(`/post/${post.id}#comments`);
   }
 
   return (
@@ -384,7 +395,7 @@ export function PostCard({
           size="sm"
           className="rounded-2xl px-3"
           onClick={handleOpenComments}
-          aria-label={`Open comments for this post (${post.commentCount})`}
+          aria-label={`${isClickable ? "Open" : "Scroll to"} comments for this post (${post.commentCount})`}
         >
           <Comment className="size-5" />
           Comment

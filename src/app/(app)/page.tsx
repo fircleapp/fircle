@@ -4,9 +4,9 @@ import { ImageOff } from "~/components/ui/icons";
 import { useMemo } from "react";
 
 import { ComposerEntry } from "~/components/feed/composer-entry";
-import { useGlobalComposer } from "~/components/feed/global-composer-provider";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
+import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 
@@ -147,18 +147,18 @@ function FeedSkeletonList() {
     <ul className="space-y-3 pb-20 md:pb-8" aria-hidden>
       {Array.from({ length: 3 }).map((_, index) => (
         <li key={`skeleton-${index}`}>
-          <article className="animate-pulse rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5">
+          <article className="rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full bg-muted" />
+              <Skeleton className="size-10 rounded-full" />
               <div className="space-y-2">
-                <div className="h-3.5 w-28 rounded-full bg-muted" />
-                <div className="h-3 w-16 rounded-full bg-muted" />
+                <Skeleton className="h-3.5 w-28 rounded-full" />
+                <Skeleton className="h-3 w-16 rounded-full" />
               </div>
             </div>
-            <div className="mt-4 h-3.5 w-11/12 rounded-full bg-muted" />
-            <div className="mt-2 h-3.5 w-9/12 rounded-full bg-muted" />
-            <div className="mt-4 aspect-video rounded-2xl bg-muted/80" />
-            <div className="mt-4 h-3.5 w-36 rounded-full bg-muted" />
+            <Skeleton className="mt-4 h-3.5 w-11/12 rounded-full" />
+            <Skeleton className="mt-2 h-3.5 w-9/12 rounded-full" />
+            <Skeleton className="mt-4 aspect-video rounded-2xl" />
+            <Skeleton className="mt-4 h-3.5 w-36 rounded-full" />
           </article>
         </li>
       ))}
@@ -167,8 +167,6 @@ function FeedSkeletonList() {
 }
 
 export default function FeedPage() {
-  const { openComposer } = useGlobalComposer();
-
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
@@ -213,15 +211,15 @@ export default function FeedPage() {
     <>
       <section className="px-4 pb-6 pt-5 sm:px-6 md:px-8">
         <div className="mx-auto w-full max-w-2xl space-y-4">
-          <header className="space-y-1.5">
-            <h1 className="font-semibold text-2xl tracking-tight">Family Feed</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
+          <header className="space-y-1 mx-auto w-full max-w-2xl">
+            <h1 className="text-3xl font-semibold tracking-tight">Feed</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               Recent memories from your family circle.
             </p>
           </header>
 
-          <div className="supports-backdrop-filter:bg-background/80 sticky top-0 z-20 -mx-1 rounded-3xl bg-background/95 px-1 pb-2 pt-1 backdrop-blur">
-            <ComposerEntry user={currentUser} onOpenComposer={openComposer} />
+          <div className="supports-backdrop-filter:bg-background/80 sticky top-0 z-20 -mx-1 hidden rounded-3xl bg-background/95 px-1 pb-2 pt-1 backdrop-blur md:block">
+            <ComposerEntry user={currentUser} familyId={familyId} />
           </div>
 
           {hasNoFamily ? (
