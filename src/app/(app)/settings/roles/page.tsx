@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { AlertCircle } from "~/components/ui/icons";
+import { Skeleton } from "~/components/ui/skeleton";
 import type { FamilyMemberSummary, MemberRole } from "~/lib/mocks/family-members";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
@@ -118,13 +119,7 @@ export default function RolesPage() {
         <h3 className="font-medium text-base">Member roles</h3>
 
         {isLoading ? (
-          <Alert>
-            <AlertCircle className="size-5" aria-hidden="true" />
-            <AlertTitle>Loading family roles</AlertTitle>
-            <AlertDescription>
-              We&apos;re fetching role assignments for your active family.
-            </AlertDescription>
-          </Alert>
+          <MemberRolesSkeleton />
         ) : hasNoFamily ? (
           <Alert>
             <AlertCircle className="size-5" aria-hidden="true" />
@@ -219,6 +214,32 @@ export default function RolesPage() {
           </table>
         </div>
       </section>
+    </div>
+  );
+}
+
+function MemberRolesSkeleton() {
+  return (
+    <div className="space-y-2" aria-hidden>
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div
+          key={`role-skeleton-${index}`}
+          className="flex flex-col gap-3 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="flex min-w-0 items-center gap-3">
+            <Skeleton className="size-10 shrink-0 rounded-full border" />
+            <div className="min-w-0 space-y-2">
+              <Skeleton className="h-3.5 w-28 rounded-full" />
+              <Skeleton className="h-3 w-16 rounded-full" />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Skeleton className="h-6 w-18 rounded-full" />
+            <Skeleton className="h-5 w-24 rounded-full" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

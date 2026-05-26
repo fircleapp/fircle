@@ -8,7 +8,8 @@ import { MemberGalleryTab } from "~/components/gallery/member-gallery-tab";
 import { EditProfileDialog } from "~/components/members/edit-profile-dialog";
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
 import { Button } from "~/components/ui/button";
-import { FileText, Heart, Image, Tag, UserRoundX } from "~/components/ui/icons";
+import { Dash, Heart, Image, UserSquare, UserRoundX } from "~/components/ui/icons";
+import { Skeleton } from "~/components/ui/skeleton";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
@@ -97,9 +98,9 @@ function mapApiPostToPostCardData(item: {
 type ProfileTab = "posts" | "tagged" | "liked" | "gallery";
 
 const tabs: { id: ProfileTab; label: string; icon: typeof FileText }[] = [
-  { id: "posts", label: "Posts", icon: FileText },
+  { id: "posts", label: "Posts", icon: Dash },
   { id: "gallery", label: "Gallery", icon: Image },
-  { id: "tagged", label: "Mentions & Tags", icon: Tag },
+  { id: "tagged", label: "Mentions & Tags", icon: UserSquare },
   { id: "liked", label: "Liked", icon: Heart },
 ];
 
@@ -161,9 +162,7 @@ export default function ProfilePage() {
   return (
     <section className="px-4 py-8 sm:px-6">
       {isLoading ? (
-        <div className="max-w-2xl mx-auto flex items-center justify-center py-12">
-          <div className="text-center text-muted-foreground">Loading profile...</div>
-        </div>
+        <ProfilePageSkeleton />
       ) : member ? (
         <div className="space-y-5">
           <MemberProfileHeader member={member} showStatus={false} />
@@ -306,6 +305,52 @@ function EmptyState({
       </div>
       <p className="mt-3 font-medium text-sm">{title}</p>
       <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+function ProfilePageSkeleton() {
+  return (
+    <div className="mx-auto max-w-2xl space-y-5" aria-hidden>
+      <header className="flex flex-col items-center gap-3 pb-2 pt-6 text-center">
+        <Skeleton className="size-24 rounded-full border-2 shadow-sm sm:size-28" />
+        <div className="space-y-2">
+          <Skeleton className="mx-auto h-8 w-56 rounded-full" />
+        </div>
+      </header>
+
+      <div className="flex justify-center">
+        <Skeleton className="h-9 w-36 rounded-full" />
+      </div>
+
+      <section className="space-y-4">
+        <div className="mx-auto flex w-full max-w-2xl gap-1 border-b pb-1">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={`profile-tab-skeleton-${index}`} className="h-10 flex-1 rounded-2xl" />
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <article
+              key={`profile-post-skeleton-${index}`}
+              className="rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5"
+            >
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-3.5 w-28 rounded-full" />
+                  <Skeleton className="h-3 w-16 rounded-full" />
+                </div>
+              </div>
+              <Skeleton className="mt-4 h-3.5 w-11/12 rounded-full" />
+              <Skeleton className="mt-2 h-3.5 w-9/12 rounded-full" />
+              <Skeleton className="mt-4 aspect-video rounded-2xl" />
+              <Skeleton className="mt-4 h-3.5 w-32 rounded-full" />
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

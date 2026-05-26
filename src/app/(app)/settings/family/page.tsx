@@ -9,6 +9,7 @@ import { AlertCircle, Camera, Loader } from "~/components/ui/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -287,11 +288,7 @@ export default function FamilySettingsPage() {
       </header>
 
       {managementContext.isLoading ? (
-        <Alert>
-          <Loader className="size-5 animate-spin" aria-hidden="true" />
-          <AlertTitle>Loading family context</AlertTitle>
-          <AlertDescription>We&apos;re checking your active family membership.</AlertDescription>
-        </Alert>
+        <FamilySettingsSkeleton />
       ) : null}
 
       {!managementContext.isLoading && !familyId ? (
@@ -518,5 +515,43 @@ export default function FamilySettingsPage() {
         </Button>
       </section> */}
     </div>
+  );
+}
+
+function FamilySettingsSkeleton() {
+  return (
+    <section className="space-y-5 rounded-2xl border bg-card/60 p-5" aria-hidden>
+      <div className="space-y-2">
+        <Skeleton className="h-5 w-40 rounded-full" />
+        <Skeleton className="h-3.5 w-72 max-w-full rounded-full" />
+      </div>
+
+      <div className="space-y-4 rounded-2xl border bg-background p-4">
+        <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 p-3">
+          <Skeleton className="size-14 shrink-0 rounded-full border" />
+          <div className="min-w-0 space-y-2">
+            <Skeleton className="h-3.5 w-24 rounded-full" />
+            <Skeleton className="h-3 w-36 rounded-full" />
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <Skeleton className="h-8 w-24 rounded-full" />
+            <Skeleton className="h-8 w-16 rounded-full" />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Skeleton className="h-3 w-20 rounded-full" />
+          <Skeleton className="h-10 w-full rounded-2xl" />
+        </div>
+
+        <div className="space-y-1.5">
+          <Skeleton className="h-3 w-20 rounded-full" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-2.5 w-24 rounded-full" />
+        </div>
+
+        <Skeleton className="h-9 w-40 rounded-full" />
+      </div>
+    </section>
   );
 }
