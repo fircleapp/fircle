@@ -223,15 +223,16 @@ export default function MemberProfilePage() {
                   key={id}
                   type="button"
                   onClick={() => setActiveTab(id)}
+                  aria-label={label}
                   className={cn(
-                    "flex flex-1 items-center justify-center gap-2 px-4 py-3.5 text-sm font-medium transition-colors first:rounded-tl-3xl last:rounded-tr-3xl",
+                    "flex flex-1 items-center justify-center gap-0 px-2 py-3.5 text-sm font-medium transition-colors first:rounded-tl-3xl last:rounded-tr-3xl sm:gap-2 sm:px-4",
                     activeTab === id
                       ? "border-b-2 border-primary text-primary"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <Icon className="size-4" aria-hidden="true" />
-                  {label}
+                  <Icon className="size-5 md:size-4 shrink-0" aria-hidden="true" />
+                  <span className="hidden max-w-32 truncate sm:block">{label}</span>
                 </button>
               ))}
             </div>
