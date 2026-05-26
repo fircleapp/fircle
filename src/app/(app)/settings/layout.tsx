@@ -71,7 +71,7 @@ export default function SettingsLayout({
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-semibold text-2xl tracking-tight">Settings</h1>
-        <LogoutButton variant="outline" size="sm" className="gap-2">
+        <LogoutButton variant="destructive" size="sm" className="gap-2">
           <Logout className="size-4" />
           <span>Log out</span>
         </LogoutButton>
