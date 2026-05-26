@@ -5,9 +5,9 @@ import { useState } from "react";
 import {
   AlertCircle,
   Heart,
-  Tag,
+  UserSquare,
   UserRoundX,
-  FileText,
+  Dash,
   Image,
 } from "~/components/ui/icons";
 import { useParams } from "next/navigation";
@@ -18,6 +18,7 @@ import { PostCard } from "~/components/feed/post-card";
 import { MemberGalleryTab } from "~/components/gallery/member-gallery-tab";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
+import { Skeleton } from "~/components/ui/skeleton";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
 import { api } from "~/trpc/react";
 import type { PostCardData } from "~/components/feed/post-card";
@@ -105,10 +106,10 @@ import { cn } from "~/lib/utils";
 
 type ProfileTab = "posts" | "tagged" | "liked" | "gallery";
 
-const tabs: { id: ProfileTab; label: string; icon: typeof FileText }[] = [
-  { id: "posts", label: "Posts", icon: FileText },
+const tabs: { id: ProfileTab; label: string; icon: typeof Dash }[] = [
+  { id: "posts", label: "Posts", icon: Dash },
   { id: "gallery", label: "Gallery", icon: Image },
-  { id: "tagged", label: "Mentions & Tags", icon: Tag },
+  { id: "tagged", label: "Mentions & Tags", icon: UserSquare },
   { id: "liked", label: "Liked", icon: Heart },
 ];
 
@@ -196,13 +197,7 @@ export default function MemberProfilePage() {
   return (
     <section className="px-4 py-8 sm:px-6">
       {isLoading ? (
-        <Alert className="max-w-2xl mx-auto">
-          <AlertCircle className="size-5" aria-hidden="true" />
-          <AlertTitle>Loading member profile</AlertTitle>
-          <AlertDescription>
-            We&apos;re resolving this member from your active family context.
-          </AlertDescription>
-        </Alert>
+        <MemberProfileSkeleton isAdmin={isAdmin} />
       ) : hasNoFamily ? (
         <Alert className="max-w-2xl mx-auto">
           <AlertCircle className="size-5" aria-hidden="true" />
@@ -258,7 +253,7 @@ export default function MemberProfilePage() {
                     </div>
                   ) : (
                     <EmptyState
-                      icon={FileText}
+                      icon={Dash}
                       title="No posts yet"
                       description={`${member.name.split(" ")[0]} hasn't posted anything yet.`}
                     />
@@ -282,7 +277,7 @@ export default function MemberProfilePage() {
                     </div>
                   ) : (
                     <EmptyState
-                      icon={Tag}
+                      icon={UserSquare}
                       title="No mentions or tags yet"
                       description={`Posts that mention or tag ${member.name.split(" ")[0]} will appear here.`}
                     />
@@ -342,12 +337,68 @@ export default function MemberProfilePage() {
   );
 }
 
+function MemberProfileSkeleton({ isAdmin }: { isAdmin: boolean }) {
+  return (
+    <div className="space-y-5" aria-hidden>
+      <div className="mx-auto flex max-w-2xl flex-col items-center gap-3 pb-2 pt-6 text-center">
+        <Skeleton className="size-24 shrink-0 rounded-full border-2 shadow-sm sm:size-28" />
+        <div className="space-y-2">
+          <Skeleton className="mx-auto h-8 w-56 rounded-full" />
+          <Skeleton className="mx-auto h-5 w-24 rounded-full" />
+        </div>
+      </div>
+
+      {isAdmin ? (
+        <div className="mx-auto flex max-w-2xl justify-center">
+          <Skeleton className="h-9 w-44 rounded-full" />
+        </div>
+      ) : null}
+
+      <section>
+        <div className="mx-auto flex w-full max-w-2xl border-b">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={`member-tab-skeleton-${index}`} className="h-12 flex-1 rounded-none first:rounded-tl-3xl last:rounded-tr-3xl" />
+          ))}
+        </div>
+
+        <div className="pt-4 space-y-4">
+          <div className="mx-auto max-w-2xl rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-3.5 w-28 rounded-full" />
+                <Skeleton className="h-3 w-16 rounded-full" />
+              </div>
+            </div>
+            <Skeleton className="mt-4 h-3.5 w-11/12 rounded-full" />
+            <Skeleton className="mt-2 h-3.5 w-9/12 rounded-full" />
+            <Skeleton className="mt-4 aspect-video rounded-2xl" />
+          </div>
+
+          <div className="mx-auto max-w-2xl rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-3.5 w-28 rounded-full" />
+                <Skeleton className="h-3 w-16 rounded-full" />
+              </div>
+            </div>
+            <Skeleton className="mt-4 h-3.5 w-10/12 rounded-full" />
+            <Skeleton className="mt-2 h-3.5 w-8/12 rounded-full" />
+            <Skeleton className="mt-4 aspect-video rounded-2xl" />
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function EmptyState({
   icon: Icon,
   title,
   description,
 }: {
-  icon: typeof FileText;
+  icon: typeof Dash;
   title: string;
   description: string;
 }) {
