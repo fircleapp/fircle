@@ -2,15 +2,45 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Menu } from "~/components/ui/icons";
+import { Bell, House, Image, Logout, Menu, Settings, User, Users } from "~/components/ui/icons";
 
+import { useLogoutAction } from "~/components/auth/logout-button";
 import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
+import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "~/components/ui/sheet";
+import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+
+const menuItems = [
+  { href: "/", label: "Home", icon: House },
+  { href: "/members", label: "Members", icon: Users },
+  { href: "/gallery", label: "Gallery", icon: Image },
+  { href: "/notifications", label: "Notifications", icon: Bell },
+  { href: "/profile", label: "Profile", icon: User },
+  { href: "/settings", label: "Settings", icon: Settings },
+];
+
+function isActivePath(pathname: string, href: string) {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function MobileHeader() {
   const pathname = usePathname();
   const shouldPollUnread = !pathname.startsWith("/notifications");
+  const { logout, isSigningOut } = useLogoutAction();
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -38,18 +68,75 @@ export function MobileHeader() {
   return (
     <header className="sticky top-0 z-30 flex h-14 w-full items-center border-b border-border bg-background/80 px-3 backdrop-blur-sm md:hidden">
       <div className="flex w-full items-center justify-between">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          title="Open menu"
-          aria-label="Open menu"
-        >
-          <Menu className="size-5" />
-        </Button>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              title="Open menu"
+              aria-label="Open menu"
+            >
+              <Menu className="size-5" />
+            </Button>
+          </SheetTrigger>
+
+          <SheetContent side="left" showCloseButton={false} className="w-[84vw] max-w-sm p-0">
+            <SheetHeader className="border-b px-5 py-3">
+              <SheetTitle>Fircle</SheetTitle>
+            </SheetHeader>
+            
+            <nav className="px-2 py-3" aria-label="Mobile menu">
+              <ul className="flex flex-col gap-1">
+                {menuItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActivePath(pathname, item.href);
+
+                  return (
+                    <li key={item.href}>
+                      <SheetClose asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-base font-medium transition-colors",
+                            active
+                              ? "bg-muted text-foreground"
+                              : "hover:bg-muted",
+                          )}
+                        >
+                          <Icon className="size-6" />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SheetClose>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+
+            <SheetFooter className="border-t px-2 py-3">
+              <ThemeToggle
+                title="Toggle theme"
+                className="w-full justify-start gap-3 rounded-xl px-3"
+              />
+              {/* <Button
+                type="button"
+                variant="ghost"
+                className="w-full justify-start gap-3 rounded-xl px-3"
+                onClick={() => {
+                  void logout();
+                }}
+                disabled={isSigningOut}
+              >
+                <Logout className="size-5" />
+                <span>{isSigningOut ? "Logging out..." : "Log out"}</span>
+              </Button> */}
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
 
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <span className="font-bold tracking-tight text-xl">fircle</span>
+          <span className="font-bold tracking-tight text-xl">Fircle</span>
         </div>
 
         <div className="ml-auto flex items-center gap-2">
