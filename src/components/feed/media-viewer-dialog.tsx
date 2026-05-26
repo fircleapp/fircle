@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Dialog as DialogPrimitive } from "radix-ui";
 
-import { Tag, X } from "~/components/ui/icons";
+import { Loader, Tag, X } from "~/components/ui/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {
@@ -37,6 +37,24 @@ type MediaTagRecord = {
     avatarUrl: string;
     slug?: string;
   };
+};
+
+type DraftTagAddition = {
+  id: string;
+  taggedMemberId: string;
+  taggedMember: {
+    id: string;
+    name: string;
+    avatarUrl: string;
+    slug?: string;
+  };
+  xPercent: number | null;
+  yPercent: number | null;
+};
+
+type MediaTagDraft = {
+  additions: DraftTagAddition[];
+  removedTagIds: string[];
 };
 
 export type MediaViewerItem = {
@@ -170,7 +188,7 @@ function VideoTagEditorPanel({
   familyMembers,
   onTagCreate,
   onTagDelete,
-  onEditorClose,
+  onEditorCancel,
   activeMutationPending,
   editorError,
 }: {
@@ -178,7 +196,7 @@ function VideoTagEditorPanel({
   familyMembers: { id: string; name: string; avatarUrl: string }[];
   onTagCreate?: (memberId: string) => void;
   onTagDelete?: (tagId: string) => void;
-  onEditorClose?: () => void;
+  onEditorCancel?: () => void;
   activeMutationPending?: boolean;
   editorError?: string | null;
 }) {
@@ -203,7 +221,7 @@ function VideoTagEditorPanel({
         <span className="text-xs font-semibold text-foreground">Tag members</span>
         <button
           type="button"
-          onClick={onEditorClose}
+          onClick={onEditorCancel}
           className="flex size-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
         >
           <X className="size-3.5" />
@@ -284,7 +302,8 @@ function MediaSlide({
   onTagCreate,
   onTagDelete,
   onPickerDismiss,
-  onEditorClose,
+  onEditorCancel,
+  onEditorDone,
   activeMutationPending,
   editorError,
   highlightedTagId,
@@ -300,7 +319,8 @@ function MediaSlide({
   onTagCreate?: (memberId: string) => void;
   onTagDelete?: (tagId: string) => void;
   onPickerDismiss?: () => void;
-  onEditorClose?: () => void;
+  onEditorCancel?: () => void;
+  onEditorDone?: () => void;
   activeMutationPending?: boolean;
   editorError?: string | null;
   highlightedTagId?: string | null;
@@ -377,7 +397,7 @@ function MediaSlide({
             familyMembers={familyMembers}
             onTagCreate={onTagCreate}
             onTagDelete={onTagDelete}
-            onEditorClose={onEditorClose}
+            onEditorCancel={onEditorCancel}
             activeMutationPending={activeMutationPending}
             editorError={editorError}
           />
@@ -516,10 +536,18 @@ function MediaSlide({
           <p className="text-sm">Click on the photo to start tagging. Click on a tag to remove it.</p>
           <Button
             variant="default"
-            onClick={onEditorClose}
+            onClick={onEditorDone}
+            disabled={activeMutationPending}
             className="rounded-full px-6 shadow-xl w-full md:w-1/3"
           >
-            Done Tagging
+            {activeMutationPending ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader className="size-4 animate-spin" />
+                <span>Saving tags...</span>
+              </span>
+            ) : (
+              "Done Tagging"
+            )}
           </Button>
         </div>
       ) : null}
@@ -590,6 +618,9 @@ export function MediaViewerDialog({
   const [carouselApi, setCarouselApi] = React.useState<CarouselApi>();
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [pendingPoint, setPendingPoint] = React.useState<{ xPercent: number; yPercent: number } | null>(null);
+  const [tagDraftsByMediaId, setTagDraftsByMediaId] = React.useState<Record<string, MediaTagDraft>>({});
+  const [isSavingTagDrafts, setIsSavingTagDrafts] = React.useState(false);
+  const [tagDraftError, setTagDraftError] = React.useState<string | null>(null);
   const trpcUtils = api.useUtils();
   const mediaViewportClass = "w-full max-w-7xl";
   const mediaFrameClass = "flex h-[calc(100vh-8rem)] w-full items-center justify-center";
@@ -626,6 +657,58 @@ export function MediaViewerDialog({
     [currentItem?.tags, tagsQuery.data?.items],
   );
 
+  const getDraftForMedia = React.useCallback(
+    (mediaId: string): MediaTagDraft | null => tagDraftsByMediaId[mediaId] ?? null,
+    [tagDraftsByMediaId],
+  );
+
+  const getVisibleTagsForItem = React.useCallback(
+    (item: MediaViewerItem) => {
+      const baseTags = currentItem?.id === item.id ? currentTags : (item.tags ?? []);
+      const draft = getDraftForMedia(item.id);
+
+      if (!draft) {
+        return baseTags;
+      }
+
+      const removedTagIds = new Set(draft.removedTagIds);
+      const draftAdditions: MediaTagRecord[] = draft.additions.map((addition) => ({
+        id: addition.id,
+        postMediaId: item.id,
+        taggedMemberId: addition.taggedMemberId,
+        xPercent: addition.xPercent,
+        yPercent: addition.yPercent,
+        taggedMember: addition.taggedMember,
+      }));
+
+      return [...baseTags.filter((tag) => !removedTagIds.has(tag.id)), ...draftAdditions];
+    },
+    [currentItem?.id, currentTags, getDraftForMedia],
+  );
+
+  function updateMediaDraft(mediaId: string, updater: (draft: MediaTagDraft) => MediaTagDraft) {
+    setTagDraftsByMediaId((previous) => {
+      const currentDraft = previous[mediaId] ?? { additions: [], removedTagIds: [] };
+      const nextDraft = updater(currentDraft);
+      const hasChanges = nextDraft.additions.length > 0 || nextDraft.removedTagIds.length > 0;
+
+      if (!hasChanges) {
+        if (!(mediaId in previous)) {
+          return previous;
+        }
+
+        const next = { ...previous };
+        delete next[mediaId];
+        return next;
+      }
+
+      return {
+        ...previous,
+        [mediaId]: nextDraft,
+      };
+    });
+  }
+
   const taggedMembers = React.useMemo(() => {
     if (currentTags.length > 0) {
       const byMemberId = new Map<string, TaggedMember>();
@@ -648,6 +731,7 @@ export function MediaViewerDialog({
     deleteTagMutation.isPending;
 
   const editorError =
+    tagDraftError ??
     createPhotoTagMutation.error?.message ??
     createVideoTagMutation.error?.message ??
     deleteTagMutation.error?.message ??
@@ -663,50 +747,147 @@ export function MediaViewerDialog({
     ]);
   }
 
-  async function refetchCurrentTags() {
-    await tagsQuery.refetch();
-    await invalidatePostSurfaces();
-  }
-
-  async function handleDeleteTag(tagId: string) {
-    if (!familyId) return;
-    await deleteTagMutation.mutateAsync({
-      familyId,
-      tagId,
-    });
-    await refetchCurrentTags();
-  }
-
-  async function handleCreatePhotoTag(memberId: string) {
-    if (!familyId || !currentItem || !pendingPoint) return;
-    await createPhotoTagMutation.mutateAsync({
-      familyId,
-      postMediaId: currentItem.id,
-      taggedMemberId: memberId,
-      xPercent: pendingPoint.xPercent,
-      yPercent: pendingPoint.yPercent,
-    });
-    setPendingPoint(null);
-    await refetchCurrentTags();
-  }
-
-  async function handleCreateVideoTag(memberId: string) {
-    if (!familyId || !currentItem) return;
-    await createVideoTagMutation.mutateAsync({
-      familyId,
-      postMediaId: currentItem.id,
-      taggedMemberId: memberId,
-    });
-    await refetchCurrentTags();
-  }
-
-  async function handleCreateTag(memberId: string) {
+  function stageTagSelection(memberId: string) {
     if (!currentItem) return;
+    if (currentItem.type === "image" && !pendingPoint) return;
+
+    const member = familyMembersQuery.data?.find((familyMember) => familyMember.id === memberId);
+    if (!member) return;
+
+    setTagDraftError(null);
+
+    updateMediaDraft(currentItem.id, (draft) => {
+      const additions = draft.additions.filter((addition) => addition.taggedMemberId !== memberId);
+      const removalTagId = currentTags.find((tag) => tag.taggedMemberId === memberId)?.id;
+
+      if (removalTagId) {
+        return {
+          additions,
+          removedTagIds: draft.removedTagIds.filter((tagId) => tagId !== removalTagId),
+        };
+      }
+
+      const nextAddition: DraftTagAddition = {
+        id: `draft-${currentItem.id}-${memberId}-${crypto.randomUUID()}`,
+        taggedMemberId: member.id,
+        taggedMember: {
+          id: member.id,
+          name: member.name,
+          avatarUrl: member.image ?? "",
+          slug: member.slug,
+        },
+        xPercent: currentItem.type === "image" && pendingPoint ? pendingPoint.xPercent : null,
+        yPercent: currentItem.type === "image" && pendingPoint ? pendingPoint.yPercent : null,
+      };
+
+      return {
+        additions: [...additions, nextAddition],
+        removedTagIds: draft.removedTagIds,
+      };
+    });
+
     if (currentItem.type === "image") {
-      await handleCreatePhotoTag(memberId);
-    } else {
-      await handleCreateVideoTag(memberId);
+      setPendingPoint(null);
     }
+  }
+
+  function handleDeleteTag(mediaId: string, tagId: string) {
+    const mediaDraft = getDraftForMedia(mediaId);
+    if (!mediaDraft) {
+      updateMediaDraft(mediaId, (draft) => ({
+        additions: draft.additions,
+        removedTagIds: draft.removedTagIds.includes(tagId) ? draft.removedTagIds : [...draft.removedTagIds, tagId],
+      }));
+      return;
+    }
+
+    const draftAddition = mediaDraft.additions.find((addition) => addition.id === tagId);
+    if (draftAddition) {
+      updateMediaDraft(mediaId, (draft) => ({
+        additions: draft.additions.filter((addition) => addition.id !== tagId),
+        removedTagIds: draft.removedTagIds,
+      }));
+      return;
+    }
+
+    updateMediaDraft(mediaId, (draft) => ({
+      additions: draft.additions,
+      removedTagIds: draft.removedTagIds.includes(tagId) ? draft.removedTagIds : [...draft.removedTagIds, tagId],
+    }));
+  }
+
+  async function commitDraftTags() {
+    if (!familyId) return;
+
+    const draftEntries = Object.entries(tagDraftsByMediaId);
+    if (draftEntries.length === 0) {
+      setEditorOpen(false);
+      setPendingPoint(null);
+      return;
+    }
+
+    setIsSavingTagDrafts(true);
+    setTagDraftError(null);
+
+    try {
+      for (const [mediaId, draft] of draftEntries) {
+        const mediaItem = items.find((item) => item.id === mediaId);
+        if (!mediaItem) {
+          continue;
+        }
+
+        for (const tagId of draft.removedTagIds) {
+          await deleteTagMutation.mutateAsync({
+            familyId,
+            tagId,
+          });
+          updateMediaDraft(mediaId, (currentDraft) => ({
+            additions: currentDraft.additions,
+            removedTagIds: currentDraft.removedTagIds.filter((removedTagId) => removedTagId !== tagId),
+          }));
+        }
+
+        for (const addition of draft.additions) {
+          if (mediaItem.type === "image") {
+            await createPhotoTagMutation.mutateAsync({
+              familyId,
+              postMediaId: mediaItem.id,
+              taggedMemberId: addition.taggedMemberId,
+              xPercent: addition.xPercent ?? 0,
+              yPercent: addition.yPercent ?? 0,
+            });
+          } else {
+            await createVideoTagMutation.mutateAsync({
+              familyId,
+              postMediaId: mediaItem.id,
+              taggedMemberId: addition.taggedMemberId,
+            });
+          }
+
+          updateMediaDraft(mediaId, (currentDraft) => ({
+            additions: currentDraft.additions.filter((draftAddition) => draftAddition.id !== addition.id),
+            removedTagIds: currentDraft.removedTagIds,
+          }));
+        }
+      }
+
+      await tagsQuery.refetch();
+      await invalidatePostSurfaces();
+      setTagDraftsByMediaId({});
+      setEditorOpen(false);
+      setPendingPoint(null);
+    } catch (error) {
+      setTagDraftError(error instanceof Error ? error.message : "Failed to save tags");
+    } finally {
+      setIsSavingTagDrafts(false);
+    }
+  }
+
+  function cancelDraftTags() {
+    setTagDraftsByMediaId({});
+    setTagDraftError(null);
+    setEditorOpen(false);
+    setPendingPoint(null);
   }
 
   function handleImageClick(event: React.MouseEvent<HTMLImageElement>) {
@@ -728,8 +909,7 @@ export function MediaViewerDialog({
 
   function handleDialogOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
-      setEditorOpen(false);
-      setPendingPoint(null);
+      cancelDraftTags();
     }
     onOpenChange(nextOpen);
   }
@@ -759,8 +939,7 @@ export function MediaViewerDialog({
 
   React.useEffect(() => {
     if (!canManageCurrentItemTags && editorOpen) {
-      setEditorOpen(false);
-      setPendingPoint(null);
+      cancelDraftTags();
     }
   }, [canManageCurrentItemTags, editorOpen]);
 
@@ -795,7 +974,14 @@ export function MediaViewerDialog({
                   className="flex size-10 items-center justify-center rounded-full dark:bg-white/10 dark:text-white dark:hover:bg-white/20 bg-black/10 text-foreground hover:bg-black/20 transition-colors active:translate-y-0 active:scale-100"
                   aria-label={editorOpen ? "Done tagging" : "Tag people"}
                   title={editorOpen ? "Done tagging" : "Tag people"}
-                  onClick={() => setEditorOpen((value) => !value)}
+                  onClick={() => {
+                    if (editorOpen) {
+                      void commitDraftTags();
+                      return;
+                    }
+
+                    setEditorOpen(true);
+                  }}
                 >
                   <Tag className="size-5" />
                   <span className="sr-only">
@@ -819,20 +1005,24 @@ export function MediaViewerDialog({
                   <MediaSlide
                     item={items[0]!}
                     isActive={true}
-                    tags={currentItem?.id === items[0]!.id ? currentTags : (items[0]!.tags ?? [])}
+                    tags={getVisibleTagsForItem(items[0]!)}
                     taggedMembers={
-                      currentItem?.id === items[0]!.id
-                        ? taggedMembers
-                        : (items[0]!.taggedMembers ?? [])
+                      getVisibleTagsForItem(items[0]!).map((tag) => ({
+                        id: tag.taggedMember.id,
+                        name: tag.taggedMember.name,
+                        avatarUrl: tag.taggedMember.avatarUrl,
+                        slug: tag.taggedMember.slug,
+                      }))
                     }
                     editorEnabled={editorOpen && currentItem?.id === items[0]!.id}
                     pendingPoint={currentItem?.id === items[0]!.id ? pendingPoint : null}
                     familyMembers={(familyMembersQuery.data ?? []).map((m) => ({ id: m.id, name: m.name, avatarUrl: m.image ?? "" }))}
-                    onTagCreate={(memberId) => void handleCreateTag(memberId)}
-                    onTagDelete={(tagId) => void handleDeleteTag(tagId)}
+                    onTagCreate={(memberId) => stageTagSelection(memberId)}
+                    onTagDelete={(tagId) => handleDeleteTag(items[0]!.id, tagId)}
                     onPickerDismiss={() => setPendingPoint(null)}
-                    onEditorClose={() => { setEditorOpen(false); setPendingPoint(null); }}
-                    activeMutationPending={activeMutationPending}
+                    onEditorCancel={() => cancelDraftTags()}
+                    onEditorDone={() => void commitDraftTags()}
+                    activeMutationPending={isSavingTagDrafts}
                     editorError={editorError}
                     highlightedTagId={highlightedTagId}
                     onImageClick={(event) => {
@@ -856,16 +1046,22 @@ export function MediaViewerDialog({
                         <MediaSlide
                           item={item}
                           isActive={current === index}
-                          tags={current === index ? currentTags : (item.tags ?? [])}
-                          taggedMembers={current === index ? taggedMembers : (item.taggedMembers ?? [])}
+                          tags={getVisibleTagsForItem(item)}
+                          taggedMembers={getVisibleTagsForItem(item).map((tag) => ({
+                            id: tag.taggedMember.id,
+                            name: tag.taggedMember.name,
+                            avatarUrl: tag.taggedMember.avatarUrl,
+                            slug: tag.taggedMember.slug,
+                          }))}
                           editorEnabled={editorOpen && current === index}
                           pendingPoint={current === index ? pendingPoint : null}
                           familyMembers={(familyMembersQuery.data ?? []).map((m) => ({ id: m.id, name: m.name, avatarUrl: m.image ?? "" }))}
-                          onTagCreate={(memberId) => void handleCreateTag(memberId)}
-                          onTagDelete={(tagId) => void handleDeleteTag(tagId)}
+                          onTagCreate={(memberId) => stageTagSelection(memberId)}
+                          onTagDelete={(tagId) => handleDeleteTag(item.id, tagId)}
                           onPickerDismiss={() => setPendingPoint(null)}
-                          onEditorClose={() => { setEditorOpen(false); setPendingPoint(null); }}
-                          activeMutationPending={activeMutationPending}
+                          onEditorCancel={() => cancelDraftTags()}
+                          onEditorDone={() => void commitDraftTags()}
+                          activeMutationPending={isSavingTagDrafts}
                           editorError={editorError}
                           highlightedTagId={current === index ? highlightedTagId : null}
                           onImageClick={(event) => {
