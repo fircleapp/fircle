@@ -8,6 +8,7 @@ import { Heart, Comment, Share } from "~/components/ui/icons";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
+import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { api } from "~/trpc/react";
 
 import { PostMediaGrid } from "./post-media-grid";
@@ -233,10 +234,12 @@ export function PostCard({
     isAdmin || (Boolean(post.author.slug) && Boolean(currentMemberSlug) && post.author.slug === currentMemberSlug);
 
   function navigateToPost() {
+    beginNavigationProgress();
     router.push(`/post/${post.id}`);
   }
 
   function handleOpenComments() {
+    beginNavigationProgress();
     router.push(`/post/${post.id}`);
   }
 
