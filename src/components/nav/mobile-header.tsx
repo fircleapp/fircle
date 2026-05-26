@@ -24,7 +24,6 @@ const menuItems = [
   { href: "/", label: "Home", icon: House },
   { href: "/members", label: "Members", icon: Users },
   { href: "/gallery", label: "Gallery", icon: Image },
-  { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/profile", label: "Profile", icon: User },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
