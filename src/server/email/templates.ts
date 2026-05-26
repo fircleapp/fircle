@@ -36,18 +36,15 @@ export function buildInviteCreatedTemplate(
     : `You've been invited to join ${familyName} on Fircle.`;
 
   const subject = `You're invited to join ${familyName} on Fircle`;
-  const textLines = [
-    intro,
-    "",
-    "Accept your invite:",
-    actionUrl,
-    expiryText ? `\n${expiryText}` : "",
-    "",
-    "If you were not expecting this email, you can ignore it.",
-  ].filter((line) => line !== "");
+  const textLines = [intro, "", "Accept your invite:", actionUrl];
+  if (expiryText) {
+    textLines.push("", expiryText);
+  }
+  textLines.push("", "If you were not expecting this email, you can ignore it.");
 
   const html = renderHtmlTemplate({
-    title: subject,
+    eyebrow: "Family invite",
+    title: "You are invited to join Fircle",
     intro,
     ctaLabel: "Accept invite",
     actionUrl,
@@ -76,18 +73,15 @@ export function buildClaimLinkCreatedTemplate(
     : `Claim your ${memberName} profile in ${familyName} on Fircle.`;
 
   const subject = `Claim your ${memberName} profile on Fircle`;
-  const textLines = [
-    intro,
-    "",
-    "Use your claim link:",
-    actionUrl,
-    expiryText ? `\n${expiryText}` : "",
-    "",
-    "If you were not expecting this email, you can ignore it.",
-  ].filter((line) => line !== "");
+  const textLines = [intro, "", "Use your claim link:", actionUrl];
+  if (expiryText) {
+    textLines.push("", expiryText);
+  }
+  textLines.push("", "If you were not expecting this email, you can ignore it.");
 
   const html = renderHtmlTemplate({
-    title: subject,
+    eyebrow: "Profile claim",
+    title: "Your family profile is ready to claim",
     intro,
     ctaLabel: "Claim profile",
     actionUrl,
@@ -120,6 +114,7 @@ function formatExpiryText(expiresAt?: Date | null): string {
 }
 
 function renderHtmlTemplate(input: {
+  eyebrow: string;
   title: string;
   intro: string;
   ctaLabel: string;
@@ -131,20 +126,88 @@ function renderHtmlTemplate(input: {
   const intro = escapeHtml(input.intro);
   const ctaLabel = escapeHtml(input.ctaLabel);
   const actionUrl = escapeHtml(input.actionUrl);
-  const expiryText = input.expiryText ? `<p>${escapeHtml(input.expiryText)}</p>` : "";
+  const introParts = splitIntro(intro);
+  const expiryText = input.expiryText
+    ? `<p style="margin: 14px 0 0; font-size: 12px; line-height: 1.6; color: #111111;">${escapeHtml(input.expiryText)}</p>`
+    : "";
   const footer = escapeHtml(input.footer);
 
-  return [
-    "<div>",
-    `  <h1>${title}</h1>`,
-    `  <p>${intro}</p>`,
-    `  <p><a href=\"${actionUrl}\">${ctaLabel}</a></p>`,
-    expiryText ? `  ${expiryText}` : "",
-    `  <p>${footer}</p>`,
-    "</div>",
-  ]
-    .filter((line) => line !== "")
-    .join("\n");
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${title}</title>
+  </head>
+  <body style="margin: 0; padding: 0; background: #e5e7eb;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: #e5e7eb; padding: 22px 12px 30px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 520px; background: #ffffff; border-radius: 4px; overflow: hidden; border: 1px solid #d1d5db;">
+            <tr>
+              <td style="padding: 0; background: #111111;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="padding: 14px 16px;">
+                      <p style="margin: 0; color: #ffffff; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; font-weight: 700;">Fircle</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 16px 16px 18px; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #111111;">
+                ${introParts.greetingHtml}
+                <h1 style="margin: 0; font-size: 28px; line-height: 1.2; color: #111111;">${title}</h1>
+                <p style="margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: #374151;">${introParts.summaryHtml}</p>
+                <p style="margin: 12px 0 0; font-size: 12px; line-height: 1.6; color: #4b5563;">Use the button below to continue.</p>
+
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top: 14px;">
+                  <tr>
+                    <td align="center" style="border-radius: 999px; background: #111111;">
+                      <a href="${actionUrl}" style="display: inline-block; padding: 10px 16px; border-radius: 999px; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 700; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">${ctaLabel}</a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin: 14px 0 0; font-size: 12px; line-height: 1.6; color: #4b5563;">
+                  If the button does not work, open this link: <a href="${actionUrl}" style="text-decoration: underline; word-break: break-all;">${actionUrl}</a>
+                </p>
+
+                ${expiryText}
+
+                <hr style="margin: 18px 0 12px; border: 0; border-top: 1px solid #d1d5db;" />
+                <p style="margin: 0; font-size: 12px; line-height: 1.5; color: #4b5563;">${footer}</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function splitIntro(intro: string): {
+  greetingHtml: string;
+  summaryHtml: string;
+} {
+  const commaIndex = intro.indexOf(",");
+  if (commaIndex > 0 && commaIndex < 40) {
+    const greeting = intro.slice(0, commaIndex + 1);
+    const summary = intro.slice(commaIndex + 1).trim();
+
+    return {
+      greetingHtml: `<p style="margin: 0 0 10px; font-size: 12px; line-height: 1.5; color: #4b5563;">${greeting}</p>`,
+      summaryHtml: summary || intro,
+    };
+  }
+
+  return {
+    greetingHtml: "",
+    summaryHtml: intro,
+  };
 }
 
 function escapeHtml(value: string): string {

@@ -1,6 +1,6 @@
 ---
 title: "Transactional Email Adapter Platform - BYO Provider with ZeptoMail for Invite and Claim Flows"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -157,12 +157,22 @@ Out of scope for this PRD:
 
 ## Acceptance Criteria
 
-- [ ] A provider-agnostic transactional email adapter layer exists and follows the same factory/singleton pattern as storage providers.
-- [ ] ZeptoMail is implemented as a concrete provider and can send transactional emails for supported events.
-- [ ] Invite-created emails are sent for email-bound invites from the existing createInvite flow.
-- [ ] Claim-link emails are sent from both auto-generated claim-link creation and claim-link regeneration flows.
-- [ ] Per-event templates exist (not a single generic template) for invite-created and claim-link-created events.
-- [ ] Email provider configuration is optional; when unconfigured, invite and claim-link mutations still succeed.
-- [ ] Email send failures do not rollback successful invite/claim-link persistence and are logged with actionable context.
-- [ ] Unit and router-level tests cover provider selection, template rendering, and integration call behavior.
-- [ ] Documentation includes required env variables and setup notes for ZeptoMail.
+- [x] A provider-agnostic transactional email adapter layer exists and follows the same factory/singleton pattern as storage providers.
+- [x] ZeptoMail is implemented as a concrete provider and can send transactional emails for supported events.
+- [x] Invite-created emails are sent for email-bound invites from the existing createInvite flow.
+- [x] Claim-link emails are sent from both auto-generated claim-link creation and claim-link regeneration flows.
+- [x] Per-event templates exist (not a single generic template) for invite-created and claim-link-created events.
+- [x] Email provider configuration is optional; when unconfigured, invite and claim-link mutations still succeed.
+- [x] Email send failures do not rollback successful invite/claim-link persistence and are logged with actionable context.
+- [x] Unit and router-level tests cover provider selection, template rendering, and integration call behavior.
+- [x] Documentation includes required env variables and setup notes for ZeptoMail.
+
+## Implementation Notes (Final)
+
+- Email templates were refined to a monochrome visual style and cleaner narrative flow:
+  - Rounded CTA button.
+  - Inter-first font stack with safe email client fallbacks.
+  - Expiry text positioned below the fallback link.
+  - Removed metadata-style labels (category/action/secure link) and the explicit "Link expiry" label.
+  - Removed custom fallback link color so client default link color is used.
+- A static preview route remains in the codebase for template QA at src/app/email-preview/page.tsx, but it is gated to non-production environments (returns notFound in production).
