@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { ComposerEntry } from "~/components/feed/composer-entry";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
+import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 
@@ -146,18 +147,18 @@ function FeedSkeletonList() {
     <ul className="space-y-3 pb-20 md:pb-8" aria-hidden>
       {Array.from({ length: 3 }).map((_, index) => (
         <li key={`skeleton-${index}`}>
-          <article className="animate-pulse rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5">
+          <article className="rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full bg-muted" />
+              <Skeleton className="size-10 rounded-full" />
               <div className="space-y-2">
-                <div className="h-3.5 w-28 rounded-full bg-muted" />
-                <div className="h-3 w-16 rounded-full bg-muted" />
+                <Skeleton className="h-3.5 w-28 rounded-full" />
+                <Skeleton className="h-3 w-16 rounded-full" />
               </div>
             </div>
-            <div className="mt-4 h-3.5 w-11/12 rounded-full bg-muted" />
-            <div className="mt-2 h-3.5 w-9/12 rounded-full bg-muted" />
-            <div className="mt-4 aspect-video rounded-2xl bg-muted/80" />
-            <div className="mt-4 h-3.5 w-36 rounded-full bg-muted" />
+            <Skeleton className="mt-4 h-3.5 w-11/12 rounded-full" />
+            <Skeleton className="mt-2 h-3.5 w-9/12 rounded-full" />
+            <Skeleton className="mt-4 aspect-video rounded-2xl" />
+            <Skeleton className="mt-4 h-3.5 w-36 rounded-full" />
           </article>
         </li>
       ))}

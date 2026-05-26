@@ -9,6 +9,7 @@ import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
 import { Button } from "~/components/ui/button";
 import { ArrowLeft } from "~/components/ui/icons";
+import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
 import {
   normalizeMentionsForSubmit,
@@ -863,13 +864,13 @@ export default function SinglePostPage() {
   if (isLoading) {
     return (
       <section className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-9 w-20 rounded-2xl bg-muted" />
+        <div className="space-y-4" aria-hidden>
+          <Skeleton className="h-9 w-20 rounded-2xl" />
           <div className="rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5">
-            <div className="h-5 w-40 rounded-full bg-muted" />
-            <div className="mt-4 h-4 w-full rounded-full bg-muted" />
-            <div className="mt-2 h-4 w-3/4 rounded-full bg-muted" />
-            <div className="mt-4 aspect-video rounded-2xl bg-muted/80" />
+            <Skeleton className="h-5 w-40 rounded-full" />
+            <Skeleton className="mt-4 h-4 w-full rounded-full" />
+            <Skeleton className="mt-2 h-4 w-3/4 rounded-full" />
+            <Skeleton className="mt-4 aspect-video rounded-2xl" />
           </div>
         </div>
       </section>

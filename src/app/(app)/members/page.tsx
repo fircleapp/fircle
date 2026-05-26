@@ -80,7 +80,7 @@ export default function MembersPage() {
 
   return (
     <section className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header className="mx-auto w-full max-w-2xl flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Family Members</h1>
           <p className="mt-1 text-sm text-muted-foreground">
