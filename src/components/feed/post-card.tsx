@@ -13,7 +13,6 @@ import { api } from "~/trpc/react";
 
 import { PostMediaGrid } from "./post-media-grid";
 import { TaggedMemberAvatarStack } from "./tagged-member-avatar-stack";
-import { PostVideoCard } from "./post-video-card";
 import { MediaViewerDialog } from "./media-viewer-dialog";
 import { MentionText } from "./mention-text";
 
@@ -338,20 +337,14 @@ export function PostCard({
       ) : null}
 
       {post.type === "video" && videoItems.length > 0 ? (
-        <div className="mt-3 space-y-2" onClick={(event) => event.stopPropagation()}>
-          {videoItems.map((item) => (
-            <PostVideoCard
-              key={item.id}
-              title={item.alt}
-              caption={item.caption}
-              url={item.url}
-              durationLabel={item.durationLabel}
-              onClick={() => {
-                const globalIdx = post.mediaItems.findIndex((m) => m.id === item.id);
-                openViewer(globalIdx >= 0 ? globalIdx : 0);
-              }}
-            />
-          ))}
+        <div className="mt-3" onClick={(event) => event.stopPropagation()}>
+          <PostMediaGrid
+            items={videoItems}
+            onItemClick={(localIdx) => {
+              const globalIdx = post.mediaItems.findIndex((m) => m.id === videoItems[localIdx]?.id);
+              openViewer(globalIdx >= 0 ? globalIdx : localIdx);
+            }}
+          />
         </div>
       ) : null}
 
