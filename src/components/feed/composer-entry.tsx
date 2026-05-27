@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { canPublishComposerPost } from "~/components/feed/post-composer-logic";
+import { compressImage, shouldUseServerVideoCompression } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 export type ComposerOpenMode = "photo" | "video";
@@ -28,6 +29,7 @@ type SelectedMedia = {
   file: File;
   previewUrl: string;
   kind: "image" | "video";
+  compressionProgress: number;
   uploadProgress: number;
   uploadError: string | null;
 };
@@ -104,6 +106,7 @@ function getInitials(name: string) {
 export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
   const [caption, setCaption] = useState("");
   const [isTextareaExpanded, setIsTextareaExpanded] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [publishError, setPublishError] = useState<string | null>(null);
@@ -119,10 +122,10 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
         familyId,
         caption,
         selectedMedia,
-        isUploading,
+        isUploading: isUploading || isCompressing,
         isPending: createPost.isPending,
       }),
-    [caption, createPost.isPending, familyId, isUploading, selectedMedia],
+    [caption, createPost.isPending, familyId, isCompressing, isUploading, selectedMedia],
   );
 
   const revokeObjectUrls = useCallback((media: SelectedMedia[]) => {
@@ -165,6 +168,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
         file,
         previewUrl: URL.createObjectURL(file),
         kind: file.type.startsWith("video/") ? ("video" as const) : ("image" as const),
+        compressionProgress: 0,
         uploadProgress: 0,
         uploadError: null,
       }));
@@ -184,11 +188,12 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
   };
 
   const handlePublish = async () => {
-    if (!familyId || !canPublish || isUploading || createPost.isPending) {
+    if (!familyId || !canPublish || isCompressing || isUploading || createPost.isPending) {
       return;
     }
 
     setPublishError(null);
+    setIsCompressing(selectedMedia.length > 0);
     setIsUploading(selectedMedia.length > 0);
 
     try {
@@ -201,8 +206,82 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
         sizeBytes: number;
       }> = [];
 
+      const mediaForUpload: Array<{
+        id: string;
+        kind: "image" | "video";
+        file: File;
+      }> = [];
+
       if (selectedMedia.length > 0) {
-        const filesPayload = selectedMedia.map((item) => ({
+        setSelectedMedia((current) =>
+          current.map((item) => ({
+            ...item,
+            compressionProgress: 0,
+            uploadProgress: 0,
+            uploadError: null,
+          })),
+        );
+
+        for (let index = 0; index < selectedMedia.length; index++) {
+          const media = selectedMedia[index]!;
+
+          if (media.kind === "image") {
+            try {
+              const compressedFile = await compressImage(media.file, (progress) => {
+                setSelectedMedia((current) =>
+                  current.map((item, itemIndex) =>
+                    itemIndex === index
+                      ? {
+                          ...item,
+                          compressionProgress: progress,
+                          uploadError: null,
+                        }
+                      : item,
+                  ),
+                );
+              });
+
+              mediaForUpload.push({
+                id: media.id,
+                kind: media.kind,
+                file: compressedFile,
+              });
+            } catch (error) {
+              const message = getUploadErrorMessage(error);
+              setSelectedMedia((current) =>
+                current.map((item, itemIndex) =>
+                  itemIndex === index
+                    ? {
+                        ...item,
+                        uploadError: message,
+                      }
+                    : item,
+                ),
+              );
+              throw new Error(message);
+            }
+            continue;
+          }
+
+          if (shouldUseServerVideoCompression(media.file)) {
+            mediaForUpload.push({
+              id: media.id,
+              kind: media.kind,
+              file: media.file,
+            });
+            continue;
+          }
+
+          mediaForUpload.push({
+            id: media.id,
+            kind: media.kind,
+            file: media.file,
+          });
+        }
+
+        setIsCompressing(false);
+
+        const filesPayload = mediaForUpload.map((item) => ({
           fileName: item.file.name,
           mimeType: item.file.type,
           sizeBytes: item.file.size,
@@ -228,12 +307,12 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
           throw new Error(intentBody.error?.message ?? "Failed to create upload intents.");
         }
 
-        if (intentBody.intents.length !== selectedMedia.length) {
+        if (intentBody.intents.length !== mediaForUpload.length) {
           throw new Error("Upload intent count does not match selected files.");
         }
 
-        for (let index = 0; index < selectedMedia.length; index++) {
-          const media = selectedMedia[index]!;
+        for (let index = 0; index < mediaForUpload.length; index++) {
+          const media = mediaForUpload[index]!;
           const intent = intentBody.intents[index]!;
 
           try {
@@ -244,7 +323,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
               (progress) => {
                 setSelectedMedia((current) =>
                   current.map((item, itemIndex) =>
-                    itemIndex === index
+                    item.id === media.id
                       ? {
                           ...item,
                           uploadProgress: progress,
@@ -267,8 +346,8 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
           } catch (error) {
             const message = getUploadErrorMessage(error);
             setSelectedMedia((current) =>
-              current.map((item, itemIndex) =>
-                itemIndex === index
+              current.map((item) =>
+                item.id === media.id
                   ? {
                       ...item,
                       uploadError: message,
@@ -301,6 +380,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
     } catch (error) {
       setPublishError(getUploadErrorMessage(error));
     } finally {
+      setIsCompressing(false);
       setIsUploading(false);
     }
   };
@@ -379,7 +459,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                     aria-label="Remove media"
                     className="absolute right-2 top-2 z-10 rounded-full bg-background/90 p-1 text-foreground shadow"
                     onClick={() => removeMedia(item.id)}
-                    disabled={isUploading || createPost.isPending}
+                    disabled={isCompressing || isUploading || createPost.isPending}
                   >
                     <X className="size-3" />
                   </button>
@@ -399,14 +479,32 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                     </div>
                   )}
 
-                  {(isUploading || item.uploadProgress > 0) && selectedMedia.length > 0 ? (
+                  {(isCompressing || isUploading || item.compressionProgress > 0 || item.uploadProgress > 0) &&
+                  selectedMedia.length > 0 ? (
                     <div className="border-border/80 border-t bg-background px-2 py-1.5">
-                      <div className="h-1.5 overflow-hidden rounded-full bg-border/60">
-                        <div
-                          className="h-full rounded-full bg-primary transition-all"
-                          style={{ width: `${item.uploadProgress}%` }}
-                        />
-                      </div>
+                      {(isCompressing || item.compressionProgress > 0) && item.kind === "image" ? (
+                        <div className="mb-1.5">
+                          <p className="mb-1 text-[10px] text-muted-foreground">Compressing {item.compressionProgress}%</p>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-border/60">
+                            <div
+                              className="h-full rounded-full bg-sky-500 transition-all"
+                              style={{ width: `${item.compressionProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {(isUploading || item.uploadProgress > 0) ? (
+                        <div>
+                          <p className="mb-1 text-[10px] text-muted-foreground">Uploading {item.uploadProgress}%</p>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-border/60">
+                            <div
+                              className="h-full rounded-full bg-primary transition-all"
+                              style={{ width: `${item.uploadProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
 
@@ -428,7 +526,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 size="sm"
                 className="rounded-2xl"
                 onClick={() => imageInputRef.current?.click()}
-                disabled={isUploading || createPost.isPending}
+                disabled={isCompressing || isUploading || createPost.isPending}
               >
                 <ImagePlus className="size-4" />
                 Photo
@@ -439,7 +537,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 size="sm"
                 className="rounded-2xl"
                 onClick={() => videoInputRef.current?.click()}
-                disabled={isUploading || createPost.isPending}
+                disabled={isCompressing || isUploading || createPost.isPending}
               >
                 <Video className="size-4" />
                 Video
@@ -453,7 +551,12 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
               onClick={() => void handlePublish()}
               disabled={!canPublish}
             >
-              {isUploading ? (
+              {isCompressing ? (
+                <>
+                  <Loader className="size-4 animate-spin" />
+                  Compressing...
+                </>
+              ) : isUploading ? (
                 <>
                   <Loader className="size-4 animate-spin" />
                   Uploading...

@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
+import { compressImage } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -218,6 +219,9 @@ export default function FamilySettingsPage() {
       let nextFamilyImageUrl = familyImageUrl.trim();
 
       if (selectedFamilyImageFile) {
+        const compressedFamilyImageFile = await compressImage(selectedFamilyImageFile, setUploadProgress);
+        setUploadProgress(0);
+
         const intentsResponse = await fetch("/api/uploads/intent", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -226,9 +230,9 @@ export default function FamilySettingsPage() {
             uploadFor: "family-image",
             files: [
               {
-                fileName: selectedFamilyImageFile.name,
-                mimeType: selectedFamilyImageFile.type,
-                sizeBytes: selectedFamilyImageFile.size,
+                fileName: compressedFamilyImageFile.name,
+                mimeType: compressedFamilyImageFile.type,
+                sizeBytes: compressedFamilyImageFile.size,
               },
             ],
           }),
@@ -246,7 +250,7 @@ export default function FamilySettingsPage() {
         const imageIntent = intentBody.intents[0];
         await uploadFileWithProgress(
           imageIntent.uploadUrl,
-          selectedFamilyImageFile,
+          compressedFamilyImageFile,
           imageIntent.requiredHeaders,
           setUploadProgress,
         );

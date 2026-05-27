@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Camera, Loader, User, X } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
+import { compressImage } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type EditProfileDialogProps = {
@@ -181,8 +182,6 @@ export function EditProfileDialog({
       return;
     }
 
-    console.log("Selected avatar file:", file);
-
     setSaveError(null);
 
     if (!ACCEPTED_AVATAR_MIME_TYPES.has(file.type)) {
@@ -236,6 +235,9 @@ export function EditProfileDialog({
       let nextAvatarUrl = form.avatarUrl.trim();
 
       if (selectedAvatarFile) {
+        const compressedAvatarFile = await compressImage(selectedAvatarFile, setUploadProgress);
+        setUploadProgress(0);
+
         const intentsResponse = await fetch("/api/uploads/intent", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -245,9 +247,9 @@ export function EditProfileDialog({
             memberId: member.id,
             files: [
               {
-                fileName: selectedAvatarFile.name,
-                mimeType: selectedAvatarFile.type,
-                sizeBytes: selectedAvatarFile.size,
+                fileName: compressedAvatarFile.name,
+                mimeType: compressedAvatarFile.type,
+                sizeBytes: compressedAvatarFile.size,
               },
             ],
           }),
@@ -265,7 +267,7 @@ export function EditProfileDialog({
         const avatarIntent = intentBody.intents[0];
         await uploadFileWithProgress(
           avatarIntent.uploadUrl,
-          selectedAvatarFile,
+          compressedAvatarFile,
           avatarIntent.requiredHeaders,
           setUploadProgress,
         );

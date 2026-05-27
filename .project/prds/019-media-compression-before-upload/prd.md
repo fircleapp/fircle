@@ -1,6 +1,6 @@
 ---
-title: "Media Compression Before Upload for Composer and Profile Surfaces"
-status: draft
+title: "Media Compression Before Upload (WebP Images + Server-Side Video Processing)"
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -60,23 +60,23 @@ The implementation is phased to ship image compression first and then server-sid
 
 #### Tasks
 
-- [ ] Install `browser-image-compression` via `pnpm add browser-image-compression`.
-- [ ] Create [src/lib/media-compression.ts](src/lib/media-compression.ts) with exports:
-  - [ ] `compressImage(file): Promise<File>` using max 2048px and 85% quality.
-  - [ ] HEIC/HEIF input normalization to WebP output (`image/webp`).
-  - [ ] `shouldUseServerVideoCompression(file): boolean` helper (or equivalent) used by composer publish flow.
+- [x] Install `browser-image-compression` via `pnpm add browser-image-compression`.
+- [x] Create [src/lib/media-compression.ts](src/lib/media-compression.ts) with exports:
+  - [x] `compressImage(file): Promise<File>` using max 2048px and 85% quality.
+  - [x] HEIC/HEIF input normalization to WebP output (`image/webp`).
+  - [x] `shouldUseServerVideoCompression(file): boolean` helper (or equivalent) used by composer publish flow.
 - [ ] Integrate compression into [src/components/feed/composer-entry.tsx](src/components/feed/composer-entry.tsx):
-  - [ ] Add `isCompressing` state.
-  - [ ] In `handlePublish`, compress selected image files before upload intent fetch.
+  - [x] Add `isCompressing` state.
+  - [x] In `handlePublish`, compress selected image files before upload intent fetch.
   - [ ] Route selected video files to server-side ingest path from Phase 2 (no client-side transcode).
-  - [ ] Extend selected-media item shape with `compressionProgress`.
-  - [ ] Update per-item progress UI to reflect image compression, direct upload, and server video processing states.
-  - [ ] Send compressed image `mimeType` and `sizeBytes` in upload intent payload.
-  - [ ] Add button-state handling for `Compressing...` alongside existing `Uploading...`.
-- [ ] Integrate into [src/components/members/edit-profile-dialog.tsx](src/components/members/edit-profile-dialog.tsx):
-  - [ ] Compress `selectedAvatarFile` in `handleSave` before upload intent/upload.
-- [ ] Integrate into [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx):
-  - [ ] Compress `selectedFamilyImageFile` in `handleSave` before upload intent/upload.
+  - [x] Extend selected-media item shape with `compressionProgress`.
+  - [x] Update per-item progress UI to reflect image compression, direct upload, and server video processing states.
+  - [x] Send compressed image `mimeType` and `sizeBytes` in upload intent payload.
+  - [x] Add button-state handling for `Compressing...` alongside existing `Uploading...`.
+- [x] Integrate into [src/components/members/edit-profile-dialog.tsx](src/components/members/edit-profile-dialog.tsx):
+  - [x] Compress `selectedAvatarFile` in `handleSave` before upload intent/upload.
+- [x] Integrate into [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx):
+  - [x] Compress `selectedFamilyImageFile` in `handleSave` before upload intent/upload.
 
 ### Phase 2: Server-Side Video Compression Pipeline
 
