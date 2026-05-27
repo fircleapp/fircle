@@ -18,6 +18,8 @@
     "postinstall": "prisma generate",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "media:cleanup": "node scripts/cleanup-orphan-media.mjs",
+    "media:cleanup:delete": "node scripts/cleanup-orphan-media.mjs -DELETE",
     "preview": "next build && next start",
     "start": "next start",
     "test": "vitest run",
