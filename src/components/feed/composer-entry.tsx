@@ -24,6 +24,18 @@ type UploadIntentItem = {
   readUrl: string;
 };
 
+type VideoIngestedMedia = {
+  provider: string;
+  bucket: string;
+  objectKey: string;
+  url: string;
+  mimeType: string;
+  sizeBytes: number;
+  width?: number;
+  height?: number;
+  durationMs?: number;
+};
+
 type SelectedMedia = {
   id: string;
   file: File;
@@ -31,6 +43,7 @@ type SelectedMedia = {
   kind: "image" | "video";
   compressionProgress: number;
   uploadProgress: number;
+  isVideoProcessing: boolean;
   uploadError: string | null;
 };
 
@@ -108,6 +121,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
   const [isTextareaExpanded, setIsTextareaExpanded] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [publishError, setPublishError] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -122,10 +136,18 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
         familyId,
         caption,
         selectedMedia,
-        isUploading: isUploading || isCompressing,
+        isUploading: isUploading || isCompressing || isProcessingVideo,
         isPending: createPost.isPending,
       }),
-    [caption, createPost.isPending, familyId, isCompressing, isUploading, selectedMedia],
+    [
+      caption,
+      createPost.isPending,
+      familyId,
+      isCompressing,
+      isProcessingVideo,
+      isUploading,
+      selectedMedia,
+    ],
   );
 
   const revokeObjectUrls = useCallback((media: SelectedMedia[]) => {
@@ -170,6 +192,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
         kind: file.type.startsWith("video/") ? ("video" as const) : ("image" as const),
         compressionProgress: 0,
         uploadProgress: 0,
+        isVideoProcessing: false,
         uploadError: null,
       }));
 
@@ -188,23 +211,30 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
   };
 
   const handlePublish = async () => {
-    if (!familyId || !canPublish || isCompressing || isUploading || createPost.isPending) {
+    if (!familyId || !canPublish || isCompressing || isUploading || isProcessingVideo || createPost.isPending) {
       return;
     }
 
     setPublishError(null);
-    setIsCompressing(selectedMedia.length > 0);
-    setIsUploading(selectedMedia.length > 0);
+    setIsCompressing(selectedMedia.some((item) => item.kind === "image"));
+    setIsUploading(false);
+    setIsProcessingVideo(false);
 
     try {
-      const uploadedMedia: Array<{
-        provider: string;
-        bucket: string;
-        objectKey: string;
-        url: string;
-        mimeType: string;
-        sizeBytes: number;
-      }> = [];
+      const uploadedMediaById = new Map<
+        string,
+        {
+          provider: string;
+          bucket: string;
+          objectKey: string;
+          url: string;
+          mimeType: string;
+          sizeBytes: number;
+          width?: number;
+          height?: number;
+          durationMs?: number;
+        }
+      >();
 
       const mediaForUpload: Array<{
         id: string;
@@ -218,6 +248,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
             ...item,
             compressionProgress: 0,
             uploadProgress: 0,
+            isVideoProcessing: false,
             uploadError: null,
           })),
         );
@@ -281,68 +312,154 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
 
         setIsCompressing(false);
 
-        const filesPayload = mediaForUpload.map((item) => ({
-          fileName: item.file.name,
-          mimeType: item.file.type,
-          sizeBytes: item.file.size,
-        }));
+        const imagesForUpload = mediaForUpload.filter((item) => item.kind === "image");
+        if (imagesForUpload.length > 0) {
+          setIsUploading(true);
 
-        const intentsResponse = await fetch("/api/uploads/intent", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            familyId,
-            files: filesPayload,
-          }),
-        });
+          const filesPayload = imagesForUpload.map((item) => ({
+            fileName: item.file.name,
+            mimeType: item.file.type,
+            sizeBytes: item.file.size,
+          }));
 
-        const intentBody = (await intentsResponse.json()) as {
-          intents?: UploadIntentItem[];
-          error?: { message?: string };
-        };
+          const intentsResponse = await fetch("/api/uploads/intent", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              familyId,
+              files: filesPayload,
+            }),
+          });
 
-        if (!intentsResponse.ok || !intentBody.intents) {
-          throw new Error(intentBody.error?.message ?? "Failed to create upload intents.");
+          const intentBody = (await intentsResponse.json()) as {
+            intents?: UploadIntentItem[];
+            error?: { message?: string };
+          };
+
+          if (!intentsResponse.ok || !intentBody.intents) {
+            throw new Error(intentBody.error?.message ?? "Failed to create upload intents.");
+          }
+
+          if (intentBody.intents.length !== imagesForUpload.length) {
+            throw new Error("Upload intent count does not match selected image files.");
+          }
+
+          for (let index = 0; index < imagesForUpload.length; index++) {
+            const media = imagesForUpload[index]!;
+            const intent = intentBody.intents[index]!;
+
+            try {
+              await uploadFileWithProgress(
+                intent.uploadUrl,
+                media.file,
+                intent.requiredHeaders,
+                (progress) => {
+                  setSelectedMedia((current) =>
+                    current.map((item) =>
+                      item.id === media.id
+                        ? {
+                            ...item,
+                            uploadProgress: progress,
+                            uploadError: null,
+                          }
+                        : item,
+                    ),
+                  );
+                },
+              );
+
+              uploadedMediaById.set(media.id, {
+                provider: intent.object.provider,
+                bucket: intent.object.bucket,
+                objectKey: intent.object.objectKey,
+                url: intent.readUrl,
+                mimeType: media.file.type,
+                sizeBytes: media.file.size,
+              });
+            } catch (error) {
+              const message = getUploadErrorMessage(error);
+              setSelectedMedia((current) =>
+                current.map((item) =>
+                  item.id === media.id
+                    ? {
+                        ...item,
+                        uploadError: message,
+                      }
+                    : item,
+                ),
+              );
+              throw new Error(message);
+            }
+          }
         }
 
-        if (intentBody.intents.length !== mediaForUpload.length) {
-          throw new Error("Upload intent count does not match selected files.");
+        setIsUploading(false);
+
+        const videosForProcessing = mediaForUpload.filter(
+          (item) => item.kind === "video" && shouldUseServerVideoCompression(item.file),
+        );
+
+        if (videosForProcessing.length > 0) {
+          setIsProcessingVideo(true);
         }
 
-        for (let index = 0; index < mediaForUpload.length; index++) {
-          const media = mediaForUpload[index]!;
-          const intent = intentBody.intents[index]!;
-
+        for (const media of videosForProcessing) {
           try {
-            await uploadFileWithProgress(
-              intent.uploadUrl,
-              media.file,
-              intent.requiredHeaders,
-              (progress) => {
-                setSelectedMedia((current) =>
-                  current.map((item, itemIndex) =>
-                    item.id === media.id
-                      ? {
-                          ...item,
-                          uploadProgress: progress,
-                          uploadError: null,
-                        }
-                      : item,
-                  ),
-                );
-              },
+            setSelectedMedia((current) =>
+              current.map((item) =>
+                item.id === media.id
+                  ? {
+                      ...item,
+                      isVideoProcessing: true,
+                      uploadError: null,
+                    }
+                  : item,
+              ),
             );
 
-            uploadedMedia.push({
-              provider: intent.object.provider,
-              bucket: intent.object.bucket,
-              objectKey: intent.object.objectKey,
-              url: intent.readUrl,
-              mimeType: media.file.type,
-              sizeBytes: media.file.size,
+            const formData = new FormData();
+            formData.set("familyId", familyId);
+            formData.set("file", media.file, media.file.name);
+
+            const ingestResponse = await fetch("/api/uploads/video/ingest", {
+              method: "POST",
+              body: formData,
             });
+
+            const ingestBody = (await ingestResponse.json()) as {
+              media?: VideoIngestedMedia;
+              error?: { message?: string };
+            };
+
+            if (!ingestResponse.ok || !ingestBody.media) {
+              throw new Error(ingestBody.error?.message ?? "Video processing failed.");
+            }
+
+            uploadedMediaById.set(media.id, {
+              provider: ingestBody.media.provider,
+              bucket: ingestBody.media.bucket,
+              objectKey: ingestBody.media.objectKey,
+              url: ingestBody.media.url,
+              mimeType: ingestBody.media.mimeType,
+              sizeBytes: ingestBody.media.sizeBytes,
+              width: ingestBody.media.width,
+              height: ingestBody.media.height,
+              durationMs: ingestBody.media.durationMs,
+            });
+
+            setSelectedMedia((current) =>
+              current.map((item) =>
+                item.id === media.id
+                  ? {
+                      ...item,
+                      isVideoProcessing: false,
+                      uploadProgress: 100,
+                    }
+                  : item,
+              ),
+            );
           } catch (error) {
             const message = getUploadErrorMessage(error);
             setSelectedMedia((current) =>
@@ -350,6 +467,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 item.id === media.id
                   ? {
                       ...item,
+                      isVideoProcessing: false,
                       uploadError: message,
                     }
                   : item,
@@ -358,7 +476,28 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
             throw new Error(message);
           }
         }
+
+        setIsProcessingVideo(false);
       }
+
+      const uploadedMedia: Array<{
+        provider: string;
+        bucket: string;
+        objectKey: string;
+        url: string;
+        mimeType: string;
+        sizeBytes: number;
+        width?: number;
+        height?: number;
+        durationMs?: number;
+      }> = mediaForUpload.map((media) => {
+        const uploaded = uploadedMediaById.get(media.id);
+        if (!uploaded) {
+          throw new Error("Uploaded media result was missing for one or more files.");
+        }
+
+        return uploaded;
+      });
 
       const hasImage = uploadedMedia.some((item) => item.mimeType.startsWith("image/"));
       const hasVideo = uploadedMedia.some((item) => item.mimeType.startsWith("video/"));
@@ -382,6 +521,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
     } finally {
       setIsCompressing(false);
       setIsUploading(false);
+      setIsProcessingVideo(false);
     }
   };
 
@@ -459,7 +599,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                     aria-label="Remove media"
                     className="absolute right-2 top-2 z-10 rounded-full bg-background/90 p-1 text-foreground shadow"
                     onClick={() => removeMedia(item.id)}
-                    disabled={isCompressing || isUploading || createPost.isPending}
+                    disabled={isCompressing || isUploading || isProcessingVideo || createPost.isPending}
                   >
                     <X className="size-3" />
                   </button>
@@ -479,7 +619,12 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                     </div>
                   )}
 
-                  {(isCompressing || isUploading || item.compressionProgress > 0 || item.uploadProgress > 0) &&
+                  {(isCompressing ||
+                    isUploading ||
+                    isProcessingVideo ||
+                    item.isVideoProcessing ||
+                    item.compressionProgress > 0 ||
+                    item.uploadProgress > 0) &&
                   selectedMedia.length > 0 ? (
                     <div className="border-border/80 border-t bg-background px-2 py-1.5">
                       {(isCompressing || item.compressionProgress > 0) && item.kind === "image" ? (
@@ -505,6 +650,10 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                           </div>
                         </div>
                       ) : null}
+
+                      {(isProcessingVideo || item.isVideoProcessing) && item.kind === "video" ? (
+                        <p className="text-[10px] text-muted-foreground">Processing video...</p>
+                      ) : null}
                     </div>
                   ) : null}
 
@@ -526,7 +675,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 size="sm"
                 className="rounded-2xl"
                 onClick={() => imageInputRef.current?.click()}
-                disabled={isCompressing || isUploading || createPost.isPending}
+                disabled={isCompressing || isUploading || isProcessingVideo || createPost.isPending}
               >
                 <ImagePlus className="size-4" />
                 Photo
@@ -537,7 +686,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 size="sm"
                 className="rounded-2xl"
                 onClick={() => videoInputRef.current?.click()}
-                disabled={isCompressing || isUploading || createPost.isPending}
+                disabled={isCompressing || isUploading || isProcessingVideo || createPost.isPending}
               >
                 <Video className="size-4" />
                 Video
@@ -555,6 +704,11 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 <>
                   <Loader className="size-4 animate-spin" />
                   Compressing...
+                </>
+              ) : isProcessingVideo ? (
+                <>
+                  <Loader className="size-4 animate-spin" />
+                  Processing video...
                 </>
               ) : isUploading ? (
                 <>

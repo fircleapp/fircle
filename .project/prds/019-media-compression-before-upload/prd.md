@@ -68,7 +68,7 @@ The implementation is phased to ship image compression first and then server-sid
 - [ ] Integrate compression into [src/components/feed/composer-entry.tsx](src/components/feed/composer-entry.tsx):
   - [x] Add `isCompressing` state.
   - [x] In `handlePublish`, compress selected image files before upload intent fetch.
-  - [ ] Route selected video files to server-side ingest path from Phase 2 (no client-side transcode).
+  - [x] Route selected video files to server-side ingest path from Phase 2 (no client-side transcode).
   - [x] Extend selected-media item shape with `compressionProgress`.
   - [x] Update per-item progress UI to reflect image compression, direct upload, and server video processing states.
   - [x] Send compressed image `mimeType` and `sizeBytes` in upload intent payload.
@@ -84,22 +84,22 @@ The implementation is phased to ship image compression first and then server-sid
 
 #### Tasks
 
-- [ ] Install server-side video tooling via `pnpm add fluent-ffmpeg ffmpeg-static`.
-- [ ] Add FFmpeg bootstrap utility (for example under `src/server/media/`) that wires `fluent-ffmpeg` to the `ffmpeg-static` binary path.
-- [ ] Add authenticated ingest endpoint for video uploads (for example [src/app/api/uploads/video/ingest/route.ts](src/app/api/uploads/video/ingest/route.ts)):
-  - [ ] Accept multipart video file input.
-  - [ ] Enforce allowed video MIME types and max input size limits.
-  - [ ] Write input to temporary server storage for processing.
-  - [ ] Transcode to MP4 (`video/mp4`) with H.264/AAC.
-  - [ ] Scale output to max 1280px width with preserved aspect ratio.
-  - [ ] Use `CRF 28` and `preset fast` defaults.
-  - [ ] Upload transcoded output to R2 through existing storage provider abstraction.
-  - [ ] Return canonical uploaded object metadata (`provider`, `bucket`, `objectKey`, `mimeType`, `sizeBytes`, optional width/height/duration).
-- [ ] Update composer publish flow in [src/components/feed/composer-entry.tsx](src/components/feed/composer-entry.tsx):
-  - [ ] For videos, call server ingest endpoint instead of direct signed-URL upload.
-  - [ ] Map ingest response into existing `post.create` media payload shape.
-  - [ ] Surface clear `Processing video...` and failure states.
-- [ ] Confirm endpoint uses Node runtime (not Edge runtime) where FFmpeg execution is supported.
+- [x] Install server-side video tooling via `pnpm add fluent-ffmpeg ffmpeg-static`.
+- [x] Add FFmpeg bootstrap utility (for example under `src/server/media/`) that wires `fluent-ffmpeg` to the `ffmpeg-static` binary path.
+- [x] Add authenticated ingest endpoint for video uploads (for example [src/app/api/uploads/video/ingest/route.ts](src/app/api/uploads/video/ingest/route.ts)):
+  - [x] Accept multipart video file input.
+  - [x] Enforce allowed video MIME types and max input size limits.
+  - [x] Write input to temporary server storage for processing.
+  - [x] Transcode to MP4 (`video/mp4`) with H.264/AAC.
+  - [x] Scale output to max 1280px width with preserved aspect ratio.
+  - [x] Use `CRF 28` and `preset fast` defaults.
+  - [x] Upload transcoded output to R2 through existing storage provider abstraction.
+  - [x] Return canonical uploaded object metadata (`provider`, `bucket`, `objectKey`, `mimeType`, `sizeBytes`, optional width/height/duration).
+- [x] Update composer publish flow in [src/components/feed/composer-entry.tsx](src/components/feed/composer-entry.tsx):
+  - [x] For videos, call server ingest endpoint instead of direct signed-URL upload.
+  - [x] Map ingest response into existing `post.create` media payload shape.
+  - [x] Surface clear `Processing video...` and failure states.
+- [x] Confirm endpoint uses Node runtime (not Edge runtime) where FFmpeg execution is supported.
 
 ### Phase 3: Validation, QA, and Hardening
 
