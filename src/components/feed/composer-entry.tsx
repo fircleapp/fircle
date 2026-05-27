@@ -46,6 +46,18 @@ type VideoIngestResponse = {
   };
 };
 
+type UploadedMediaPayload = {
+  provider: string;
+  bucket: string;
+  objectKey: string;
+  url: string;
+  mimeType: string;
+  sizeBytes: number;
+  width?: number;
+  height?: number;
+  durationMs?: number;
+};
+
 type SelectedMedia = {
   id: string;
   file: File;
@@ -55,6 +67,7 @@ type SelectedMedia = {
   uploadProgress: number;
   isVideoProcessing: boolean;
   uploadError: string | null;
+  uploadedMedia: UploadedMediaPayload | null;
 };
 
 const MAX_FILES_PER_POST = 10;
@@ -205,6 +218,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
         uploadProgress: 0,
         isVideoProcessing: false,
         uploadError: null,
+        uploadedMedia: null,
       }));
 
       return [...current, ...nextMedia];
@@ -234,17 +248,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
     try {
       const uploadedMediaById = new Map<
         string,
-        {
-          provider: string;
-          bucket: string;
-          objectKey: string;
-          url: string;
-          mimeType: string;
-          sizeBytes: number;
-          width?: number;
-          height?: number;
-          durationMs?: number;
-        }
+        UploadedMediaPayload
       >();
 
       const mediaForUpload: Array<{
@@ -266,6 +270,11 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
 
         for (let index = 0; index < selectedMedia.length; index++) {
           const media = selectedMedia[index]!;
+
+          if (media.uploadedMedia) {
+            uploadedMediaById.set(media.id, media.uploadedMedia);
+            continue;
+          }
 
           if (media.kind === "image") {
             try {
@@ -390,6 +399,25 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 mimeType: media.file.type,
                 sizeBytes: media.file.size,
               });
+
+              setSelectedMedia((current) =>
+                current.map((item) =>
+                  item.id === media.id
+                    ? {
+                        ...item,
+                        uploadProgress: 100,
+                        uploadedMedia: {
+                          provider: intent.object.provider,
+                          bucket: intent.object.bucket,
+                          objectKey: intent.object.objectKey,
+                          url: intent.readUrl,
+                          mimeType: media.file.type,
+                          sizeBytes: media.file.size,
+                        },
+                      }
+                    : item,
+                ),
+              );
             } catch (error) {
               logUploadError("Image upload failed", error);
               const friendlyMessage = getFriendlyUploadErrorMessage(
@@ -489,6 +517,17 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                       ...item,
                       isVideoProcessing: false,
                       uploadProgress: 100,
+                      uploadedMedia: {
+                        provider: ingestedMedia.provider,
+                        bucket: ingestedMedia.bucket,
+                        objectKey: ingestedMedia.objectKey,
+                        url: ingestedMedia.url,
+                        mimeType: ingestedMedia.mimeType,
+                        sizeBytes: ingestedMedia.sizeBytes,
+                        width: ingestedMedia.width,
+                        height: ingestedMedia.height,
+                        durationMs: ingestedMedia.durationMs,
+                      },
                     }
                   : item,
               ),
@@ -516,17 +555,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
         setIsProcessingVideo(false);
       }
 
-      const uploadedMedia: Array<{
-        provider: string;
-        bucket: string;
-        objectKey: string;
-        url: string;
-        mimeType: string;
-        sizeBytes: number;
-        width?: number;
-        height?: number;
-        durationMs?: number;
-      }> = mediaForUpload.map((media) => {
+      const uploadedMedia: UploadedMediaPayload[] = selectedMedia.map((media) => {
         const uploaded = uploadedMediaById.get(media.id);
         if (!uploaded) {
           throw new Error("Uploaded media result was missing for one or more files.");
@@ -640,6 +669,12 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                   >
                     <X className="size-3" />
                   </button>
+
+                  {item.uploadedMedia ? (
+                    <span className="absolute left-2 top-2 z-10 rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-medium text-white shadow">
+                      Uploaded
+                    </span>
+                  ) : null}
 
                   {item.kind === "video" ? (
                     <video src={item.previewUrl} className="h-28 w-full object-cover" muted playsInline />
