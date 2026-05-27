@@ -21,6 +21,8 @@ const ingestPayloadSchema = z.object({
   familyId: z.string().cuid(),
 });
 
+const MAX_TRANSCODED_UPLOAD_ATTEMPTS = 3;
+
 export const runtime = "nodejs";
 
 function jsonError(
@@ -83,6 +85,17 @@ function describeError(error: unknown): string {
   return parts.join(" | ");
 }
 
+function isRetryableUploadError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = describeError(error);
+  return /(UND_ERR_SOCKET|fetch failed|ECONNRESET|ETIMEDOUT|EPIPE|other side closed)/i.test(
+    message,
+  );
+}
+
 async function uploadTranscodedVideo(input: {
   objectKey: string;
   buffer: Buffer;
@@ -90,49 +103,61 @@ async function uploadTranscodedVideo(input: {
   const storage = getStorageProvider();
   const mimeType = "video/mp4";
 
-  const intent = await storage.signUpload({
-    objectKey: input.objectKey,
-    mimeType,
-    sizeBytes: input.buffer.byteLength,
-  });
+  let lastError: Error | null = null;
 
-  const uploadTarget = new URL(intent.uploadUrl);
-  const targetSummary = `${uploadTarget.origin}${uploadTarget.pathname}`;
-
-  let uploadResponse: Response;
-  try {
-    uploadResponse = await fetch(intent.uploadUrl, {
-      method: "PUT",
-      headers: intent.requiredHeaders,
-      body: input.buffer as unknown as BodyInit,
+  for (let attempt = 1; attempt <= MAX_TRANSCODED_UPLOAD_ATTEMPTS; attempt += 1) {
+    const intent = await storage.signUpload({
+      objectKey: input.objectKey,
+      mimeType,
+      sizeBytes: input.buffer.byteLength,
     });
-  } catch (error) {
-    throw new Error(
-      `Transcoded video upload request failed for ${targetSummary}. ${describeError(error)}`,
-      {
-        cause: error instanceof Error ? error : undefined,
-      },
-    );
+
+    const uploadTarget = new URL(intent.uploadUrl);
+    const targetSummary = `${uploadTarget.origin}${uploadTarget.pathname}`;
+
+    try {
+      const uploadResponse = await fetch(intent.uploadUrl, {
+        method: "PUT",
+        headers: intent.requiredHeaders,
+        body: input.buffer as unknown as BodyInit,
+      });
+
+      if (!uploadResponse.ok) {
+        const responseBody = await uploadResponse.text().catch(() => "");
+        const bodySnippet = responseBody.trim().slice(0, 300);
+        throw new Error(
+          `Transcoded video upload failed for ${targetSummary} with status ${uploadResponse.status}${
+            bodySnippet ? ` body=${bodySnippet}` : ""
+          }`,
+        );
+      }
+
+      return {
+        provider: intent.object.provider,
+        bucket: intent.object.bucket,
+        objectKey: intent.object.objectKey,
+        url: intent.readUrl,
+        mimeType,
+        sizeBytes: input.buffer.byteLength,
+      };
+    } catch (error) {
+      const wrappedError = new Error(
+        `Transcoded video upload request failed for ${targetSummary} on attempt ${attempt}/${MAX_TRANSCODED_UPLOAD_ATTEMPTS}. ${describeError(
+          error,
+        )}`,
+        {
+          cause: error instanceof Error ? error : undefined,
+        },
+      );
+
+      lastError = wrappedError;
+      if (attempt === MAX_TRANSCODED_UPLOAD_ATTEMPTS || !isRetryableUploadError(error)) {
+        throw wrappedError;
+      }
+    }
   }
 
-  if (!uploadResponse.ok) {
-    const responseBody = await uploadResponse.text().catch(() => "");
-    const bodySnippet = responseBody.trim().slice(0, 300);
-    throw new Error(
-      `Transcoded video upload failed for ${targetSummary} with status ${uploadResponse.status}${
-        bodySnippet ? ` body=${bodySnippet}` : ""
-      }`,
-    );
-  }
-
-  return {
-    provider: intent.object.provider,
-    bucket: intent.object.bucket,
-    objectKey: intent.object.objectKey,
-    url: intent.readUrl,
-    mimeType,
-    sizeBytes: input.buffer.byteLength,
-  };
+  throw lastError ?? new Error("Transcoded video upload failed before any upload attempt completed.");
 }
 
 export async function POST(request: NextRequest) {
