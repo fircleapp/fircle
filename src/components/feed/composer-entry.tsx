@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { canPublishComposerPost } from "~/components/feed/post-composer-logic";
-import { compressImage, shouldUseServerVideoCompression } from "~/lib/media-compression";
+import { compressImage, resolveMediaMimeType, shouldUseServerVideoCompression } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 export type ComposerOpenMode = "photo" | "video";
@@ -63,6 +63,8 @@ type SelectedMedia = {
   file: File;
   previewUrl: string;
   kind: "image" | "video";
+  resolvedMimeType: string;
+  previewFailed: boolean;
   compressionProgress: number;
   uploadProgress: number;
   isVideoProcessing: boolean;
@@ -209,17 +211,23 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
         setPublishError(`Only ${MAX_FILES_PER_POST} files are allowed per post.`);
       }
 
-      const nextMedia = nextFiles.map((file) => ({
-        id: crypto.randomUUID(),
-        file,
-        previewUrl: URL.createObjectURL(file),
-        kind: file.type.startsWith("video/") ? ("video" as const) : ("image" as const),
-        compressionProgress: 0,
-        uploadProgress: 0,
-        isVideoProcessing: false,
-        uploadError: null,
-        uploadedMedia: null,
-      }));
+      const nextMedia = nextFiles.map((file) => {
+        const resolvedMimeType = resolveMediaMimeType(file);
+
+        return {
+          id: crypto.randomUUID(),
+          file,
+          previewUrl: URL.createObjectURL(file),
+          kind: resolvedMimeType.startsWith("video/") ? ("video" as const) : ("image" as const),
+          resolvedMimeType,
+          previewFailed: false,
+          compressionProgress: 0,
+          uploadProgress: 0,
+          isVideoProcessing: false,
+          uploadError: null,
+          uploadedMedia: null,
+        };
+      });
 
       return [...current, ...nextMedia];
     });
@@ -339,7 +347,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
 
           const filesPayload = imagesForUpload.map((item) => ({
             fileName: item.file.name,
-            mimeType: item.file.type,
+            mimeType: resolveMediaMimeType(item.file),
             sizeBytes: item.file.size,
           }));
 
@@ -396,7 +404,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 bucket: intent.object.bucket,
                 objectKey: intent.object.objectKey,
                 url: intent.readUrl,
-                mimeType: media.file.type,
+                mimeType: resolveMediaMimeType(media.file),
                 sizeBytes: media.file.size,
               });
 
@@ -411,7 +419,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                           bucket: intent.object.bucket,
                           objectKey: intent.object.objectKey,
                           url: intent.readUrl,
-                          mimeType: media.file.type,
+                          mimeType: resolveMediaMimeType(media.file),
                           sizeBytes: media.file.size,
                         },
                       }
@@ -678,6 +686,10 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
 
                   {item.kind === "video" ? (
                     <video src={item.previewUrl} className="h-28 w-full object-cover" muted playsInline />
+                  ) : item.previewFailed ? (
+                    <div className="flex h-28 w-full items-center justify-center bg-muted px-2 text-center text-[11px] text-muted-foreground">
+                      Preview unavailable for this image format.
+                    </div>
                   ) : (
                     <div className="relative h-28 w-full">
                       <Image
@@ -687,6 +699,18 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                         unoptimized
                         sizes="(max-width: 640px) 50vw, 33vw"
                         className="object-cover"
+                        onError={() => {
+                          setSelectedMedia((current) =>
+                            current.map((media) =>
+                              media.id === item.id
+                                ? {
+                                    ...media,
+                                    previewFailed: true,
+                                  }
+                                : media,
+                            ),
+                          );
+                        }}
                       />
                     </div>
                   )}
