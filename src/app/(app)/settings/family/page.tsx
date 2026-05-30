@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
-import { compressImage } from "~/lib/media-compression";
+import { compressImage, createPreviewUrl } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -147,7 +147,7 @@ export default function FamilySettingsPage() {
     };
   }, [selectedImagePreviewUrl]);
 
-  function handleImageSelected(file: File | null) {
+  async function handleImageSelected(file: File | null) {
     if (!file) {
       return;
     }
@@ -170,7 +170,7 @@ export default function FamilySettingsPage() {
     }
 
     setSelectedFamilyImageFile(file);
-    setSelectedImagePreviewUrl(URL.createObjectURL(file));
+    setSelectedImagePreviewUrl(await createPreviewUrl(file));
     setUploadProgress(0);
   }
 

@@ -8,6 +8,7 @@ import { Button } from "~/components/ui/button";
 import { AlertCircle, ArrowRight, Camera, Loader, Security, User } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
+import { createPreviewUrl } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -205,7 +206,7 @@ export default function AccountSettingsPage() {
   const profilePreviewName = profileName.trim().length > 0 ? profileName : (myMemberProfile.data?.name ?? "Member");
   const profileInitials = useMemo(() => getInitials(profilePreviewName), [profilePreviewName]);
 
-  function handleAvatarSelected(file: File | null) {
+  async function handleAvatarSelected(file: File | null) {
     if (!file) {
       return;
     }
@@ -228,7 +229,7 @@ export default function AccountSettingsPage() {
     }
 
     setSelectedAvatarFile(file);
-    setSelectedAvatarPreviewUrl(URL.createObjectURL(file));
+    setSelectedAvatarPreviewUrl(await createPreviewUrl(file));
     setUploadProgress(0);
   }
 

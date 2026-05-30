@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { beginNavigationProgress } from "~/components/nav/navigation-progress";
+import { createPreviewUrl } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -111,7 +112,7 @@ export default function AddMemberPage() {
   const createMember = api.familyMember.createUnclaimedMember.useMutation();
   const updateMemberProfile = api.familyMember.updateMemberProfile.useMutation();
 
-  const handleAvatarSelected = (file: File | null) => {
+  const handleAvatarSelected = async (file: File | null) => {
     if (!file) return;
     setFormError(null);
 
@@ -130,7 +131,7 @@ export default function AddMemberPage() {
     }
 
     setSelectedAvatarFile(file);
-    setSelectedAvatarPreviewUrl(URL.createObjectURL(file));
+    setSelectedAvatarPreviewUrl(await createPreviewUrl(file));
     setUploadProgress(0);
   };
 

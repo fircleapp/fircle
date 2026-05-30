@@ -19,6 +19,7 @@ import {
   type MentionableMember,
 } from "~/components/feed/mention-helpers";
 import { MentionSuggestionsPopover } from "~/components/feed/mention-suggestions-popover";
+import { createPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
 
 type UploadIntentItem = {
   provider: string;
@@ -248,7 +249,7 @@ export function PostComposerDialog({
     resetComposer();
   };
 
-  const addFiles = (files: File[]) => {
+  const addFiles = async (files: File[]) => {
     if (files.length === 0) {
       return;
     }
@@ -256,28 +257,35 @@ export function PostComposerDialog({
     setPublishError(null);
     setPublishSuccess(null);
 
+    const currentMediaCount = selectedMediaRef.current.length;
+    if (currentMediaCount >= MAX_FILES_PER_POST) {
+      setPublishError(`You can upload up to ${MAX_FILES_PER_POST} files per post.`);
+      return;
+    }
+
+    const remainingSlots = MAX_FILES_PER_POST - currentMediaCount;
+    const nextFiles = files.slice(0, remainingSlots);
+    if (nextFiles.length < files.length) {
+      setPublishError(`Only ${MAX_FILES_PER_POST} files are allowed per post.`);
+    }
+
+    const nextMedia = await Promise.all(
+      nextFiles.map(async (file) => {
+        const resolvedMimeType = resolveMediaMimeType(file);
+
+        return {
+          id: crypto.randomUUID(),
+          file,
+          previewUrl: await createPreviewUrl(file),
+          kind: resolvedMimeType.startsWith("video/") ? ("video" as const) : ("image" as const),
+          caption: "",
+          uploadProgress: 0,
+          uploadError: null,
+        };
+      }),
+    );
+
     setSelectedMedia((current) => {
-      if (current.length >= MAX_FILES_PER_POST) {
-        setPublishError(`You can upload up to ${MAX_FILES_PER_POST} files per post.`);
-        return current;
-      }
-
-      const remainingSlots = MAX_FILES_PER_POST - current.length;
-      const nextFiles = files.slice(0, remainingSlots);
-      if (nextFiles.length < files.length) {
-        setPublishError(`Only ${MAX_FILES_PER_POST} files are allowed per post.`);
-      }
-
-      const nextMedia = nextFiles.map((file) => ({
-        id: crypto.randomUUID(),
-        file,
-        previewUrl: URL.createObjectURL(file),
-        kind: file.type.startsWith("video/") ? ("video" as const) : ("image" as const),
-        caption: "",
-        uploadProgress: 0,
-        uploadError: null,
-      }));
-
       return [...current, ...nextMedia];
     });
   };
@@ -486,7 +494,7 @@ export function PostComposerDialog({
             multiple
             className="hidden"
             onChange={(event) => {
-              addFiles(Array.from(event.currentTarget.files ?? []));
+              void addFiles(Array.from(event.currentTarget.files ?? []));
               event.currentTarget.value = "";
             }}
           />
@@ -497,7 +505,7 @@ export function PostComposerDialog({
             multiple
             className="hidden"
             onChange={(event) => {
-              addFiles(Array.from(event.currentTarget.files ?? []));
+              void addFiles(Array.from(event.currentTarget.files ?? []));
               event.currentTarget.value = "";
             }}
           />

@@ -3,6 +3,7 @@ import heic2any from "heic2any";
 
 const IMAGE_MAX_DIMENSION = 2048;
 const IMAGE_QUALITY = 0.85;
+const IMAGE_PREVIEW_QUALITY = 0.5;
 const MIME_BY_EXTENSION: Record<string, string> = {
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
@@ -78,6 +79,30 @@ export async function compressImage(
     type: "image/webp",
     lastModified: Date.now(),
   });
+}
+
+export async function createPreviewUrl(file: File): Promise<string> {
+  const resolvedMimeType = resolveMediaMimeType(file);
+  if (resolvedMimeType !== "image/heic" && resolvedMimeType !== "image/heif") {
+    return URL.createObjectURL(file);
+  }
+
+  try {
+    const converted = await heic2any({
+      blob: file,
+      toType: "image/jpeg",
+      quality: IMAGE_PREVIEW_QUALITY,
+    });
+
+    const previewBlob = Array.isArray(converted) ? converted[0] : converted;
+    if (!(previewBlob instanceof Blob)) {
+      return URL.createObjectURL(file);
+    }
+
+    return URL.createObjectURL(previewBlob);
+  } catch {
+    return URL.createObjectURL(file);
+  }
 }
 
 export function shouldUseServerVideoCompression(file: File) {

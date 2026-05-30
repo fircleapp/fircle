@@ -7,7 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Camera, Loader, User, X } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
-import { compressImage } from "~/lib/media-compression";
+import { compressImage, createPreviewUrl } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type EditProfileDialogProps = {
@@ -177,7 +177,7 @@ export function EditProfileDialog({
     setOpen(false);
   };
 
-  const handleAvatarSelected = (file: File | null) => {
+  const handleAvatarSelected = async (file: File | null) => {
     if (!file) {
       return;
     }
@@ -199,7 +199,7 @@ export function EditProfileDialog({
     }
 
     setSelectedAvatarFile(file);
-    setSelectedAvatarPreviewUrl(URL.createObjectURL(file));
+    setSelectedAvatarPreviewUrl(await createPreviewUrl(file));
     setUploadProgress(0);
   };
 

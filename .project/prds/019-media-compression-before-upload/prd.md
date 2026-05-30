@@ -37,6 +37,7 @@ The implementation is phased to ship image compression first and then server-sid
 ### Design Decisions
 
 - **Compression timing is publish/save-time**: Compress only when user confirms submit, not at file-selection time, to avoid complex dual-state handling (original + compressed files) in picker UI.
+- **HEIC preview compatibility at selection-time**: For browser previews only, detect HEIC/HEIF files and convert to a browser-displayable image via `heic2any` before creating preview object URLs.
 - **Image defaults prioritize quality and practical limits**: Max dimension 2048px with WebP output quality target of 85%.
 - **HEIC/HEIF normalization**: Convert HEIC/HEIF to WebP output for consistent rendering and improved compression efficiency.
 - **Image output contract**: Default all compressed image uploads to `image/webp` across composer, avatar, and family image flows.
@@ -49,6 +50,7 @@ The implementation is phased to ship image compression first and then server-sid
 
 - **As a** family member publishing a post, **I want** images and videos compressed automatically before upload, **so that** uploads are faster and less likely to fail on poor networks.
 - **As a** family member uploading HEIC photos, **I want** them converted to WebP automatically, **so that** media remains efficient to store and fast to load.
+- **As a** family member selecting a HEIC photo, **I want** to see an immediate thumbnail preview in the browser, **so that** I can confirm the chosen image before publishing or saving.
 - **As a** member updating my avatar or family image, **I want** client-side compression to happen transparently, **so that** I get quicker saves without extra steps.
 - **As a** maintainer, **I want** one shared compression utility used by all upload surfaces, **so that** behavior and defaults remain consistent.
 
@@ -65,7 +67,8 @@ The implementation is phased to ship image compression first and then server-sid
   - [x] `compressImage(file): Promise<File>` using max 2048px and 85% quality.
   - [x] HEIC/HEIF input normalization to WebP output (`image/webp`).
   - [x] `shouldUseServerVideoCompression(file): boolean` helper (or equivalent) used by composer publish flow.
-- [ ] Integrate compression into [src/components/feed/composer-entry.tsx](src/components/feed/composer-entry.tsx):
+  - [x] `createPreviewUrl(file): Promise<string>` helper that detects HEIC/HEIF and uses `heic2any` to produce browser-compatible preview object URLs.
+- [x] Integrate compression into [src/components/feed/composer-entry.tsx](src/components/feed/composer-entry.tsx):
   - [x] Add `isCompressing` state.
   - [x] In `handlePublish`, compress selected image files before upload intent fetch.
   - [x] Route selected video files to server-side ingest path from Phase 2 (no client-side transcode).
@@ -73,10 +76,13 @@ The implementation is phased to ship image compression first and then server-sid
   - [x] Update per-item progress UI to reflect image compression, direct upload, and server video processing states.
   - [x] Send compressed image `mimeType` and `sizeBytes` in upload intent payload.
   - [x] Add button-state handling for `Compressing...` alongside existing `Uploading...`.
+  - [x] Use `createPreviewUrl` for selected image previews so HEIC/HEIF selections render correctly in-browser.
 - [x] Integrate into [src/components/members/edit-profile-dialog.tsx](src/components/members/edit-profile-dialog.tsx):
   - [x] Compress `selectedAvatarFile` in `handleSave` before upload intent/upload.
+  - [x] Use `createPreviewUrl` so selected HEIC/HEIF avatars render preview before save.
 - [x] Integrate into [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx):
   - [x] Compress `selectedFamilyImageFile` in `handleSave` before upload intent/upload.
+  - [x] Use `createPreviewUrl` so selected HEIC/HEIF family images render preview before save.
 
 ### Phase 2: Server-Side Video Compression Pipeline
 
@@ -110,8 +116,10 @@ The implementation is phased to ship image compression first and then server-sid
 - [ ] Manual verification checklist:
   - [ ] Upload a large JPEG/PNG from composer and confirm R2 object size reduction after WebP conversion.
   - [ ] Upload a HEIC photo and confirm stored MIME is `image/webp` and render is correct.
+  - [ ] Select a HEIC/HEIF image in composer and confirm preview renders before publish.
   - [ ] Upload a video and confirm server-side MP4 transcode and successful publish.
   - [ ] Upload avatar and family image and confirm pre-upload compression behavior.
+  - [ ] Select HEIC/HEIF files for avatar and family image and confirm previews render before save.
 - [ ] Run project tests with `pnpm test` and resolve any regressions.
 - [ ] Validate user-facing failure behavior:
   - [ ] Image compression and server video processing failures surface actionable errors and block publish/save safely.
@@ -122,6 +130,7 @@ The implementation is phased to ship image compression first and then server-sid
 
 - [ ] All three upload surfaces use shared client-side image compression before upload intent requests.
 - [ ] HEIC/HEIF image inputs are converted to WebP outputs prior to upload.
+- [ ] HEIC/HEIF files are preview-detectable and browser-preview compatible on all active upload surfaces by using `heic2any` conversion for preview URLs.
 - [ ] Composer visibly represents compression/upload/processing phases, including `Compressing...` and video processing action states.
 - [ ] Upload intent metadata (`mimeType`, `sizeBytes`) reflects compressed outputs, not originals.
 - [ ] Compressed image uploads persist with `image/webp` MIME across composer, avatar, and family image surfaces.

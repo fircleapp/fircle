@@ -7,7 +7,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { canPublishComposerPost } from "~/components/feed/post-composer-logic";
-import { compressImage, resolveMediaMimeType, shouldUseServerVideoCompression } from "~/lib/media-compression";
+import {
+  compressImage,
+  createPreviewUrl,
+  resolveMediaMimeType,
+  shouldUseServerVideoCompression,
+} from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 export type ComposerOpenMode = "photo" | "video";
@@ -192,32 +197,33 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
     };
   }, [revokeObjectUrls]);
 
-  const addFiles = (files: File[]) => {
+  const addFiles = async (files: File[]) => {
     if (files.length === 0) {
       return;
     }
 
     setPublishError(null);
 
-    setSelectedMedia((current) => {
-      if (current.length >= MAX_FILES_PER_POST) {
-        setPublishError(`You can upload up to ${MAX_FILES_PER_POST} files per post.`);
-        return current;
-      }
+    const currentMediaCount = selectedMediaRef.current.length;
+    if (currentMediaCount >= MAX_FILES_PER_POST) {
+      setPublishError(`You can upload up to ${MAX_FILES_PER_POST} files per post.`);
+      return;
+    }
 
-      const remainingSlots = MAX_FILES_PER_POST - current.length;
-      const nextFiles = files.slice(0, remainingSlots);
-      if (nextFiles.length < files.length) {
-        setPublishError(`Only ${MAX_FILES_PER_POST} files are allowed per post.`);
-      }
+    const remainingSlots = MAX_FILES_PER_POST - currentMediaCount;
+    const nextFiles = files.slice(0, remainingSlots);
+    if (nextFiles.length < files.length) {
+      setPublishError(`Only ${MAX_FILES_PER_POST} files are allowed per post.`);
+    }
 
-      const nextMedia = nextFiles.map((file) => {
+    const nextMedia = await Promise.all(
+      nextFiles.map(async (file) => {
         const resolvedMimeType = resolveMediaMimeType(file);
 
         return {
           id: crypto.randomUUID(),
           file,
-          previewUrl: URL.createObjectURL(file),
+          previewUrl: await createPreviewUrl(file),
           kind: resolvedMimeType.startsWith("video/") ? ("video" as const) : ("image" as const),
           resolvedMimeType,
           previewFailed: false,
@@ -227,8 +233,10 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
           uploadError: null,
           uploadedMedia: null,
         };
-      });
+      }),
+    );
 
+    setSelectedMedia((current) => {
       return [...current, ...nextMedia];
     });
   };
@@ -617,7 +625,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
             multiple
             className="hidden"
             onChange={(event) => {
-              addFiles(Array.from(event.currentTarget.files ?? []));
+              void addFiles(Array.from(event.currentTarget.files ?? []));
               event.currentTarget.value = "";
             }}
           />
@@ -628,7 +636,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
             multiple
             className="hidden"
             onChange={(event) => {
-              addFiles(Array.from(event.currentTarget.files ?? []));
+              void addFiles(Array.from(event.currentTarget.files ?? []));
               event.currentTarget.value = "";
             }}
           />
