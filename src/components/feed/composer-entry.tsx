@@ -7,6 +7,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { canPublishComposerPost } from "~/components/feed/post-composer-logic";
+import {
+  compressImage,
+  createInstantPreviewUrl,
+  resolveMediaMimeType,
+  shouldUseServerVideoCompression,
+} from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 export type ComposerOpenMode = "photo" | "video";
@@ -23,13 +29,53 @@ type UploadIntentItem = {
   readUrl: string;
 };
 
+type VideoIngestedMedia = {
+  provider: string;
+  bucket: string;
+  objectKey: string;
+  url: string;
+  mimeType: string;
+  sizeBytes: number;
+  width?: number;
+  height?: number;
+  durationMs?: number;
+};
+
+type VideoIngestResponse = {
+  media?: VideoIngestedMedia;
+  error?: {
+    message?: string;
+    details?: {
+      message?: string;
+    };
+  };
+};
+
+type UploadedMediaPayload = {
+  provider: string;
+  bucket: string;
+  objectKey: string;
+  url: string;
+  mimeType: string;
+  sizeBytes: number;
+  width?: number;
+  height?: number;
+  durationMs?: number;
+};
+
 type SelectedMedia = {
   id: string;
   file: File;
   previewUrl: string;
   kind: "image" | "video";
+  resolvedMimeType: string;
+  isPreviewConversionPending: boolean;
+  previewFailed: boolean;
+  compressionProgress: number;
   uploadProgress: number;
+  isVideoProcessing: boolean;
   uploadError: string | null;
+  uploadedMedia: UploadedMediaPayload | null;
 };
 
 const MAX_FILES_PER_POST = 10;
@@ -42,11 +88,12 @@ type ComposerEntryProps = {
   familyId?: string;
 };
 
-function getUploadErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  return "Upload failed. Please try again.";
+function logUploadError(context: string, error: unknown) {
+  console.error(`[ComposerEntry] ${context}`, error);
+}
+
+function getFriendlyUploadErrorMessage(fallback: string) {
+  return fallback;
 }
 
 function uploadFileWithProgress(
@@ -104,7 +151,9 @@ function getInitials(name: string) {
 export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
   const [caption, setCaption] = useState("");
   const [isTextareaExpanded, setIsTextareaExpanded] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [publishError, setPublishError] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -119,10 +168,18 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
         familyId,
         caption,
         selectedMedia,
-        isUploading,
+        isUploading: isUploading || isCompressing || isProcessingVideo,
         isPending: createPost.isPending,
       }),
-    [caption, createPost.isPending, familyId, isUploading, selectedMedia],
+    [
+      caption,
+      createPost.isPending,
+      familyId,
+      isCompressing,
+      isProcessingVideo,
+      isUploading,
+      selectedMedia,
+    ],
   );
 
   const revokeObjectUrls = useCallback((media: SelectedMedia[]) => {
@@ -148,27 +205,75 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
 
     setPublishError(null);
 
+    const currentMediaCount = selectedMediaRef.current.length;
+    if (currentMediaCount >= MAX_FILES_PER_POST) {
+      setPublishError(`You can upload up to ${MAX_FILES_PER_POST} files per post.`);
+      return;
+    }
+
+    const remainingSlots = MAX_FILES_PER_POST - currentMediaCount;
+    const nextFiles = files.slice(0, remainingSlots);
+    if (nextFiles.length < files.length) {
+      setPublishError(`Only ${MAX_FILES_PER_POST} files are allowed per post.`);
+    }
+
+    const nextMedia = nextFiles.map((file) => {
+        const resolvedMimeType = resolveMediaMimeType(file);
+        const id = crypto.randomUUID();
+      const isHeicPreview = resolvedMimeType === "image/heic" || resolvedMimeType === "image/heif";
+        const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
+          setSelectedMedia((current) => {
+            const target = current.find((item) => item.id === id);
+            if (!target) {
+              URL.revokeObjectURL(upgradedPreviewUrl);
+              return current;
+            }
+
+            return current.map((item) => {
+              if (item.id !== id) {
+                return item;
+              }
+
+              URL.revokeObjectURL(item.previewUrl);
+              return {
+                ...item,
+                previewUrl: upgradedPreviewUrl,
+                isPreviewConversionPending: false,
+                previewFailed: false,
+              };
+            });
+          });
+        }, () => {
+          setSelectedMedia((current) =>
+            current.map((item) =>
+              item.id === id
+                ? {
+                    ...item,
+                    isPreviewConversionPending: false,
+                    previewFailed: true,
+                  }
+                : item,
+            ),
+          );
+        });
+
+        return {
+          id,
+          file,
+          previewUrl,
+          kind: resolvedMimeType.startsWith("video/") ? ("video" as const) : ("image" as const),
+          resolvedMimeType,
+          isPreviewConversionPending: isHeicPreview,
+          previewFailed: false,
+          compressionProgress: 0,
+          uploadProgress: 0,
+          isVideoProcessing: false,
+          uploadError: null,
+          uploadedMedia: null,
+        };
+      });
+
     setSelectedMedia((current) => {
-      if (current.length >= MAX_FILES_PER_POST) {
-        setPublishError(`You can upload up to ${MAX_FILES_PER_POST} files per post.`);
-        return current;
-      }
-
-      const remainingSlots = MAX_FILES_PER_POST - current.length;
-      const nextFiles = files.slice(0, remainingSlots);
-      if (nextFiles.length < files.length) {
-        setPublishError(`Only ${MAX_FILES_PER_POST} files are allowed per post.`);
-      }
-
-      const nextMedia = nextFiles.map((file) => ({
-        id: crypto.randomUUID(),
-        file,
-        previewUrl: URL.createObjectURL(file),
-        kind: file.type.startsWith("video/") ? ("video" as const) : ("image" as const),
-        uploadProgress: 0,
-        uploadError: null,
-      }));
-
       return [...current, ...nextMedia];
     });
   };
@@ -184,102 +289,333 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
   };
 
   const handlePublish = async () => {
-    if (!familyId || !canPublish || isUploading || createPost.isPending) {
+    if (!familyId || !canPublish || isCompressing || isUploading || isProcessingVideo || createPost.isPending) {
       return;
     }
 
     setPublishError(null);
-    setIsUploading(selectedMedia.length > 0);
+    setIsCompressing(selectedMedia.some((item) => item.kind === "image"));
+    setIsUploading(false);
+    setIsProcessingVideo(false);
 
     try {
-      const uploadedMedia: Array<{
-        provider: string;
-        bucket: string;
-        objectKey: string;
-        url: string;
-        mimeType: string;
-        sizeBytes: number;
+      const uploadedMediaById = new Map<
+        string,
+        UploadedMediaPayload
+      >();
+
+      const mediaForUpload: Array<{
+        id: string;
+        kind: "image" | "video";
+        file: File;
       }> = [];
 
       if (selectedMedia.length > 0) {
-        const filesPayload = selectedMedia.map((item) => ({
-          fileName: item.file.name,
-          mimeType: item.file.type,
-          sizeBytes: item.file.size,
-        }));
-
-        const intentsResponse = await fetch("/api/uploads/intent", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            familyId,
-            files: filesPayload,
-          }),
-        });
-
-        const intentBody = (await intentsResponse.json()) as {
-          intents?: UploadIntentItem[];
-          error?: { message?: string };
-        };
-
-        if (!intentsResponse.ok || !intentBody.intents) {
-          throw new Error(intentBody.error?.message ?? "Failed to create upload intents.");
-        }
-
-        if (intentBody.intents.length !== selectedMedia.length) {
-          throw new Error("Upload intent count does not match selected files.");
-        }
+        setSelectedMedia((current) =>
+          current.map((item) => ({
+            ...item,
+            compressionProgress: 0,
+            uploadProgress: 0,
+            isVideoProcessing: false,
+            uploadError: null,
+          })),
+        );
 
         for (let index = 0; index < selectedMedia.length; index++) {
           const media = selectedMedia[index]!;
-          const intent = intentBody.intents[index]!;
 
-          try {
-            await uploadFileWithProgress(
-              intent.uploadUrl,
-              media.file,
-              intent.requiredHeaders,
-              (progress) => {
+          if (media.uploadedMedia) {
+            uploadedMediaById.set(media.id, media.uploadedMedia);
+            continue;
+          }
+
+          if (media.kind === "image") {
+            try {
+              const compressedFile = await compressImage(media.file, (progress) => {
                 setSelectedMedia((current) =>
                   current.map((item, itemIndex) =>
                     itemIndex === index
                       ? {
                           ...item,
-                          uploadProgress: progress,
+                          compressionProgress: progress,
                           uploadError: null,
                         }
                       : item,
                   ),
                 );
-              },
-            );
+              });
 
-            uploadedMedia.push({
-              provider: intent.object.provider,
-              bucket: intent.object.bucket,
-              objectKey: intent.object.objectKey,
-              url: intent.readUrl,
-              mimeType: media.file.type,
-              sizeBytes: media.file.size,
+              mediaForUpload.push({
+                id: media.id,
+                kind: media.kind,
+                file: compressedFile,
+              });
+            } catch (error) {
+              logUploadError("Image compression failed", error);
+              const message = getFriendlyUploadErrorMessage("Image processing failed. Please try again.");
+              setSelectedMedia((current) =>
+                current.map((item, itemIndex) =>
+                  itemIndex === index
+                    ? {
+                        ...item,
+                        uploadError: message,
+                      }
+                    : item,
+                ),
+              );
+              throw new Error(message);
+            }
+            continue;
+          }
+
+          if (shouldUseServerVideoCompression(media.file)) {
+            mediaForUpload.push({
+              id: media.id,
+              kind: media.kind,
+              file: media.file,
             });
-          } catch (error) {
-            const message = getUploadErrorMessage(error);
+            continue;
+          }
+
+          mediaForUpload.push({
+            id: media.id,
+            kind: media.kind,
+            file: media.file,
+          });
+        }
+
+        setIsCompressing(false);
+
+        const imagesForUpload = mediaForUpload.filter((item) => item.kind === "image");
+        if (imagesForUpload.length > 0) {
+          setIsUploading(true);
+
+          const filesPayload = imagesForUpload.map((item) => ({
+            fileName: item.file.name,
+            mimeType: resolveMediaMimeType(item.file),
+            sizeBytes: item.file.size,
+          }));
+
+          const intentsResponse = await fetch("/api/uploads/intent", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              familyId,
+              files: filesPayload,
+            }),
+          });
+
+          const intentBody = (await intentsResponse.json()) as {
+            intents?: UploadIntentItem[];
+            error?: { message?: string };
+          };
+
+          if (!intentsResponse.ok || !intentBody.intents) {
+            throw new Error(intentBody.error?.message ?? "Failed to create upload intents.");
+          }
+
+          if (intentBody.intents.length !== imagesForUpload.length) {
+            throw new Error("Upload intent count does not match selected image files.");
+          }
+
+          for (let index = 0; index < imagesForUpload.length; index++) {
+            const media = imagesForUpload[index]!;
+            const intent = intentBody.intents[index]!;
+
+            try {
+              await uploadFileWithProgress(
+                intent.uploadUrl,
+                media.file,
+                intent.requiredHeaders,
+                (progress) => {
+                  setSelectedMedia((current) =>
+                    current.map((item) =>
+                      item.id === media.id
+                        ? {
+                            ...item,
+                            uploadProgress: progress,
+                            uploadError: null,
+                          }
+                        : item,
+                    ),
+                  );
+                },
+              );
+
+              uploadedMediaById.set(media.id, {
+                provider: intent.object.provider,
+                bucket: intent.object.bucket,
+                objectKey: intent.object.objectKey,
+                url: intent.readUrl,
+                mimeType: resolveMediaMimeType(media.file),
+                sizeBytes: media.file.size,
+              });
+
+              setSelectedMedia((current) =>
+                current.map((item) =>
+                  item.id === media.id
+                    ? {
+                        ...item,
+                        uploadProgress: 100,
+                        uploadedMedia: {
+                          provider: intent.object.provider,
+                          bucket: intent.object.bucket,
+                          objectKey: intent.object.objectKey,
+                          url: intent.readUrl,
+                          mimeType: resolveMediaMimeType(media.file),
+                          sizeBytes: media.file.size,
+                        },
+                      }
+                    : item,
+                ),
+              );
+            } catch (error) {
+              logUploadError("Image upload failed", error);
+              const friendlyMessage = getFriendlyUploadErrorMessage(
+                "Image upload failed. Please try again.",
+              );
+              setSelectedMedia((current) =>
+                current.map((item) =>
+                  item.id === media.id
+                    ? {
+                        ...item,
+                        uploadError: friendlyMessage,
+                      }
+                    : item,
+                ),
+              );
+              throw new Error(friendlyMessage);
+            }
+          }
+        }
+
+        setIsUploading(false);
+
+        const videosForProcessing = mediaForUpload.filter(
+          (item) => item.kind === "video" && shouldUseServerVideoCompression(item.file),
+        );
+
+        if (videosForProcessing.length > 0) {
+          setIsProcessingVideo(true);
+        }
+
+        for (const media of videosForProcessing) {
+          try {
             setSelectedMedia((current) =>
-              current.map((item, itemIndex) =>
-                itemIndex === index
+              current.map((item) =>
+                item.id === media.id
                   ? {
                       ...item,
-                      uploadError: message,
+                      isVideoProcessing: true,
+                      uploadError: null,
                     }
                   : item,
               ),
             );
-            throw new Error(message);
+
+            const formData = new FormData();
+            formData.set("familyId", familyId);
+            formData.set("file", media.file, media.file.name);
+
+            const ingestResponse = await fetch("/api/uploads/video/ingest", {
+              method: "POST",
+              body: formData,
+            });
+
+            const ingestRaw = await ingestResponse.text();
+            const ingestBody: VideoIngestResponse | null = (() => {
+              if (!ingestRaw) {
+                return null;
+              }
+
+              try {
+                return JSON.parse(ingestRaw) as VideoIngestResponse;
+              } catch {
+                return null;
+              }
+            })();
+
+            if (!ingestResponse.ok || !ingestBody?.media) {
+              const detailedMessage = ingestBody?.error?.details?.message;
+              const apiMessage = ingestBody?.error?.message;
+              const fallbackMessage = ingestRaw && !ingestBody ? ingestRaw : undefined;
+              throw new Error(
+                detailedMessage ??
+                  apiMessage ??
+                  fallbackMessage ??
+                  `Video processing failed (status ${ingestResponse.status}).`,
+              );
+            }
+
+            const ingestedMedia = ingestBody.media;
+
+            uploadedMediaById.set(media.id, {
+              provider: ingestedMedia.provider,
+              bucket: ingestedMedia.bucket,
+              objectKey: ingestedMedia.objectKey,
+              url: ingestedMedia.url,
+              mimeType: ingestedMedia.mimeType,
+              sizeBytes: ingestedMedia.sizeBytes,
+              width: ingestedMedia.width,
+              height: ingestedMedia.height,
+              durationMs: ingestedMedia.durationMs,
+            });
+
+            setSelectedMedia((current) =>
+              current.map((item) =>
+                item.id === media.id
+                  ? {
+                      ...item,
+                      isVideoProcessing: false,
+                      uploadProgress: 100,
+                      uploadedMedia: {
+                        provider: ingestedMedia.provider,
+                        bucket: ingestedMedia.bucket,
+                        objectKey: ingestedMedia.objectKey,
+                        url: ingestedMedia.url,
+                        mimeType: ingestedMedia.mimeType,
+                        sizeBytes: ingestedMedia.sizeBytes,
+                        width: ingestedMedia.width,
+                        height: ingestedMedia.height,
+                        durationMs: ingestedMedia.durationMs,
+                      },
+                    }
+                  : item,
+              ),
+            );
+          } catch (error) {
+            logUploadError("Video ingest failed", error);
+            const friendlyMessage = getFriendlyUploadErrorMessage(
+              "Video upload failed. Please try again.",
+            );
+            setSelectedMedia((current) =>
+              current.map((item) =>
+                item.id === media.id
+                  ? {
+                      ...item,
+                      isVideoProcessing: false,
+                      uploadError: friendlyMessage,
+                    }
+                  : item,
+              ),
+            );
+            throw new Error(friendlyMessage);
           }
         }
+
+        setIsProcessingVideo(false);
       }
+
+      const uploadedMedia: UploadedMediaPayload[] = selectedMedia.map((media) => {
+        const uploaded = uploadedMediaById.get(media.id);
+        if (!uploaded) {
+          throw new Error("Uploaded media result was missing for one or more files.");
+        }
+
+        return uploaded;
+      });
 
       const hasImage = uploadedMedia.some((item) => item.mimeType.startsWith("image/"));
       const hasVideo = uploadedMedia.some((item) => item.mimeType.startsWith("video/"));
@@ -299,9 +635,12 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
       setCaption("");
       await trpcUtils.post.getFeed.invalidate();
     } catch (error) {
-      setPublishError(getUploadErrorMessage(error));
+      logUploadError("Publishing composer post failed", error);
+      setPublishError("Could not publish your post. Please try again.");
     } finally {
+      setIsCompressing(false);
       setIsUploading(false);
+      setIsProcessingVideo(false);
     }
   };
 
@@ -379,13 +718,28 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                     aria-label="Remove media"
                     className="absolute right-2 top-2 z-10 rounded-full bg-background/90 p-1 text-foreground shadow"
                     onClick={() => removeMedia(item.id)}
-                    disabled={isUploading || createPost.isPending}
+                    disabled={isCompressing || isUploading || isProcessingVideo || createPost.isPending}
                   >
                     <X className="size-3" />
                   </button>
 
+                  {item.uploadedMedia ? (
+                    <span className="absolute left-2 top-2 z-10 rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-medium text-white shadow">
+                      Uploaded
+                    </span>
+                  ) : null}
+
                   {item.kind === "video" ? (
                     <video src={item.previewUrl} className="h-28 w-full object-cover" muted playsInline />
+                  ) : item.isPreviewConversionPending ? (
+                    <div className="flex h-28 w-full flex-col items-center justify-center gap-1 bg-muted px-2 text-center text-[11px] text-muted-foreground">
+                      <Loader className="size-4 animate-spin" aria-hidden="true" />
+                      <span>Preparing preview...</span>
+                    </div>
+                  ) : item.previewFailed && !item.isPreviewConversionPending ? (
+                    <div className="flex h-28 w-full items-center justify-center bg-muted px-2 text-center text-[11px] text-muted-foreground">
+                      Preview unavailable for this image format.
+                    </div>
                   ) : (
                     <div className="relative h-28 w-full">
                       <Image
@@ -395,18 +749,57 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                         unoptimized
                         sizes="(max-width: 640px) 50vw, 33vw"
                         className="object-cover"
+                        onError={() => {
+                          setSelectedMedia((current) =>
+                            current.map((media) =>
+                              media.id === item.id && !media.isPreviewConversionPending
+                                ? {
+                                    ...media,
+                                    previewFailed: true,
+                                  }
+                                : media,
+                            ),
+                          );
+                        }}
                       />
                     </div>
                   )}
 
-                  {(isUploading || item.uploadProgress > 0) && selectedMedia.length > 0 ? (
+                  {(isCompressing ||
+                    isUploading ||
+                    isProcessingVideo ||
+                    item.isVideoProcessing ||
+                    item.compressionProgress > 0 ||
+                    item.uploadProgress > 0) &&
+                  selectedMedia.length > 0 ? (
                     <div className="border-border/80 border-t bg-background px-2 py-1.5">
-                      <div className="h-1.5 overflow-hidden rounded-full bg-border/60">
-                        <div
-                          className="h-full rounded-full bg-primary transition-all"
-                          style={{ width: `${item.uploadProgress}%` }}
-                        />
-                      </div>
+                      {(isCompressing || item.compressionProgress > 0) && item.kind === "image" ? (
+                        <div className="mb-1.5">
+                          <p className="mb-1 text-[10px] text-muted-foreground">Compressing {item.compressionProgress}%</p>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-border/60">
+                            <div
+                              className="h-full rounded-full bg-sky-500 transition-all"
+                              style={{ width: `${item.compressionProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {(isUploading || item.uploadProgress > 0) ? (
+                        <div>
+                          <p className="mb-1 text-[10px] text-muted-foreground">Uploading {item.uploadProgress}%</p>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-border/60">
+                            <div
+                              className="h-full rounded-full bg-primary transition-all"
+                              style={{ width: `${item.uploadProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {(isProcessingVideo || item.isVideoProcessing) && item.kind === "video" ? (
+                        <p className="text-[10px] text-muted-foreground">Processing video...</p>
+                      ) : null}
                     </div>
                   ) : null}
 
@@ -428,7 +821,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 size="sm"
                 className="rounded-2xl"
                 onClick={() => imageInputRef.current?.click()}
-                disabled={isUploading || createPost.isPending}
+                disabled={isCompressing || isUploading || isProcessingVideo || createPost.isPending}
               >
                 <ImagePlus className="size-4" />
                 Photo
@@ -439,7 +832,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 size="sm"
                 className="rounded-2xl"
                 onClick={() => videoInputRef.current?.click()}
-                disabled={isUploading || createPost.isPending}
+                disabled={isCompressing || isUploading || isProcessingVideo || createPost.isPending}
               >
                 <Video className="size-4" />
                 Video
@@ -453,7 +846,17 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
               onClick={() => void handlePublish()}
               disabled={!canPublish}
             >
-              {isUploading ? (
+              {isCompressing ? (
+                <>
+                  <Loader className="size-4 animate-spin" />
+                  Compressing...
+                </>
+              ) : isProcessingVideo ? (
+                <>
+                  <Loader className="size-4 animate-spin" />
+                  Processing video...
+                </>
+              ) : isUploading ? (
                 <>
                   <Loader className="size-4 animate-spin" />
                   Uploading...

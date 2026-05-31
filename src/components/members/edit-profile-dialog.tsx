@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Camera, Loader, User, X } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
+import { compressImage, createInstantPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type EditProfileDialogProps = {
@@ -118,6 +119,7 @@ export function EditProfileDialog({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isPreviewConverting, setIsPreviewConverting] = useState(false);
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
   const [selectedAvatarPreviewUrl, setSelectedAvatarPreviewUrl] = useState<string | null>(null);
   const [form, setForm] = useState<EditProfileFormState>({
@@ -126,6 +128,7 @@ export function EditProfileDialog({
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarPreviewSelectionRef = useRef(0);
   const trpcUtils = api.useUtils();
   const updateProfile = api.familyMember.updateMemberProfile.useMutation();
 
@@ -138,6 +141,7 @@ export function EditProfileDialog({
     });
     setSaveError(null);
     setUploadProgress(0);
+    setIsPreviewConverting(false);
     setSelectedAvatarFile(null);
     setSelectedAvatarPreviewUrl((previousPreviewUrl) => {
       if (previousPreviewUrl) {
@@ -181,11 +185,9 @@ export function EditProfileDialog({
       return;
     }
 
-    console.log("Selected avatar file:", file);
-
     setSaveError(null);
 
-    if (!ACCEPTED_AVATAR_MIME_TYPES.has(file.type)) {
+    if (!ACCEPTED_AVATAR_MIME_TYPES.has(resolveMediaMimeType(file))) {
       setSaveError("Please select a supported image format (jpg, png, webp, heic, heif).");
       return;
     }
@@ -199,12 +201,40 @@ export function EditProfileDialog({
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
 
+    const resolvedMimeType = resolveMediaMimeType(file);
+    const shouldShowPreviewConversion =
+      resolvedMimeType === "image/heic" || resolvedMimeType === "image/heif";
+
+    const selectionId = ++avatarPreviewSelectionRef.current;
+    setIsPreviewConverting(shouldShowPreviewConversion);
+    const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
+      if (avatarPreviewSelectionRef.current !== selectionId) {
+        URL.revokeObjectURL(upgradedPreviewUrl);
+        return;
+      }
+
+      setSelectedAvatarPreviewUrl((currentPreviewUrl) => {
+        if (currentPreviewUrl) {
+          URL.revokeObjectURL(currentPreviewUrl);
+        }
+        return upgradedPreviewUrl;
+      });
+      setIsPreviewConverting(false);
+    }, () => {
+      if (avatarPreviewSelectionRef.current !== selectionId) {
+        return;
+      }
+      setIsPreviewConverting(false);
+    });
+
     setSelectedAvatarFile(file);
-    setSelectedAvatarPreviewUrl(URL.createObjectURL(file));
+    setSelectedAvatarPreviewUrl(previewUrl);
     setUploadProgress(0);
   };
 
   const handleRemoveAvatar = () => {
+    avatarPreviewSelectionRef.current += 1;
+
     if (selectedAvatarPreviewUrl) {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
@@ -212,6 +242,7 @@ export function EditProfileDialog({
     setSelectedAvatarFile(null);
     setSelectedAvatarPreviewUrl(null);
     setUploadProgress(0);
+    setIsPreviewConverting(false);
     setForm((prev) => ({ ...prev, avatarUrl: "" }));
   };
 
@@ -236,6 +267,9 @@ export function EditProfileDialog({
       let nextAvatarUrl = form.avatarUrl.trim();
 
       if (selectedAvatarFile) {
+        const compressedAvatarFile = await compressImage(selectedAvatarFile, setUploadProgress);
+        setUploadProgress(0);
+
         const intentsResponse = await fetch("/api/uploads/intent", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -245,9 +279,9 @@ export function EditProfileDialog({
             memberId: member.id,
             files: [
               {
-                fileName: selectedAvatarFile.name,
-                mimeType: selectedAvatarFile.type,
-                sizeBytes: selectedAvatarFile.size,
+                fileName: compressedAvatarFile.name,
+                mimeType: compressedAvatarFile.type,
+                sizeBytes: compressedAvatarFile.size,
               },
             ],
           }),
@@ -265,7 +299,7 @@ export function EditProfileDialog({
         const avatarIntent = intentBody.intents[0];
         await uploadFileWithProgress(
           avatarIntent.uploadUrl,
-          selectedAvatarFile,
+          compressedAvatarFile,
           avatarIntent.requiredHeaders,
           setUploadProgress,
         );
@@ -348,12 +382,20 @@ export function EditProfileDialog({
               />
 
               <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 p-3">
-                <Avatar className="size-14 shrink-0 border">
-                  <AvatarImage src={avatarPreviewUrl || undefined} alt={form.name || member.name} />
-                  <AvatarFallback className="text-sm font-semibold text-foreground">
-                    {previewInitials}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative shrink-0">
+                  <Avatar className="size-14 border">
+                    <AvatarImage src={avatarPreviewUrl || undefined} alt={form.name || member.name} />
+                    <AvatarFallback className="text-sm font-semibold text-foreground">
+                      {previewInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isPreviewConverting ? (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background">
+                      <Loader className="size-4 animate-spin text-foreground" aria-hidden="true" />
+                      <span className="sr-only">Converting image preview</span>
+                    </div>
+                  ) : null}
+                </div>
 
                 {/* <div className="min-w-0">
                   <p className="font-medium text-sm">Live preview</p>

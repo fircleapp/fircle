@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { beginNavigationProgress } from "~/components/nav/navigation-progress";
+import { createInstantPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -76,11 +77,13 @@ export default function AddMemberPage() {
   const [isClaimLinkCopied, setIsClaimLinkCopied] = useState(false);
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
   const [selectedAvatarPreviewUrl, setSelectedAvatarPreviewUrl] = useState<string | null>(null);
+  const [isPreviewConverting, setIsPreviewConverting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarPreviewSelectionRef = useRef(0);
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -115,7 +118,7 @@ export default function AddMemberPage() {
     if (!file) return;
     setFormError(null);
 
-    if (!ACCEPTED_AVATAR_MIME_TYPES.has(file.type)) {
+    if (!ACCEPTED_AVATAR_MIME_TYPES.has(resolveMediaMimeType(file))) {
       setFormError("Please select a supported image format (jpg, png, webp, heic, heif).");
       return;
     }
@@ -129,18 +132,48 @@ export default function AddMemberPage() {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
 
+    const resolvedMimeType = resolveMediaMimeType(file);
+    const shouldShowPreviewConversion =
+      resolvedMimeType === "image/heic" || resolvedMimeType === "image/heif";
+
+    const selectionId = ++avatarPreviewSelectionRef.current;
+    setIsPreviewConverting(shouldShowPreviewConversion);
+    const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
+      if (avatarPreviewSelectionRef.current !== selectionId) {
+        URL.revokeObjectURL(upgradedPreviewUrl);
+        return;
+      }
+
+      setSelectedAvatarPreviewUrl((currentPreviewUrl) => {
+        if (currentPreviewUrl) {
+          URL.revokeObjectURL(currentPreviewUrl);
+        }
+        return upgradedPreviewUrl;
+      });
+      setIsPreviewConverting(false);
+    }, () => {
+      if (avatarPreviewSelectionRef.current !== selectionId) {
+        return;
+      }
+
+      setIsPreviewConverting(false);
+    });
+
     setSelectedAvatarFile(file);
-    setSelectedAvatarPreviewUrl(URL.createObjectURL(file));
+    setSelectedAvatarPreviewUrl(previewUrl);
     setUploadProgress(0);
   };
 
   const handleRemoveAvatar = () => {
+    avatarPreviewSelectionRef.current += 1;
+
     if (selectedAvatarPreviewUrl) {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
     setSelectedAvatarFile(null);
     setSelectedAvatarPreviewUrl(null);
     setUploadProgress(0);
+    setIsPreviewConverting(false);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -235,6 +268,8 @@ export default function AddMemberPage() {
   };
 
   const handleAddAnother = () => {
+    avatarPreviewSelectionRef.current += 1;
+
     setMemberName("");
     setMemberNickname("");
     setMemberEmail("");
@@ -246,6 +281,7 @@ export default function AddMemberPage() {
     setSelectedAvatarFile(null);
     setSelectedAvatarPreviewUrl(null);
     setUploadProgress(0);
+    setIsPreviewConverting(false);
     setIsSubmitted(false);
     setFormError(null);
   };
@@ -306,7 +342,14 @@ export default function AddMemberPage() {
                   <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border bg-background/80 px-2 py-2">
                     <Link2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                     <p className="min-w-0 flex-1 break-all font-mono text-xs sm:text-sm">{autoClaimUrl}</p>
-                    <Button type="button" size="sm" variant="outline" onClick={handleCopyClaimLink}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        void handleCopyClaimLink();
+                      }}
+                    >
                       {isClaimLinkCopied ? (
                         <>
                           <Check className="size-4" aria-hidden="true" />
@@ -444,15 +487,23 @@ export default function AddMemberPage() {
                 }}
               />
               <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 p-3">
-                <Avatar className="size-12 shrink-0 border">
-                  <AvatarImage
-                    src={selectedAvatarPreviewUrl ?? undefined}
-                    alt={memberName || "Profile photo"}
-                  />
-                  <AvatarFallback>
-                    <User className="size-5 text-muted-foreground" aria-hidden="true" />
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative shrink-0">
+                  <Avatar className="size-12 border">
+                    <AvatarImage
+                      src={selectedAvatarPreviewUrl ?? undefined}
+                      alt={memberName || "Profile photo"}
+                    />
+                    <AvatarFallback>
+                      <User className="size-5 text-muted-foreground" aria-hidden="true" />
+                    </AvatarFallback>
+                  </Avatar>
+                  {isPreviewConverting ? (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background">
+                      <Loader className="size-4 animate-spin text-foreground" aria-hidden="true" />
+                      <span className="sr-only">Converting image preview</span>
+                    </div>
+                  ) : null}
+                </div>
                 <div className="ml-auto flex items-center gap-2">
                   <Button
                     type="button"
