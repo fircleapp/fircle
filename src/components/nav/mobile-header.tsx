@@ -81,7 +81,7 @@ export function MobileHeader() {
           <SheetContent side="left" showCloseButton={false} className="w-[84vw] max-w-sm p-0">
             <SheetHeader className="border-b px-5 py-3">
               <SheetTitle className="inline-flex items-center gap-2 text-foreground">
-                <Logo className="h-5 w-auto shrink-0" aria-hidden="true" />
+                <Logo className="h-6 w-auto shrink-0" aria-hidden="true" />
                 <span className="font-semibold text-xl leading-none tracking-tight">Fircle</span>
               </SheetTitle>
             </SheetHeader>
