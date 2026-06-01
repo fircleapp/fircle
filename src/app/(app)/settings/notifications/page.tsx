@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
-import { AlertCircle, Bell, Loader, ShieldAlert } from "~/components/ui/icons";
+import { AlertCircle, ArrowRight, Bell, Loader, Settings, ShieldAlert } from "~/components/ui/icons";
 import {
   getCurrentBrowserPushSubscription,
   getNotificationPermissionState,
@@ -56,6 +56,8 @@ function FamilyNotificationSettings({ familyId }: { familyId: string }) {
   const trpcUtils = api.useUtils();
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [currentDeviceEndpoint, setCurrentDeviceEndpoint] = useState<string | null>(null);
+  const [isDetectingCurrentDevice, setIsDetectingCurrentDevice] = useState(false);
 
   const pushStateQuery = api.notification.getPushSubscriptionState.useQuery(
     { familyId },
@@ -103,6 +105,67 @@ function FamilyNotificationSettings({ familyId }: { familyId: string }) {
   const isSubscribing = subscribePushMutation.isPending;
   const isUnsubscribing = unsubscribePushMutation.isPending;
   const isUpdatingPreference = updatePreferencesMutation.isPending;
+
+  useEffect(() => {
+    if (!capability.canPush) {
+      setCurrentDeviceEndpoint(null);
+      return;
+    }
+
+    let cancelled = false;
+    setIsDetectingCurrentDevice(true);
+
+    void getCurrentBrowserPushSubscription()
+      .then((subscription) => {
+        if (cancelled) {
+          return;
+        }
+
+        setCurrentDeviceEndpoint(subscription?.endpoint ?? null);
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setCurrentDeviceEndpoint(null);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsDetectingCurrentDevice(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [capability.canPush, pushStateQuery.dataUpdatedAt]);
+
+  const currentDeviceHasActiveSubscription =
+    currentDeviceEndpoint !== null &&
+    subscriptions.some((subscription) => subscription.endpoint === currentDeviceEndpoint);
+
+  const isServerPushConfigured = Boolean(pushStateQuery.data?.isPushConfigured);
+  const isActionBusy = isSubscribing || isUnsubscribing || isLoading || isDetectingCurrentDevice;
+
+  const enablePushDisabledReason = !capability.canPush
+    ? "Push is not supported by this browser."
+    : !isServerPushConfigured
+      ? "Server push is not configured yet."
+      : capability.permission === "denied"
+        ? "Browser permission is denied."
+        : currentDeviceHasActiveSubscription
+          ? "Push is already enabled on this device."
+          : null;
+
+  const disablePushDisabledReason = !capability.canPush
+    ? "Push is not supported by this browser."
+    : !currentDeviceHasActiveSubscription
+      ? "No active push subscription on this device."
+      : null;
+
+  const isEnableButtonDisabled = isActionBusy || enablePushDisabledReason !== null;
+  const isDisableButtonDisabled = isActionBusy || disablePushDisabledReason !== null;
 
   async function refreshPushData() {
     await Promise.all([
@@ -211,145 +274,228 @@ function FamilyNotificationSettings({ familyId }: { familyId: string }) {
 
   return (
     <>
-      <section className="space-y-4 rounded-2xl border bg-card/60 p-5">
-        <h3 className="font-medium text-base">Browser Push Status</h3>
-
-        {pushStateQuery.data && !pushStateQuery.data.isPushConfigured ? (
-          <Alert>
-            <AlertCircle className="size-5" aria-hidden="true" />
-            <AlertTitle>Server push configuration missing</AlertTitle>
-            <AlertDescription>
-              Configure VAPID env values on the server and restart the dev server before enabling push.
-            </AlertDescription>
-          </Alert>
-        ) : null}
-
-        {capability.canPush ? (
-          <div className="space-y-1 text-sm">
-            <p>
-              Permission status:{" "}
-              <span className="font-medium capitalize">{capability.permission}</span>
-            </p>
-            <p>
-              Active subscriptions: <span className="font-medium">{subscriptions.length}</span>
-            </p>
+      <details className="group rounded-3xl border bg-card p-5 shadow-sm sm:p-6" open>
+        <summary className="flex cursor-pointer list-none items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bell className="size-4 text-muted-foreground" aria-hidden="true" />
+            <h3 className="font-medium text-sm uppercase tracking-wider text-muted-foreground">
+              Browser Push Status
+            </h3>
           </div>
-        ) : (
-          <Alert>
-            <ShieldAlert className="size-5" aria-hidden="true" />
-            <AlertTitle>Push unavailable</AlertTitle>
-            <AlertDescription>
-              This browser does not support Notification, Service Worker, and PushManager APIs together.
-            </AlertDescription>
-          </Alert>
-        )}
+          <ArrowRight
+            className="size-4 text-muted-foreground transition-transform group-open:rotate-90"
+            aria-hidden="true"
+          />
+        </summary>
 
-        {capability.permission === "denied" ? (
-          <Alert>
-            <ShieldAlert className="size-5" aria-hidden="true" />
-            <AlertTitle>Permission denied</AlertTitle>
-            <AlertDescription>
-              Notifications are blocked for this site. Use browser site settings to re-enable notifications,
-              then click Enable push.
-            </AlertDescription>
-          </Alert>
-        ) : null}
+        <div className="mt-4 space-y-4">
 
-        {actionError ? (
-          <Alert>
-            <AlertCircle className="size-5" aria-hidden="true" />
-            <AlertTitle>Action failed</AlertTitle>
-            <AlertDescription>
-              <p>{actionError}</p>
-              {showBraveTroubleshootingHint ? (
-                <p className="mt-2 text-xs">
-                  Brave users: enable <span className="font-medium">Use Google services for push messaging</span>
-                  in browser settings, then retry.
-                </p>
-              ) : null}
-            </AlertDescription>
-          </Alert>
-        ) : null}
+          {pushStateQuery.data && !pushStateQuery.data.isPushConfigured ? (
+            <Alert>
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Server push configuration missing</AlertTitle>
+              <AlertDescription>
+                Configure VAPID env values on the server and restart the dev server before enabling push.
+              </AlertDescription>
+            </Alert>
+          ) : null}
 
-        {actionSuccess ? (
-          <Alert>
-            <Bell className="size-5" aria-hidden="true" />
-            <AlertTitle>Updated</AlertTitle>
-            <AlertDescription>{actionSuccess}</AlertDescription>
-          </Alert>
-        ) : null}
+          {capability.canPush ? (
+            <div className="space-y-2 text-sm">
+              <StatusRow
+                label="Permission"
+                value={capability.permission}
+                emphasize
+                capitalize
+              />
+              <StatusRow
+                label="Server configuration"
+                value={isServerPushConfigured ? "ready" : "missing"}
+                emphasize
+                capitalize
+              />
+              <StatusRow
+                label="Member subscriptions"
+                value={String(subscriptions.length)}
+                emphasize
+              />
+              <StatusRow
+                label="Current device"
+                value={
+                  isDetectingCurrentDevice
+                    ? "checking"
+                    : currentDeviceHasActiveSubscription
+                      ? "enabled"
+                      : "disabled"
+                }
+                emphasize
+                capitalize
+              />
+            </div>
+          ) : (
+            <Alert>
+              <ShieldAlert className="size-5" aria-hidden="true" />
+              <AlertTitle>Push unavailable</AlertTitle>
+              <AlertDescription>
+                This browser does not support Notification, Service Worker, and PushManager APIs together.
+              </AlertDescription>
+            </Alert>
+          )}
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            onClick={() => void handleEnablePush()}
-            disabled={!capability.canPush || isSubscribing || isUnsubscribing || isLoading}
-          >
-            {isSubscribing ? (
-              <>
-                <Loader className="mr-2 size-4 animate-spin" />
-                Enabling...
-              </>
-            ) : (
-              "Enable Push"
-            )}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void handleDisablePush()}
-            disabled={!capability.canPush || isSubscribing || isUnsubscribing || isLoading}
-          >
-            {isUnsubscribing ? (
-              <>
-                <Loader className="mr-2 size-4 animate-spin" />
-                Disabling...
-              </>
-            ) : (
-              "Disable Push"
-            )}
-          </Button>
+          {capability.permission === "denied" ? (
+            <Alert>
+              <ShieldAlert className="size-5" aria-hidden="true" />
+              <AlertTitle>Permission denied</AlertTitle>
+              <AlertDescription>
+                Notifications are blocked for this site. Use browser site settings to re-enable notifications,
+                then click Enable push.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
+          {actionError ? (
+            <Alert>
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Action failed</AlertTitle>
+              <AlertDescription>
+                <p>{actionError}</p>
+                {showBraveTroubleshootingHint ? (
+                  <p className="mt-2 text-xs">
+                    Brave users: enable <span className="font-medium">Use Google services for push messaging</span>
+                    in browser settings, then retry.
+                  </p>
+                ) : null}
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
+          {actionSuccess ? (
+            <Alert>
+              <Bell className="size-5" aria-hidden="true" />
+              <AlertTitle>Updated</AlertTitle>
+              <AlertDescription>{actionSuccess}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              onClick={() => void handleEnablePush()}
+              disabled={isEnableButtonDisabled}
+            >
+              {isSubscribing ? (
+                <>
+                  <Loader className="mr-2 size-4 animate-spin" />
+                  Enabling...
+                </>
+              ) : (
+                "Enable Push"
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void handleDisablePush()}
+              disabled={isDisableButtonDisabled}
+            >
+              {isUnsubscribing ? (
+                <>
+                  <Loader className="mr-2 size-4 animate-spin" />
+                  Disabling...
+                </>
+              ) : (
+                "Disable Push"
+              )}
+            </Button>
+          </div>
+
+          {isActionBusy ? (
+            <p className="text-muted-foreground text-xs">Checking push status...</p>
+          ) : null}
+
+          {!isActionBusy && isEnableButtonDisabled && enablePushDisabledReason ? (
+            <p className="text-muted-foreground text-xs">Enable unavailable: {enablePushDisabledReason}</p>
+          ) : null}
+
+          {!isActionBusy && isDisableButtonDisabled && disablePushDisabledReason ? (
+            <p className="text-muted-foreground text-xs">Disable unavailable: {disablePushDisabledReason}</p>
+          ) : null}
         </div>
-      </section>
+      </details>
 
-      <section className="space-y-4 rounded-2xl border bg-card/60 p-5">
-        <h3 className="font-medium text-base">Push Interaction Preferences</h3>
-        <p className="text-muted-foreground text-sm">
-          Choose which interaction types trigger push delivery. If no preference exists yet, it defaults to enabled.
-        </p>
+      <details className="group rounded-3xl border bg-card p-5 shadow-sm sm:p-6">
+        <summary className="flex cursor-pointer list-none items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Settings className="size-4 text-muted-foreground" aria-hidden="true" />
+            <h3 className="font-medium text-sm uppercase tracking-wider text-muted-foreground">
+              Push Interaction Preferences
+            </h3>
+          </div>
+          <ArrowRight
+            className="size-4 text-muted-foreground transition-transform group-open:rotate-90"
+            aria-hidden="true"
+          />
+        </summary>
 
-        {isLoading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {preferences.map((preference) => (
-              <label
-                key={preference.eventType}
-                className="flex items-center justify-between gap-3 rounded-xl border px-3 py-2"
-              >
-                <div className="space-y-0.5">
-                  <p className="font-medium text-sm">{preference.label}</p>
-                  <p className="text-muted-foreground text-xs">{preference.category}</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={preference.isEnabled}
-                  disabled={isUpdatingPreference || isLoading}
-                  onChange={(event) =>
-                    void handleTogglePreference(preference.eventType, event.currentTarget.checked)
-                  }
-                  className="size-4 accent-primary"
-                />
-              </label>
-            ))}
-          </div>
-        )}
-      </section>
+        <div className="mt-4 space-y-4">
+          <p className="text-muted-foreground text-sm">
+            Choose which interaction types trigger push delivery. If no preference exists yet, it defaults to enabled.
+          </p>
+
+          {isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {preferences.map((preference) => (
+                <label
+                  key={preference.eventType}
+                  className="flex items-center justify-between gap-3 rounded-xl border px-3 py-2"
+                >
+                  <div className="space-y-0.5">
+                    <p className="font-medium text-sm">{preference.label}</p>
+                    <p className="text-muted-foreground text-xs">{preference.category}</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preference.isEnabled}
+                    disabled={isUpdatingPreference || isLoading}
+                    onChange={(event) =>
+                      void handleTogglePreference(preference.eventType, event.currentTarget.checked)
+                    }
+                    className="size-4 accent-primary"
+                  />
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      </details>
     </>
+  );
+}
+
+function StatusRow({
+  label,
+  value,
+  emphasize = false,
+  capitalize = false,
+}: {
+  label: string;
+  value: string;
+  emphasize?: boolean;
+  capitalize?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`font-medium ${capitalize ? "capitalize" : ""} ${emphasize ? "text-foreground" : ""}`}>
+        {value}
+      </span>
+    </div>
   );
 }
 
