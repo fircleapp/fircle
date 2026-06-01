@@ -39,6 +39,10 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function isSettingsPath(pathname: string) {
+  return pathname === "/settings" || pathname.startsWith("/settings/") || pathname.startsWith("/setting/");
+}
+
 export function MobileHeader() {
   const pathname = usePathname();
   const shouldPollUnread = !pathname.startsWith("/notifications");
@@ -128,7 +132,7 @@ export function MobileHeader() {
                   href="/settings"
                   className={cn(
                     "flex items-center gap-3 rounded-xl px-3 py-2.5 text-base font-medium transition-colors",
-                    pathname.startsWith("/settings") ? "bg-muted text-foreground" : "hover:bg-muted",
+                    isSettingsPath(pathname) ? "bg-muted text-foreground" : "hover:bg-muted",
                   )}
                 >
                   <Settings className="size-6" />
