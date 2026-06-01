@@ -89,16 +89,16 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Add a push subscription model in [prisma/schema.prisma](prisma/schema.prisma) with fields such as:
-  - [ ] `id`, `familyId`, `memberId`
-  - [ ] `endpoint`, `p256dh`, `auth`
-  - [ ] optional `userAgent`
-  - [ ] `createdAt`, `updatedAt`, optional `lastUsedAt`
-- [ ] Add uniqueness and lookup indexes for endpoint and member-scoped reads.
-- [ ] Add relation wiring to existing family/member entities in Prisma schema.
-- [ ] Extend notification preference modeling for interaction-level push controls (event-type granularity, not only coarse category), including clear uniqueness constraints for member/channel/event scope.
-- [ ] Define and document default preference behavior for newly eligible members.
-- [ ] Create migration in [prisma/migrations](prisma/migrations) and regenerate Prisma client output in [generated/prisma](generated/prisma).
+- [x] Add a push subscription model in [prisma/schema.prisma](prisma/schema.prisma) with fields such as:
+  - [x] `id`, `familyId`, `memberId`
+  - [x] `endpoint`, `p256dh`, `auth`
+  - [x] optional `userAgent`
+  - [x] `createdAt`, `updatedAt`, optional `lastUsedAt`
+- [x] Add uniqueness and lookup indexes for endpoint and member-scoped reads.
+- [x] Add relation wiring to existing family/member entities in Prisma schema.
+- [x] Extend notification preference modeling for interaction-level push controls (event-type granularity, not only coarse category), including clear uniqueness constraints for member/channel/event scope.
+- [x] Define and document default preference behavior for newly eligible members.
+- [x] Create migration in [prisma/migrations](prisma/migrations) and regenerate Prisma client output in [generated/prisma](generated/prisma).
 
 ### Phase 3: Server Push Delivery Module and Notification Integration
 
