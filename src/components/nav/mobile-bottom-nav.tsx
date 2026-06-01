@@ -22,6 +22,10 @@ function isActivePath(pathname: string, href: string) {
     return pathname === "/";
   }
 
+  if (href === "/members" && pathname.startsWith("/member/")) {
+    return true;
+  }
+
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -104,7 +108,12 @@ export function MobileBottomNav({ currentUser }: MobileBottomNavProps) {
                     )}
                   >
                     {item.href === "/profile" ? (
-                      <Avatar className="size-7 border border-border/70">
+                      <Avatar
+                        className={cn(
+                          "size-7",
+                          active ? "ring-2 ring-foreground" : "ring-2 ring-transparent",
+                        )}
+                      >
                         {profileImage ? (
                           <AvatarImage src={profileImage} alt={profileName ?? "Your profile"} />
                         ) : null}
@@ -116,6 +125,9 @@ export function MobileBottomNav({ currentUser }: MobileBottomNavProps) {
                       <Icon className={cn(item.prominent ? "size-7" : "size-6")} />
                     )}
                   </span>
+                  {active && item.href !== "/profile" ? (
+                    <span className="-mt-1 size-1 rounded-full bg-foreground" aria-hidden="true" />
+                  ) : null}
                   {/* <span>{item.label}</span> */}
                 </Link>
               )}

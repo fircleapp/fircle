@@ -25,7 +25,15 @@ function isActivePath(pathname: string, href: string) {
     return pathname === "/";
   }
 
+  if (href === "/members" && pathname.startsWith("/member/")) {
+    return true;
+  }
+
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isSettingsPath(pathname: string) {
+  return pathname === "/settings" || pathname.startsWith("/settings/") || pathname.startsWith("/setting/");
 }
 
 export function DesktopSidebar() {
@@ -124,7 +132,9 @@ export function DesktopSidebar() {
           aria-label="Settings"
           className={cn(
             "h-12 w-fit justify-start gap-3 rounded-full px-4 text-base",
-            "text-foreground"
+            isSettingsPath(pathname)
+              ? "bg-muted font-semibold text-foreground hover:bg-muted"
+              : "text-foreground"
           )}
         >
           <Link href="/settings">
