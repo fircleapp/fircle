@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Geist, Inter } from "next/font/google";
 
 import { NavigationProgress } from "~/components/nav/navigation-progress";
+import { PwaInstallPrompt } from "~/components/pwa/pwa-install-prompt";
 import { PwaRegistration } from "~/components/pwa/pwa-registration";
 import { ThemeProvider } from "~/components/theme-provider";
 import { TRPCReactProvider } from "~/trpc/react";
@@ -59,6 +60,7 @@ export default function RootLayout({
         >
           <TRPCReactProvider>
             <PwaRegistration />
+            <PwaInstallPrompt />
             <NavigationProgress />
             {children}
           </TRPCReactProvider>

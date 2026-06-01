@@ -177,9 +177,9 @@ Out of scope for this PRD:
 - [x] Add unit coverage for push provider error mapping and invalid endpoint cleanup.
 - [x] Run `pnpm check` and relevant targeted test suites.
 - [ ] Execute manual QA scenarios:
-  - [ ] permission states (`default`, `granted`, `denied`),
-  - [ ] subscribe/unsubscribe lifecycle,
-  - [ ] push delivery and deep-link click routing,
+  - [x] permission states (`default`, `granted`, `denied`),
+  - [x] subscribe/unsubscribe lifecycle,
+  - [x] push delivery and deep-link click routing,
   - [ ] installed home-screen behavior on mobile browsers.
 
 ## Acceptance Criteria
