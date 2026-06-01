@@ -152,14 +152,14 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Create [public/manifest.json](public/manifest.json) with required fields:
-  - [ ] `name`, `short_name`, `start_url`, `display`, `background_color`, `theme_color`, icons.
-- [ ] Add service worker in [public](public) with handlers for:
-  - [ ] `push` event to display notifications,
-  - [ ] `notificationclick` to focus/open app and route to payload target URL.
-- [ ] Register service worker from app shell (client component mounted via [src/app/layout.tsx](src/app/layout.tsx)).
-- [ ] Wire manifest and icon metadata from [src/app/layout.tsx](src/app/layout.tsx).
-- [ ] Keep [next.config.js](next.config.js) changes minimal unless required by implementation constraints.
+- [x] Create [public/manifest.json](public/manifest.json) with required fields:
+  - [x] `name`, `short_name`, `start_url`, `display`, `background_color`, `theme_color`, icons.
+- [x] Add service worker in [public](public) with handlers for:
+  - [x] `push` event to display notifications,
+  - [x] `notificationclick` to focus/open app and route to payload target URL.
+- [x] Register service worker from app shell (client component mounted via [src/app/layout.tsx](src/app/layout.tsx)).
+- [x] Wire manifest and icon metadata from [src/app/layout.tsx](src/app/layout.tsx).
+- [x] Keep [next.config.js](next.config.js) changes minimal unless required by implementation constraints.
 
 ### Phase 6: Testing, QA, and Rollout Guardrails
 
