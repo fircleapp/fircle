@@ -60,12 +60,10 @@
     }
   ],
   "screenshots": [
-    {
-      "src": "/screenshots/app-home-narrow.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
+    { "src": "/screenshots/fees-narrow.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow" },
+    { "src": "/screenshots/gallery-narrow.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow" },
+    { "src": "/screenshots/members-narrow.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow" },
+    { "src": "/screenshots/profile-narrow.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow" },
     {
       "src": "/screenshots/app-home-wide.png",
       "sizes": "1920x1080",
