@@ -37,6 +37,7 @@ In scope for this PRD:
 - Harden app metadata and service worker behavior for reliable installed-app launch, navigation fallback, and push click-through routing.
 - Add QA and docs for Android WebAPK verification workflow.
 - Add iOS baseline installability checks and metadata guidance (Safari Add to Home Screen behavior, icon readiness, and mobile-web-app metadata sanity).
+- Request notification permission proactively at login so users are opted in early without needing to visit settings.
 
 Out of scope for this PRD:
 - Trusted Web Activity (TWA) packaging and Play Store release workflow.
@@ -120,6 +121,18 @@ Out of scope for this PRD:
   - [x] core navigation remains functional after install.
 - [x] Update [README.md](README.md) with WebAPK-only verification/troubleshooting notes and known caveats.
 
+### Phase 5: Proactive Notification Permission at Login
+
+**Goal:** Ensure authenticated users are prompted to grant notification permission as early as possible — on first login — rather than requiring them to discover the settings page.
+
+#### Tasks
+
+- [x] Create [src/components/pwa/push-permission-request.tsx](src/components/pwa/push-permission-request.tsx) — a `"use client"` component that:
+  - Guards on `isBrowserPushSupported()` and `getNotificationPermissionState() === "default"`.
+  - Waits 3 seconds after mount before calling `Notification.requestPermission()` so the initial page render is not disrupted.
+  - Renders nothing (no visible UI — browser native dialog only).
+- [x] Mount `<PushPermissionRequest />` in [src/app/(app)/layout.tsx](src/app/(app)/layout.tsx) so it fires on every authenticated shell render but is a no-op once permission is decided.
+
 ## Acceptance Criteria
 
 - [x] Manifest contains a stable `id` and WebAPK-relevant metadata (maskable icon entries, screenshots, shortcuts) with valid asset references.
@@ -131,6 +144,7 @@ Out of scope for this PRD:
 - [x] Existing push subscription and notification delivery flows remain functional after changes.
 - [x] README documents WebAPK validation steps, including Android device checks and `about://webapks` inspection.
 - [x] Lint/typecheck/tests for touched areas pass.
+- [x] Authenticated users are prompted for notification permission shortly after login without navigating to settings.
 
 ## Further Considerations
 

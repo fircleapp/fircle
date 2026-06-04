@@ -6,6 +6,7 @@ import { DesktopSidebar } from "~/components/nav/desktop-sidebar";
 import { GlobalComposerProvider } from "~/components/feed/global-composer-provider";
 import { MobileBottomNav } from "~/components/nav/mobile-bottom-nav";
 import { MobileHeader } from "~/components/nav/mobile-header";
+import { PushPermissionRequest } from "~/components/pwa/push-permission-request";
 import { auth } from "~/server/auth";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <GlobalComposerProvider>
       <MembershipGuard>
+        <PushPermissionRequest />
         <div className="flex min-h-dvh">
           <DesktopSidebar />
           <div className="flex min-w-0 flex-1 flex-col md:pl-72">
