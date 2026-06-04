@@ -29,7 +29,7 @@
     {
       "name": "Push Settings",
       "short_name": "Push",
-      "description": "Manage browser push notification preferences",
+      "description": "Manage notification preferences",
       "url": "/settings/notifications",
       "icons": [
         {
@@ -60,7 +60,7 @@
     }
   ],
   "screenshots": [
-    { "src": "/screenshots/fees-narrow.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow" },
+    { "src": "/screenshots/feed-narrow.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow" },
     { "src": "/screenshots/gallery-narrow.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow" },
     { "src": "/screenshots/members-narrow.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow" },
     { "src": "/screenshots/profile-narrow.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow" },
