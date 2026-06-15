@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { PlayCircle } from "~/components/ui/icons";
-import { getVideoThumbnailSrc } from "~/lib/utils";
+import { getVideoThumbnailSrc } from "~/lib/video-thumbnail";
 
 type PostMediaGridItem = {
   id: string;

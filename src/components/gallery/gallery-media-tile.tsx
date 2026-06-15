@@ -4,7 +4,8 @@ import Image from "next/image";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { PlayCircle } from "~/components/ui/icons";
-import { cn, getVideoThumbnailSrc } from "~/lib/utils";
+import { getVideoThumbnailSrc } from "~/lib/video-thumbnail";
+import { cn } from "~/lib/utils";
 
 import type { FamilyGalleryItem } from "./gallery-types";
 
