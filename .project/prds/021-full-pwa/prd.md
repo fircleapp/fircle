@@ -1,6 +1,6 @@
 ---
 title: "Full PWA: WebAPK-First Installability with iOS Baseline Readiness"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
