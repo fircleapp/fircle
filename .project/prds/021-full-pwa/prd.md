@@ -55,6 +55,7 @@ Out of scope for this PRD:
 - **Android-first install polish**: Prioritize maskable icons, screenshot metadata, and shortcut entries that improve Android install prompt and launcher quality.
 - **WebAPK-first, iOS-compatible baseline**: Prioritize Android WebAPK quality while ensuring iOS Add-to-Home-Screen flows are not degraded and have explicit metadata support.
 - **Shell-level safe areas over per-screen patches**: Handle iOS safe-area insets in the shared mobile app shell so the header, main content, bottom navigation, and slide-out menu all respect notch and home-indicator boundaries consistently.
+- **Deterministic iOS video thumbnails for preview tiles**: Use a shared video thumbnail URL strategy that applies a small media-fragment time offset (`#t=0.1`) for non-playing video cards, so Safari/iOS renders a real frame instead of a black placeholder behind the play icon.
 - **No TWA coupling**: Keep this PRD independent from Play Store concerns so delivery remains fast and low-risk.
 
 ### User Stories
@@ -100,6 +101,7 @@ Out of scope for this PRD:
 
 - [x] Update [src/app/layout.tsx](src/app/layout.tsx) with explicit App Router `viewport` export and mobile-web-app metadata needed for predictable install behavior on Android and iOS.
 - [x] Add shared safe-area inset handling in the mobile app shell so [src/app/(app)/layout.tsx](src/app/(app)/layout.tsx), [src/components/nav/mobile-header.tsx](src/components/nav/mobile-header.tsx), and [src/components/nav/mobile-bottom-nav.tsx](src/components/nav/mobile-bottom-nav.tsx) reserve notch and home-indicator space consistently.
+- [x] Apply a shared iOS-safe video thumbnail source helper for non-playing media cards so [src/components/gallery/gallery-media-tile.tsx](src/components/gallery/gallery-media-tile.tsx), [src/components/feed/post-media-grid.tsx](src/components/feed/post-media-grid.tsx), [src/components/feed/post-video-card.tsx](src/components/feed/post-video-card.tsx), and [src/components/feed/post-mixed-media-stack.tsx](src/components/feed/post-mixed-media-stack.tsx) render preview frames instead of black tiles.
 - [x] Ensure [src/components/pwa/pwa-registration.tsx](src/components/pwa/pwa-registration.tsx) registration behavior aligns with service worker update expectations.
 - [x] Harden [public/sw.js](public/sw.js) push payload parsing so both legacy and current payload URL shapes route correctly.
 - [x] Add minimal navigation offline fallback logic in [public/sw.js](public/sw.js) for installed-app baseline resilience.
@@ -123,6 +125,7 @@ Out of scope for this PRD:
   - [x] installed icon/title rendering is acceptable,
   - [x] app launches in expected standalone/fullscreen shell behavior,
   - [x] top and bottom app chrome respect safe areas on notched iPhone devices,
+  - [x] video preview tiles show real thumbnail frames instead of black placeholders,
   - [x] core navigation remains functional after install.
 - [x] Update [README.md](README.md) with WebAPK-only verification/troubleshooting notes and known caveats.
 
@@ -145,6 +148,7 @@ Out of scope for this PRD:
 - [x] Installed Android experience shows expected app identity and launcher quality (no generic/broken icon behavior).
 - [x] iOS Safari Add-to-Home-Screen baseline behavior is documented and manually validated (icon/title/shell launch behavior acceptable).
 - [x] Shared mobile shell respects iPhone safe areas so the header, navigation, and drawer content do not overlap the notch or home indicator.
+- [x] iOS video preview tiles render non-black thumbnail frames in gallery/feed card contexts before playback.
 - [x] Service worker click routing opens/focuses the app and navigates to valid in-app targets from push notifications.
 - [x] Minimal offline navigation fallback works for top-level app navigation after an initial online load.
 - [x] Existing push subscription and notification delivery flows remain functional after changes.
