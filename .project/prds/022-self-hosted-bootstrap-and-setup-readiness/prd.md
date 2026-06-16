@@ -112,12 +112,12 @@ This PRD introduces a self-host-aware bootstrap flow:
 #### Tasks
 
 - [x] Add/adjust tests for first-run redirect and setup-routing branches.
-- [ ] Verify fresh self-host flow manually:
+- [x] Verify fresh self-host flow manually:
   - open app root -> redirected to setup
   - failed readiness prevents submit
   - invalid DB/storage/VAPID/email credentials surface actionable blocking or warning states
   - successful setup creates family/owner and signs in
-- [ ] Verify post-bootstrap behavior:
+- [x] Verify post-bootstrap behavior:
   - setup route indicates already configured
   - unauthenticated root redirects to sign-in
 - [x] Verify managed mode (`SELF_HOSTED=false`) retains standard sign-in behavior.

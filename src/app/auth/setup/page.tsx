@@ -430,8 +430,12 @@ export default function FirstFamilySetupPage() {
               ) : null}
 
               {step === 3 ? (
-                <Button type="submit" size="lg" className="ml-auto" disabled={!canSubmit}>
-                  {setupMutation.isPending ? "Setting up..." : "Complete setup"}
+                <Button type="submit" size="lg" className="ml-auto" disabled={!canSubmit || setupMutation.isSuccess}>
+                  {setupMutation.isPending
+                    ? "Setting up..."
+                    : setupMutation.isSuccess
+                      ? "Setup complete"
+                      : "Complete setup"}
                 </Button>
               ) : null}
             </div>
