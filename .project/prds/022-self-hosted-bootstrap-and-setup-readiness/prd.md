@@ -1,6 +1,6 @@
 ---
 title: "Self-Hosted Bootstrap Routing and Setup Readiness"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -125,14 +125,14 @@ This PRD introduces a self-host-aware bootstrap flow:
 
 ## Acceptance Criteria
 
-- [ ] Fresh self-hosted instances no longer dead-end on sign-in; they are redirected to setup automatically.
-- [ ] Setup page provides clear readiness status for DB, storage, VAPID, email provider, and required keys.
-- [ ] Setup submission is blocked when any readiness check is `blocking`.
-- [ ] Readiness checks use active runtime probes and do not rely on env presence only for DB/storage/VAPID/email validity.
-- [ ] Setup/bootstrap concerns are removed from invite router and hosted in a dedicated setup router.
-- [ ] Existing invite functionality remains intact after router extraction.
-- [ ] `SELF_HOSTED=false` deployments do not run self-host bootstrap redirect behavior.
-- [ ] Documentation reflects operator setup flow and troubleshooting guidance.
+- [x] Fresh self-hosted instances no longer dead-end on sign-in; they are redirected to setup automatically.
+- [x] Setup page provides clear readiness status for DB, storage, VAPID, email provider, and required keys.
+- [x] Setup submission is blocked when any readiness check is `blocking`.
+- [x] Readiness checks use active runtime probes and do not rely on env presence only for DB/storage/VAPID/email validity.
+- [x] Setup/bootstrap concerns are removed from invite router and hosted in a dedicated setup router.
+- [x] Existing invite functionality remains intact after router extraction.
+- [x] `SELF_HOSTED=false` deployments do not run self-host bootstrap redirect behavior.
+- [x] Documentation reflects operator setup flow and troubleshooting guidance.
 
 ## Further Considerations
 
