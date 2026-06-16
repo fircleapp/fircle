@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/017-notifications-platform-foundation-and-unread-badge/prd.md
     description: "Notification routing/deep-link context that push click behavior depends on"
+  - type: pr
+    url: https://github.com/fircle-app/fircle/pull/34
+    description: "Implementation pull request - fix(post): add missing mention suggestions in composer entry"
 ---
 
 > **Instructions for AI Agents:**
