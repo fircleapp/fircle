@@ -79,14 +79,14 @@ This PRD introduces a self-host-aware bootstrap flow:
 
 #### Tasks
 
-- [ ] Create [src/server/api/routers/setup.ts](src/server/api/routers/setup.ts) for:
+- [x] Create [src/server/api/routers/setup.ts](src/server/api/routers/setup.ts) for:
   - bootstrap status
   - first-family bootstrap mutation
   - setup readiness checks
-- [ ] Move setup input schemas into setup-focused schema module (for example [src/lib/setup-schemas.ts](src/lib/setup-schemas.ts)).
-- [ ] Remove setup endpoints from [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) after migration.
-- [ ] Register setup router in [src/server/api/root.ts](src/server/api/root.ts) and update frontend callers from `api.invite.*` to `api.setup.*`.
-- [ ] Preserve behavior compatibility during transition to avoid frontend breakage.
+- [x] Move setup input schemas into setup-focused schema module (for example [src/lib/setup-schemas.ts](src/lib/setup-schemas.ts)).
+- [x] Remove setup endpoints from [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) after migration.
+- [x] Register setup router in [src/server/api/root.ts](src/server/api/root.ts) and update frontend callers from `api.invite.*` to `api.setup.*`.
+- [x] Preserve behavior compatibility during transition to avoid frontend breakage.
 
 ### Phase 4: Setup Readiness Diagnostics
 

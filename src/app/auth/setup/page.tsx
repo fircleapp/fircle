@@ -21,11 +21,11 @@ function getFormString(formData: FormData, key: string) {
 
 export default function FirstFamilySetupPage() {
   const router = useRouter();
-  const statusQuery = api.invite.getBootstrapStatus.useQuery(undefined, {
+  const statusQuery = api.setup.getBootstrapStatus.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
   });
-  const setupMutation = api.invite.bootstrapFirstFamily.useMutation();
+  const setupMutation = api.setup.bootstrapFirstFamily.useMutation();
 
   const [formError, setFormError] = useState<string | null>(null);
   const isLoading = statusQuery.isLoading || setupMutation.isPending;

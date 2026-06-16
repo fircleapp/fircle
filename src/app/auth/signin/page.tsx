@@ -32,7 +32,7 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const router = useRouter();
-  const bootstrapStatus = api.invite.getBootstrapStatus.useQuery(undefined, {
+  const bootstrapStatus = api.setup.getBootstrapStatus.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
   });
