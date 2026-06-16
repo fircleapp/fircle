@@ -3,6 +3,7 @@ import { inviteRouter } from "~/server/api/routers/invite";
 import { mediaRouter } from "~/server/api/routers/media";
 import { notificationRouter } from "~/server/api/routers/notification";
 import { postRouter } from "~/server/api/routers/post";
+import { setupRouter } from "~/server/api/routers/setup";
 import { tagRouter } from "~/server/api/routers/tag";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
   media: mediaRouter,
   notification: notificationRouter,
   post: postRouter,
+  setup: setupRouter,
   tag: tagRouter,
 });
 

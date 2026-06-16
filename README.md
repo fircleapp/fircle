@@ -150,6 +150,27 @@ pnpm dev
 
 Open http://localhost:3000.
 
+### 6. First-time instance setup (single-family)
+
+For a fresh self-hosted instance with no family data yet:
+
+1. Open `/auth/setup` in your browser.
+2. Enter your family name, owner name, owner email, and password.
+3. Submit once to create the first family and owner account.
+
+This setup route is only available before the first family is created.
+
+### Setup readiness troubleshooting
+
+The setup wizard runs active readiness probes before allowing first-family bootstrap:
+
+- Database: fresh Prisma connect + `SELECT 1`
+- Object storage: R2 `HeadBucket` with configured credentials
+- Web push: VAPID presence and runtime key compatibility validation
+- Transactional email: ZeptoMail auth probe when `EMAIL_DRIVER=zeptomail`
+
+If you change `.env` values while the dev server is running, restart `pnpm dev` before re-checking readiness so updated environment values are applied.
+
 ## PWA and WebAPK Verification
 
 Fircle uses a WebAPK-first PWA approach for Android Chrome installs, with iOS Safari Add to Home Screen baseline support.
