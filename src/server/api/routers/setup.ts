@@ -23,6 +23,72 @@ type SetupReadinessCheck = {
   remediation?: string
 }
 
+async function probeZeptoMailCredentials(): Promise<{
+  status: SetupCheckStatus
+  message: string
+}> {
+  const apiKey = env.ZEPTOMAIL_API_KEY
+  const apiBaseUrl = env.ZEPTOMAIL_API_BASE_URL ?? "https://api.zeptomail.com"
+  const endpoint = `${apiBaseUrl.replace(/\/+$/, "")}/v1.1/email`
+
+  if (!apiKey) {
+    return {
+      status: "blocking",
+      message: "ZEPTOMAIL_API_KEY is missing.",
+    }
+  }
+
+  try {
+    // Intentional invalid payload: auth passes => 4xx invalid request, auth fails => 401/403.
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Zoho-enczapikey ${apiKey}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({}),
+    })
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        status: "blocking",
+        message: "Email provider rejected authentication credentials.",
+      }
+    }
+
+    if (response.status === 429) {
+      return {
+        status: "warning",
+        message: "Email provider is rate-limiting requests; credentials appear valid.",
+      }
+    }
+
+    if (response.status >= 500) {
+      return {
+        status: "warning",
+        message: "Email provider is temporarily unavailable.",
+      }
+    }
+
+    if (response.status >= 400) {
+      return {
+        status: "ok",
+        message: "Email provider credentials were accepted.",
+      }
+    }
+
+    return {
+      status: "ok",
+      message: "Email provider credentials were validated.",
+    }
+  } catch {
+    return {
+      status: "warning",
+      message: "Could not reach email provider to validate credentials.",
+    }
+  }
+}
+
 export const setupRouter = createTRPCRouter({
   getBootstrapStatus: publicProcedure.query(async ({ ctx }) => {
     if (!env.SELF_HOSTED) {
@@ -201,6 +267,18 @@ export const setupRouter = createTRPCRouter({
           status: "warning",
           message: "No email driver configured.",
           remediation: "Set EMAIL_DRIVER and provider keys to enable email invites/notifications.",
+        })
+      } else if (configuredDriver === "zeptomail") {
+        const probe = await probeZeptoMailCredentials()
+        checks.push({
+          key: "email",
+          label: "Transactional email",
+          status: probe.status,
+          message: probe.message,
+          remediation:
+            probe.status === "blocking"
+              ? "Verify EMAIL_DRIVER, ZEPTOMAIL_API_KEY, ZEPTOMAIL_ACCOUNT_ID, and ZEPTOMAIL_API_BASE_URL."
+              : undefined,
         })
       } else {
         checks.push({
