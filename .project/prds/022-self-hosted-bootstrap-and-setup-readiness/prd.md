@@ -94,15 +94,15 @@ This PRD introduces a self-host-aware bootstrap flow:
 
 #### Tasks
 
-- [ ] Add `getSetupReadiness` query in setup router with structured results for:
+- [x] Add `getSetupReadiness` query in setup router with structured results for:
   - Database connectivity and query viability
   - Required env presence (`AUTH_SECRET`, storage keys, etc.)
   - R2 storage provider instantiation/connectivity probe
   - VAPID configuration sanity (presence and subject format)
   - Optional email provider validity when configured
-- [ ] Add remediation text per failure in API response.
-- [ ] Update [src/app/auth/setup/page.tsx](src/app/auth/setup/page.tsx) to render readiness checklist and disable submit on blocking failures.
-- [ ] Ensure readiness checks are self-host-only (return not-applicable or bypass when `SELF_HOSTED=false`).
+- [x] Add remediation text per failure in API response.
+- [x] Update [src/app/auth/setup/page.tsx](src/app/auth/setup/page.tsx) to render readiness checklist and disable submit on blocking failures.
+- [x] Ensure readiness checks are self-host-only (return not-applicable or bypass when `SELF_HOSTED=false`).
 
 ### Phase 5: Validation and Hardening
 

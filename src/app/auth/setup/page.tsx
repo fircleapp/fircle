@@ -25,6 +25,10 @@ export default function FirstFamilySetupPage() {
     retry: false,
     refetchOnWindowFocus: false,
   });
+  const readinessQuery = api.setup.getSetupReadiness.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
   const setupMutation = api.setup.bootstrapFirstFamily.useMutation();
 
   const [formError, setFormError] = useState<string | null>(null);
@@ -35,10 +39,20 @@ export default function FirstFamilySetupPage() {
     [statusQuery.data],
   );
 
+  const setupChecks = readinessQuery.data?.checks ?? [];
+  const hasBlockingChecks = setupChecks.some((check) => check.status === "blocking");
+  const isSelfHosted = readinessQuery.data?.selfHosted !== false;
+  const submitDisabled =
+    isLoading ||
+    alreadyConfigured ||
+    readinessQuery.isLoading ||
+    !isSelfHosted ||
+    hasBlockingChecks;
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (isLoading || alreadyConfigured) {
+    if (isLoading || alreadyConfigured || !isSelfHosted || hasBlockingChecks) {
       return;
     }
 
@@ -106,6 +120,58 @@ export default function FirstFamilySetupPage() {
               <Loader className="size-4 animate-spin" />
               Checking setup status...
             </p>
+          ) : null}
+
+          {readinessQuery.isLoading ? (
+            <p className="flex items-center gap-2 text-muted-foreground text-sm">
+              <Loader className="size-4 animate-spin" />
+              Running environment readiness checks...
+            </p>
+          ) : null}
+
+          {!readinessQuery.isLoading && !isSelfHosted ? (
+            <Alert>
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Setup unavailable</AlertTitle>
+              <AlertDescription>
+                This deployment is not running in self-hosted mode. Use regular sign in.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
+          {isSelfHosted && setupChecks.length > 0 ? (
+            <section className="space-y-3 rounded-2xl border border-border/80 bg-muted/40 p-4">
+              <h2 className="font-medium text-sm">Environment readiness</h2>
+              <ul className="space-y-2">
+                {setupChecks.map((check) => (
+                  <li key={check.key} className="rounded-xl border border-border/70 bg-card/80 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-medium text-sm">{check.label}</p>
+                      <span
+                        className={
+                          check.status === "ok"
+                            ? "text-emerald-600 text-xs font-medium"
+                            : check.status === "warning"
+                              ? "text-amber-600 text-xs font-medium"
+                              : "text-destructive text-xs font-medium"
+                        }
+                      >
+                        {check.status.toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-muted-foreground text-xs">{check.message}</p>
+                    {check.remediation ? (
+                      <p className="mt-1 text-xs">Fix: {check.remediation}</p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+              {hasBlockingChecks ? (
+                <p className="text-destructive text-xs">
+                  Resolve blocking checks before completing setup.
+                </p>
+              ) : null}
+            </section>
           ) : null}
 
           {alreadyConfigured ? (
@@ -201,7 +267,7 @@ export default function FirstFamilySetupPage() {
               />
             </div>
 
-            <Button type="submit" size="lg" className="w-full" disabled={isLoading || alreadyConfigured}>
+            <Button type="submit" size="lg" className="w-full" disabled={submitDisabled}>
               {setupMutation.isPending ? "Setting up..." : "Complete setup"}
             </Button>
           </form>
