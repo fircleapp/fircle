@@ -74,7 +74,7 @@ Open-source MVP focused on becoming functional quickly for one family instance, 
 - Member mention in post
 - Media Gallery
 
-### Phase 2 - Notifications and Engagement [In Progress]
+### Phase 2 - Notifications and Engagement [Completed]
 - Build notifications domain model (events, preferences, delivery logs)
 - Add transactional email pipeline for core events
 - Add web push subscription and delivery flow
@@ -87,7 +87,7 @@ Open-source MVP focused on becoming functional quickly for one family instance, 
 - Tag notification refinements for claimed members
 - Basic moderation and content controls for family admins
 
-### Phase 4 - Multi-tenancy and Hosting
+### Phase 4 - Multi-tenancy and Hosting 
 - Multi-tenancy model for isolated family instances
 - Tenant-aware auth, routing, and data boundaries
 - Self-hosting and deployment guidance per family instance
