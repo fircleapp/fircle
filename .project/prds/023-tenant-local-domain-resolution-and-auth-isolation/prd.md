@@ -107,14 +107,14 @@ Implications of this model:
 
 #### Tasks
 
-- [ ] Introduce tenant-scoped auth uniqueness strategy (schema and adapter updates), including migration plan for existing users.
-- [ ] Update credential sign-in lookup to require resolved tenant context in [src/server/auth](src/server/auth).
-- [ ] Update invite acceptance in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts):
+- [x] Introduce tenant-scoped auth uniqueness strategy (schema and adapter updates), including migration plan for existing users.
+- [x] Update credential sign-in lookup to require resolved tenant context in [src/server/auth](src/server/auth).
+- [x] Update invite acceptance in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts):
   - remove global email conflict behavior,
   - apply tenant-scoped existing-account logic,
   - only block when identity conflict exists within same tenant.
-- [ ] Update claim flow in [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts) with same tenant-scoped behavior.
-- [ ] Ensure family membership checks continue using tenant-scoped `familyId` boundaries for protected operations.
+- [x] Update claim flow in [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts) with same tenant-scoped behavior.
+- [x] Ensure family membership checks continue using tenant-scoped `familyId` boundaries for protected operations.
 
 ### Phase 4: Domain Management and Verification Workflow
 

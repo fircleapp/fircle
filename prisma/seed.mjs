@@ -183,13 +183,26 @@ function resolveUniqueSeedSlug(usedSlugs, baseSlug) {
   throw new Error("Could not resolve a unique slug for seed member");
 }
 
-async function upsertUser(email, hashedPassword) {
-  return db.user.upsert({
-    where: { email },
-    update: {
-      password: hashedPassword,
+async function upsertUser(familyId, email, hashedPassword) {
+  const existingUser = await db.user.findFirst({
+    where: {
+      familyId,
+      email,
     },
-    create: {
+  });
+
+  if (existingUser) {
+    return db.user.update({
+      where: { id: existingUser.id },
+      data: {
+        password: hashedPassword,
+      },
+    });
+  }
+
+  return db.user.create({
+    data: {
+      familyId,
       email,
       password: hashedPassword,
     },
@@ -240,7 +253,7 @@ async function main() {
   const usedSlugs = new Set(existingMemberSlugs.map((member) => member.slug));
 
   for (const userInput of usersFromMocks) {
-    const user = await upsertUser(userInput.email, hashedPassword);
+    const user = await upsertUser(family.id, userInput.email, hashedPassword);
     usersByName.set(userInput.name, user);
 
     const existingMembership = await db.familyMember.findUnique({
@@ -282,7 +295,7 @@ async function main() {
     });
   }
 
-  await upsertUser(duplicateEmailUser.email, hashedPassword);
+  await upsertUser(family.id, duplicateEmailUser.email, hashedPassword);
 
   for (const fixture of inviteFixtures) {
     const createdBy = usersByName.get(fixture.createdBy);

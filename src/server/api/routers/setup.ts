@@ -381,18 +381,6 @@ export const setupRouter = createTRPCRouter({
         })
       }
 
-      const existingUser = await ctx.db.user.findUnique({
-        where: { email: input.email },
-        select: { id: true },
-      })
-
-      if (existingUser) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "This email is already in use. Choose another address or sign in.",
-        })
-      }
-
       const hashedPassword = await bcrypt.hash(input.password, 12)
 
       const created = await ctx.db.$transaction(async (tx) => {
@@ -414,6 +402,7 @@ export const setupRouter = createTRPCRouter({
 
         const user = await tx.user.create({
           data: {
+            familyId: family.id,
             email: input.email,
             password: hashedPassword,
           },
