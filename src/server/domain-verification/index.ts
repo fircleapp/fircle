@@ -4,3 +4,4 @@ export type {
   DomainVerificationResult,
   DomainVerificationStatus,
 } from "~/server/domain-verification/types";
+export { validateDomainVerificationTarget } from "~/server/domain-verification/target";

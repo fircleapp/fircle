@@ -5,6 +5,7 @@ import type { DomainVerificationResult } from "~/server/domain-verification/type
 interface VerifyDomainViaDnsInput {
   domain: string;
   token: string;
+  timeoutMs: number;
 }
 
 function normalizeRecord(record: string): string {
@@ -17,8 +18,14 @@ export async function verifyDomainViaDns(
   const startedAt = Date.now();
   const dnsName = `_fircle-verification.${input.domain}`;
 
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error("DNS_TIMEOUT"));
+    }, input.timeoutMs);
+  });
+
   try {
-    const records = await resolveTxt(dnsName);
+    const records = await Promise.race([resolveTxt(dnsName), timeoutPromise]);
     const flattened = records.flat().map(normalizeRecord);
     const expectedValue = `fircle-verification=${input.token}`;
     const hasExpectedRecord = flattened.includes(expectedValue);
@@ -68,6 +75,20 @@ export async function verifyDomainViaDns(
     }
 
     if (code === "ETIMEOUT") {
+      return {
+        status: "timeout",
+        method: "dns",
+        durationMs,
+        message: "DNS lookup timed out",
+      };
+    }
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "message" in error &&
+      String(error.message) === "DNS_TIMEOUT"
+    ) {
       return {
         status: "timeout",
         method: "dns",

@@ -82,11 +82,11 @@ The goal is to preserve current domain management UX while removing trust in use
 
 #### Tasks
 
-- [ ] Normalize and validate domain targets before outbound DNS/HTTP checks.
-- [ ] Reject reserved and unsafe targets in production (for example localhost and private network ranges).
-- [ ] Add bounded timeout/retry controls for verification attempts.
-- [ ] Add env-driven knobs in `src/env.js` for verification timeouts/retries/feature toggling.
-- [ ] Document log fields and operational diagnostics expectations for support/debugging.
+- [x] Normalize and validate domain targets before outbound DNS/HTTP checks.
+- [x] Reject reserved and unsafe targets in production (for example localhost and private network ranges).
+- [x] Add bounded timeout/retry controls for verification attempts.
+- [x] Add env-driven knobs in `src/env.js` for verification timeouts/retries/feature toggling.
+- [x] Document log fields and operational diagnostics expectations for support/debugging.
 
 ### Phase 4: Settings UX Alignment
 

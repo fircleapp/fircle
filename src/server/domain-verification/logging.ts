@@ -9,6 +9,10 @@ interface LogVerificationAttemptInput {
   message: string;
 }
 
+/**
+ * Structured verification logs are consumed by ops/support to diagnose
+ * challenge setup errors, transient DNS propagation, and remote reachability.
+ */
 export function logVerificationAttempt(input: LogVerificationAttemptInput): void {
   console.log(
     JSON.stringify({
