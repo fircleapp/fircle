@@ -1,6 +1,6 @@
 ---
 title: "Domain Verification Proof Checks and Server-Side Ownership Validation"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -58,11 +58,11 @@ The goal is to preserve current domain management UX while removing trust in use
 
 #### Tasks
 
-- [ ] Create `src/server/domain-verification/` module boundaries for DNS and HTTP proof checks.
-- [ ] Implement DNS TXT lookup helper for `_fircle-verification.<domain>` and token matching against `fircle-verification=<token>`.
-- [ ] Implement HTTP verification helper for a deterministic well-known endpoint contract.
-- [ ] Define shared verification result states (`verified`, `pending`, `invalid-proof`, `unreachable`, `timeout`) and structured error mapping.
-- [ ] Add structured logs for verification attempts with method, duration, and failure reason.
+- [x] Create `src/server/domain-verification/` module boundaries for DNS and HTTP proof checks.
+- [x] Implement DNS TXT lookup helper for `_fircle-verification.<domain>` and token matching against `fircle-verification=<token>`.
+- [x] Implement HTTP verification helper for a deterministic well-known endpoint contract.
+- [x] Define shared verification result states (`verified`, `pending`, `invalid-proof`, `unreachable`, `timeout`) and structured error mapping.
+- [x] Add structured logs for verification attempts with method, duration, and failure reason.
 
 ### Phase 2: Domain Router Contract Upgrade
 
