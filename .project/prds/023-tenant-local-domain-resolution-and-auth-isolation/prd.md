@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/007-invite-only-registration-flow/prd.md
     description: "Invite lifecycle and acceptance flow that must become tenant-local"
+  - type: pr
+    url: https://github.com/fircle-app/fircle/pull/36
+    description: "Implementation pull request - feat: tenant-local domain resolution"
 ---
 
 > **Instructions for AI Agents:**
