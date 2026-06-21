@@ -153,22 +153,22 @@ Implications of this model:
 
 #### Tasks
 
-- [ ] Add automated tests for resolver behavior:
+- [x] Add automated tests for resolver behavior:
   - explicit mapped platform-style subdomain resolution,
   - explicit mapped custom-domain resolution,
   - explicit mapped self-host root-domain resolution,
   - unresolved host handling.
-- [ ] Add automated tests for tenant-scoped invite/claim/email behavior across two families with same email.
+- [x] Add automated tests for tenant-scoped invite/claim/email behavior across two families with same email.
 - [ ] Manual QA scenarios:
   - cloud-hosted subdomain tenant,
   - custom domain tenant,
   - self-host root-domain single-family install.
-- [ ] Update [README.md](README.md) with:
+- [x] Update [README.md](README.md) with:
   - tenant domain configuration,
   - custom-domain verification setup,
   - self-host root-domain resolution behavior,
   - auth/invite tenant-scoped semantics.
-- [ ] Run `pnpm typecheck`, `pnpm lint`, and relevant test suites before completion.
+- [x] Run `pnpm typecheck`, `pnpm lint`, and relevant test suites before completion.
 
 ## Acceptance Criteria
 

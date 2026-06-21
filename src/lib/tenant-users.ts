@@ -12,8 +12,8 @@ type TenantUser = {
 type UserAccessor = Pick<PrismaClient, "user">;
 
 type UserQueryAccessor = {
-  findFirst?: (...args: any[]) => Promise<TenantUser | null>;
-  findUnique?: (...args: any[]) => Promise<TenantUser | null>;
+  findFirst?: (...args: unknown[]) => Promise<TenantUser | null>;
+  findUnique?: (...args: unknown[]) => Promise<TenantUser | null>;
 };
 
 export function normalizeTenantEmail(email: string): string {
