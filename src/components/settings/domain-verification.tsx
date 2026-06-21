@@ -159,113 +159,121 @@ export function DomainVerification({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          <div className="space-y-3 rounded-lg border p-4">
-            <h3 className="text-sm font-semibold">DNS Verification (Recommended)</h3>
-            <p className="text-xs text-muted-foreground">
-              Add a TXT record to your domain&apos;s DNS settings.
-            </p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Verification Method</label>
+            <div className="flex gap-3 border-b">
+              <button
+                type="button"
+                onClick={() => setMethod("dns")}
+                disabled={isSubmitting}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  method === "dns"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                DNS TXT Record
+              </button>
+              <button
+                type="button"
+                onClick={() => setMethod("http")}
+                disabled={isSubmitting}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  method === "http"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                HTTP Endpoint
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">{selectedMethodHint}</p>
+          </div>
 
-            <div className="rounded bg-muted/30 p-3 font-mono text-xs">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="mb-1 text-xs text-muted-foreground">Name:</div>
-                  <div className="select-all font-semibold">{dnsRecord?.name}</div>
+          {method === "dns" && (
+            <div className="space-y-3 rounded-lg border p-4 bg-muted/20">
+              <h3 className="text-sm font-semibold">DNS Setup Instructions</h3>
+              <p className="text-xs text-muted-foreground">
+                Add this TXT record to your domain&apos;s DNS settings.
+              </p>
+
+              <div className="rounded bg-muted/40 p-3 font-mono text-xs space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="mb-1 text-xs text-muted-foreground">Name:</div>
+                    <div className="select-all font-semibold">{dnsRecord?.name}</div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopyToken(dnsRecord?.name ?? "")}
+                  >
+                    {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleCopyToken(dnsRecord?.name ?? "")}
-                >
-                  {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                </Button>
-              </div>
 
-              <div className="border-t pt-2">
-                <div className="mb-1 text-xs text-muted-foreground">Type:</div>
-                <div className="font-semibold">{dnsRecord?.type}</div>
-              </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Type:</div>
+                  <div className="font-semibold">{dnsRecord?.type}</div>
+                </div>
 
-              <div className="border-t pt-2">
-                <div className="mb-1 text-xs text-muted-foreground">Value:</div>
-                <div className="select-all break-all font-semibold">{dnsRecord?.value}</div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleCopyToken(dnsRecord?.value ?? "")}
-                  className="mt-1"
-                >
-                  {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                  Copy Value
-                </Button>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Value:</div>
+                  <div className="select-all break-all font-semibold">{dnsRecord?.value}</div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopyToken(dnsRecord?.value ?? "")}
+                    className="mt-1"
+                  >
+                    {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    Copy Value
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          <div className="space-y-3 rounded-lg border p-4">
-            <h3 className="text-sm font-semibold">HTTP Verification</h3>
-            <p className="text-xs text-muted-foreground">
-              Serve the verification token from the challenge endpoint shown below.
-            </p>
+          {method === "http" && (
+            <div className="space-y-3 rounded-lg border p-4 bg-muted/20">
+              <h3 className="text-sm font-semibold">HTTP Setup Instructions</h3>
+              <p className="text-xs text-muted-foreground">
+                Serve the verification token from this endpoint on your domain.
+              </p>
 
-            <div className="rounded bg-muted/30 p-3 font-mono text-xs">
-              <div>
-                <div className="mb-1 text-xs text-muted-foreground">Method:</div>
-                <div className="font-semibold">{httpChallenge?.method}</div>
-              </div>
+              <div className="rounded bg-muted/40 p-3 font-mono text-xs space-y-2">
+                <div>
+                  <div className="text-xs text-muted-foreground">Method:</div>
+                  <div className="font-semibold">{httpChallenge?.method}</div>
+                </div>
 
-              <div className="mt-2 border-t pt-2">
-                <div className="mb-1 text-xs text-muted-foreground">URL:</div>
-                <div className="select-all break-all font-semibold">{httpChallenge?.url}</div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleCopyToken(httpChallenge?.url ?? "")}
-                  className="mt-1"
-                >
-                  {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                  Copy URL
-                </Button>
-              </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">URL:</div>
+                  <div className="select-all break-all font-semibold">{httpChallenge?.url}</div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopyToken(httpChallenge?.url ?? "")}
+                    className="mt-1"
+                  >
+                    {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    Copy URL
+                  </Button>
+                </div>
 
-              <div className="mt-2 border-t pt-2">
-                <div className="mb-1 text-xs text-muted-foreground">Expected Response Body:</div>
-                <Input readOnly value={httpChallenge?.expectedBody ?? ""} className="h-8 text-xs" />
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Expected Response Body:</div>
+                  <Input readOnly value={httpChallenge?.expectedBody ?? ""} className="h-8 text-xs" />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <form onSubmit={onSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Verification Method</label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    value="dns"
-                    checked={method === "dns"}
-                    onChange={(e) => setMethod(e.target.value as "dns" | "http")}
-                    disabled={isSubmitting}
-                  />
-                  <span className="text-sm">DNS TXT Record</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    value="http"
-                    checked={method === "http"}
-                    onChange={(e) => setMethod(e.target.value as "dns" | "http")}
-                    disabled={isSubmitting}
-                  />
-                  <span className="text-sm">HTTP Endpoint</span>
-                </label>
-              </div>
-              <p className="text-xs text-muted-foreground">{selectedMethodHint}</p>
-            </div>
-
             {error && (
               <div
                 className={
@@ -303,3 +311,4 @@ export function DomainVerification({
     </Dialog>
   );
 }
+
