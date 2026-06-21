@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -16,6 +16,45 @@ interface DomainVerificationProps {
   onSuccess: () => void;
 }
 
+interface VerificationErrorState {
+  type: "retryable" | "terminal";
+  message: string;
+  hint: string;
+}
+
+function classifyVerificationError(errorMessage: string): VerificationErrorState {
+  const normalized = errorMessage.toLowerCase();
+
+  if (
+    normalized.includes("not found yet") ||
+    normalized.includes("timed out") ||
+    normalized.includes("could not be reached")
+  ) {
+    return {
+      type: "retryable",
+      message: errorMessage,
+      hint: "This usually means DNS propagation or endpoint availability is still in progress. You can retry after a short wait.",
+    };
+  }
+
+  if (
+    normalized.includes("does not match") ||
+    normalized.includes("invalid")
+  ) {
+    return {
+      type: "terminal",
+      message: errorMessage,
+      hint: "Your verification record is reachable but incorrect. Update the challenge value and retry.",
+    };
+  }
+
+  return {
+    type: "terminal",
+    message: errorMessage,
+    hint: "Please review your DNS/HTTP setup and try again.",
+  };
+}
+
 export function DomainVerification({
   familyId,
   domainId,
@@ -23,10 +62,10 @@ export function DomainVerification({
   onClose,
   onSuccess,
 }: DomainVerificationProps) {
-  const [copied, setCopied] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [method, setMethod] = useState<"dns" | "http">("dns");
-  const [token, setToken] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<VerificationErrorState | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const verificationTokenQuery = api.domain.getVerificationToken.useQuery({
@@ -36,15 +75,31 @@ export function DomainVerification({
 
   const verifyDomainMutation = api.domain.verifyDomain.useMutation();
 
-  const handleCopyToken = (text: string) => {
+  const dnsRecord = verificationTokenQuery.data?.dnsRecord;
+  const httpChallenge = verificationTokenQuery.data?.httpChallenge;
+
+  const selectedMethodHint = useMemo(() => {
+    if (method === "dns") {
+      return "Use this after adding the TXT record and waiting for propagation.";
+    }
+
+    return "Use this after serving the token from the HTTP challenge endpoint.";
+  }, [method]);
+
+  const handleCopyToken = (field: string, text: string) => {
+    if (!text) {
+      return;
+    }
+
     void navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField((current) => (current === field ? null : current)), 2000);
   };
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
     setIsSubmitting(true);
 
     try {
@@ -52,14 +107,16 @@ export function DomainVerification({
         familyId,
         domainId,
         verificationMethod: method,
-        token: token.trim(),
       });
 
       onSuccess();
-      onClose();
+      setSuccessMessage("Domain verified successfully. Closing dialog...");
+      setTimeout(() => {
+        onClose();
+      }, 900);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Verification failed";
-      setError(message);
+      setError(classifyVerificationError(message));
     } finally {
       setIsSubmitting(false);
     }
@@ -92,118 +149,180 @@ export function DomainVerification({
     );
   }
 
-  const dnsRecord = verificationTokenQuery.data?.dnsRecord;
-
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>Verify Domain: {domain}</DialogTitle>
           <DialogDescription>
-            Complete ownership verification by adding a DNS record or HTTP endpoint.
+            Complete ownership verification by configuring DNS or HTTP challenge proof, then run verification.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* DNS Method */}
-          <div className="space-y-3 rounded-lg border p-4">
-            <h3 className="font-semibold text-sm">DNS Verification (Recommended)</h3>
-            <p className="text-xs text-muted-foreground">
-              Add a TXT record to your domain&apos;s DNS settings.
-            </p>
-
-            <div className="space-y-2 bg-muted/30 p-3 rounded text-xs font-mono">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="text-muted-foreground text-xs mb-1">Name:</div>
-                  <div className="font-semibold select-all">{dnsRecord?.name}</div>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleCopyToken(dnsRecord?.name ?? "")}
-                >
-                  {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                </Button>
-              </div>
-
-              <div className="border-t pt-2">
-                <div className="text-muted-foreground text-xs mb-1">Type:</div>
-                <div className="font-semibold">{dnsRecord?.type}</div>
-              </div>
-
-              <div className="border-t pt-2">
-                <div className="text-muted-foreground text-xs mb-1">Value:</div>
-                <div className="font-semibold select-all break-all">{dnsRecord?.value}</div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleCopyToken(dnsRecord?.value ?? "")}
-                  className="mt-1"
-                >
-                  {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                  Copy Value
-                </Button>
-              </div>
+        <div className="min-w-0 space-y-4">
+          <div className="min-w-0 space-y-2">
+            <label className="text-sm font-medium">Verification Method</label>
+            <div className="flex w-full min-w-0 gap-2 rounded-lg border border-input bg-muted/30 p-1">
+              <button
+                type="button"
+                onClick={() => setMethod("dns")}
+                disabled={isSubmitting}
+                className={`min-w-0 flex-1 truncate rounded-md px-3 py-2 text-sm font-medium transition-all ${
+                  method === "dns"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                DNS TXT Record
+              </button>
+              <button
+                type="button"
+                onClick={() => setMethod("http")}
+                disabled={isSubmitting}
+                className={`min-w-0 flex-1 truncate rounded-md px-3 py-2 text-sm font-medium transition-all ${
+                  method === "http"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                HTTP Endpoint
+              </button>
             </div>
-
-            <ol className="space-y-1 text-xs text-muted-foreground list-decimal list-inside">
-              <li>Log in to your domain registrar or DNS provider</li>
-              <li>Find the DNS records section for your domain</li>
-              <li>Add a new TXT record with the details above</li>
-              <li>Wait 5-10 minutes for DNS to propagate</li>
-            </ol>
+            <p className="text-xs text-muted-foreground">{selectedMethodHint}</p>
           </div>
 
-          {/* Verification Form */}
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Verification Method</label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    value="dns"
-                    checked={method === "dns"}
-                    onChange={(e) => setMethod(e.target.value as "dns" | "http")}
-                    disabled={isSubmitting}
-                  />
-                  <span className="text-sm">DNS TXT Record</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    value="http"
-                    checked={method === "http"}
-                    onChange={(e) => setMethod(e.target.value as "dns" | "http")}
-                    disabled={isSubmitting}
-                  />
-                  <span className="text-sm">HTTP Token</span>
-                </label>
+          {method === "dns" && (
+            <div className="min-w-0 space-y-3 rounded-lg border bg-muted/20 p-4">
+              <h3 className="text-sm font-semibold">DNS Setup Instructions</h3>
+              <p className="text-xs text-muted-foreground">
+                Add this TXT record to your domain&apos;s DNS settings.
+              </p>
+
+              <div className="min-w-0 space-y-2 rounded bg-muted/40 p-3 font-mono text-xs">
+                <div>
+                  <div className="mb-1 text-xs text-muted-foreground">Name:</div>
+                  <div className="relative min-w-0 max-w-full">
+                    <div className="max-w-full overflow-hidden rounded-md border bg-background/80 pr-12">
+                      <div className="overflow-x-auto px-3 py-2 font-semibold whitespace-nowrap">
+                        <div className="select-all inline-block min-w-full">{dnsRecord?.name}</div>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyToken("dns-name", dnsRecord?.name ?? "")}
+                      className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
+                    >
+                      {copiedField === "dns-name" ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-xs text-muted-foreground">Type:</div>
+                  <div className="font-semibold">{dnsRecord?.type}</div>
+                </div>
+
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Value:</div>
+                  <div className="relative min-w-0 max-w-full">
+                    <div className="max-w-full overflow-hidden rounded-md border bg-background/80 pr-12">
+                      <div className="overflow-x-auto scrollbar px-3 py-2 font-semibold whitespace-nowrap">
+                        <div className="select-all inline-block min-w-full">{dnsRecord?.value}</div>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyToken("dns-value", dnsRecord?.value ?? "")}
+                      className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
+                    >
+                      {copiedField === "dns-value" ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
+          )}
 
-            <div className="space-y-2">
-              <label htmlFor="token" className="text-sm font-medium">
-                Verification Token
-              </label>
-              <Input
-                id="token"
-                placeholder="Enter the verification token"
-                value={token}
-                onChange={(e) => {
-                  setToken(e.target.value);
-                  setError(null);
-                }}
-                disabled={isSubmitting}
-              />
+          {method === "http" && (
+            <div className="min-w-0 space-y-3 rounded-lg border bg-muted/20 p-4">
+              <h3 className="text-sm font-semibold">HTTP Setup Instructions</h3>
               <p className="text-xs text-muted-foreground">
-                Enter the token from your DNS record or HTTP endpoint
+                Serve the verification token from this endpoint on your domain.
               </p>
-              {error && <p className="text-xs text-destructive">{error}</p>}
+
+              <div className="min-w-0 space-y-2 rounded bg-muted/40 p-3 font-mono text-xs">
+                <div>
+                  <div className="text-xs text-muted-foreground">Method:</div>
+                  <div className="font-semibold">{httpChallenge?.method}</div>
+                </div>
+
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">URL:</div>
+                  <div className="relative min-w-0 max-w-full">
+                    <div className="max-w-full overflow-hidden rounded-md border bg-background/80 pr-12">
+                      <div className="overflow-x-auto scrollbar px-3 py-2 font-semibold whitespace-nowrap">
+                        <div className="select-all inline-block min-w-full">{httpChallenge?.url}</div>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyToken("http-url", httpChallenge?.url ?? "")}
+                      className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
+                    >
+                      {copiedField === "http-url" ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Expected Response Body:</div>
+                  <div className="relative">
+                    <Input
+                      readOnly
+                      value={httpChallenge?.expectedBody ?? ""}
+                      className="h-10 pr-12 text-xs"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyToken("http-body", httpChallenge?.expectedBody ?? "")}
+                      className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
+                    >
+                      {copiedField === "http-body" ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
+          )}
+
+          <form onSubmit={onSubmit} className="space-y-4">
+            {error && (
+              <div
+                className={
+                  error.type === "retryable"
+                    ? "rounded border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800"
+                    : "rounded border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive"
+                }
+              >
+                <p className="font-semibold">{error.type === "retryable" ? "Verification pending" : "Verification failed"}</p>
+                <p className="mt-1">{error.message}</p>
+                <p className="mt-1">{error.hint}</p>
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="rounded border border-green-300 bg-green-50 p-3 text-xs text-green-800">
+                {successMessage}
+              </div>
+            )}
 
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={onClose}>
@@ -213,7 +332,7 @@ export function DomainVerification({
                 type="submit"
                 disabled={isSubmitting || verifyDomainMutation.isPending}
               >
-                {isSubmitting || verifyDomainMutation.isPending ? "Verifying..." : "Verify"}
+                {isSubmitting || verifyDomainMutation.isPending ? "Running verification..." : "Run Verification Check"}
               </Button>
             </div>
           </form>
@@ -222,3 +341,4 @@ export function DomainVerification({
     </Dialog>
   );
 }
+

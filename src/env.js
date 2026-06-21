@@ -35,6 +35,28 @@ const selfHostedFlagSchema = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+const domainVerificationEnabledSchema = z.preprocess((value) => {
+  if (value === undefined) {
+    return true;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1") {
+      return true;
+    }
+    if (normalized === "false" || normalized === "0") {
+      return false;
+    }
+  }
+
+  return value;
+}, z.boolean());
+
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
@@ -51,6 +73,10 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     STORAGE_DRIVER: z.enum(["r2"]).default("r2"),
+    DOMAIN_VERIFICATION_ENABLED: domainVerificationEnabledSchema,
+    DOMAIN_VERIFICATION_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(20_000).default(5_000),
+    DOMAIN_VERIFICATION_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(5).default(3),
+    DOMAIN_VERIFICATION_RETRY_DELAY_MS: z.coerce.number().int().min(100).max(5_000).default(500),
     R2_ACCOUNT_ID: z.string(),
     R2_BUCKET: z.string(),
     R2_ACCESS_KEY_ID: z.string(),
@@ -125,6 +151,10 @@ export const env = createEnv({
     SELF_HOSTED: process.env.SELF_HOSTED,
     NODE_ENV: process.env.NODE_ENV,
     STORAGE_DRIVER: process.env.STORAGE_DRIVER,
+    DOMAIN_VERIFICATION_ENABLED: process.env.DOMAIN_VERIFICATION_ENABLED,
+    DOMAIN_VERIFICATION_TIMEOUT_MS: process.env.DOMAIN_VERIFICATION_TIMEOUT_MS,
+    DOMAIN_VERIFICATION_MAX_ATTEMPTS: process.env.DOMAIN_VERIFICATION_MAX_ATTEMPTS,
+    DOMAIN_VERIFICATION_RETRY_DELAY_MS: process.env.DOMAIN_VERIFICATION_RETRY_DELAY_MS,
     R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
     R2_BUCKET: process.env.R2_BUCKET,
     R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
