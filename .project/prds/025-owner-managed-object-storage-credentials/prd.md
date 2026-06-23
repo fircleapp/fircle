@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/022-self-hosted-bootstrap-and-setup-readiness/prd.md
     description: "Self-hosted mode gating and setup readiness infrastructure"
+  - type: pr
+    url: https://github.com/fircle-app/fircle/pull/38
+    description: "Implementation pull request - feat: owner-managed integration credentials"
 ---
 
 > **Instructions for AI Agents:**
