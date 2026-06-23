@@ -32,6 +32,10 @@ export default function IntegrationSettingsPage() {
     provider: "r2",
   });
 
+  const bootstrapStatus = api.setup.getBootstrapStatus.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
@@ -40,8 +44,9 @@ export default function IntegrationSettingsPage() {
 
   const familyId = managementContext.data?.family?.id;
   const familyName = managementContext.data?.family?.name;
+  const isSelfHosted = bootstrapStatus.data?.selfHosted === true;
 
-  if (managementContext.isLoading) {
+  if (managementContext.isLoading || bootstrapStatus.isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Loader className="size-4 animate-spin" />
@@ -66,24 +71,41 @@ export default function IntegrationSettingsPage() {
           <h2 className="font-semibold text-xl tracking-tight">Integrations</h2>
         </div>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Manage owner-controlled integration credentials for {familyName ?? "your family"} from a
-          clean list view. Open credential configuration only when adding or editing an integration.
+          {isSelfHosted
+            ? `This self-hosted instance reads storage credentials from environment variables. Manual integration setup is not required for ${familyName ?? "your family"}.`
+            : `Manage owner-controlled integration credentials for ${familyName ?? "your family"} from a clean list view. Open credential configuration only when adding or editing an integration.`}
         </p>
       </div>
 
+      {isSelfHosted ? (
+        <Alert>
+          <AlertDescription>
+            Storage credentials are environment-managed in self-hosted mode and are loaded from
+            server env variables.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       <IntegrationList
         familyId={familyId}
+        isSelfHosted={isSelfHosted}
         onAddIntegration={(nextSelection) => {
+          if (isSelfHosted) {
+            return;
+          }
           setSelection(nextSelection);
           setIsDialogOpen(true);
         }}
         onConfigureIntegration={(nextSelection) => {
+          if (isSelfHosted) {
+            return;
+          }
           setSelection(nextSelection);
           setIsDialogOpen(true);
         }}
       />
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={!isSelfHosted && isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>Configure integration credentials</DialogTitle>

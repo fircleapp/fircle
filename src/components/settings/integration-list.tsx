@@ -21,12 +21,14 @@ type IntegrationSelection = {
 
 interface IntegrationListProps {
   familyId: string;
+  isSelfHosted?: boolean;
   onAddIntegration: (selection: IntegrationSelection) => void;
   onConfigureIntegration: (selection: IntegrationSelection) => void;
 }
 
 export function IntegrationList({
   familyId,
+  isSelfHosted = false,
   onAddIntegration,
   onConfigureIntegration,
 }: IntegrationListProps) {
@@ -103,7 +105,9 @@ export function IntegrationList({
         <div className="space-y-1">
           <h3 className="font-semibold text-lg">Configured integrations</h3>
           <p className="text-sm text-muted-foreground">
-            Start from a clean list view, then add or edit credentials only when needed.
+            {isSelfHosted
+              ? "This deployment reads integration credentials from environment configuration."
+              : "Start from a clean list view, then add or edit credentials only when needed."}
           </p>
         </div>
         <Button
@@ -114,10 +118,10 @@ export function IntegrationList({
             }
           }}
           className="gap-2"
-          disabled={!defaultSelection}
+          disabled={!defaultSelection || isSelfHosted}
         >
           <Plus className="size-4" />
-          Add integration
+          {isSelfHosted ? "Managed by environment" : "Add integration"}
         </Button>
       </div>
 
@@ -125,11 +129,16 @@ export function IntegrationList({
         {categoryItems.map((item) => {
           const configured = configuredByCategory.get(item.category);
 
-          const status = !configured
-            ? { label: "Not configured", className: "border-amber-500/30 bg-amber-500/10 text-amber-700" }
-            : configured.isEnabled
-              ? { label: `Configured (${configured.provider})`, className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" }
-              : { label: "Disabled", className: "border-muted-foreground/30 bg-muted/60 text-muted-foreground" };
+          const status = isSelfHosted
+            ? {
+                label: "Environment managed",
+                className: "border-sky-500/30 bg-sky-500/10 text-sky-700",
+              }
+            : !configured
+              ? { label: "Not configured", className: "border-amber-500/30 bg-amber-500/10 text-amber-700" }
+              : configured.isEnabled
+                ? { label: `Configured (${configured.provider})`, className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" }
+                : { label: "Disabled", className: "border-muted-foreground/30 bg-muted/60 text-muted-foreground" };
 
           return (
             <div
@@ -154,6 +163,7 @@ export function IntegrationList({
                 type="button"
                 variant="outline"
                 className="gap-2"
+                disabled={isSelfHosted}
                 onClick={() =>
                   onConfigureIntegration({
                     category: item.category,
@@ -162,7 +172,7 @@ export function IntegrationList({
                 }
               >
                 <Edit className="size-4" />
-                {configured ? "Edit" : "Configure"}
+                {isSelfHosted ? "Managed by environment" : configured ? "Edit" : "Configure"}
               </Button>
             </div>
           );
