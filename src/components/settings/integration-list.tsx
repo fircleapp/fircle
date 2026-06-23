@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Loader, Plus, Settings, Edit } from "~/components/ui/icons";
+import { Plus, Settings, Edit } from "~/components/ui/icons";
 import {
   getAvailableCategories,
   getProvidersForCategory,

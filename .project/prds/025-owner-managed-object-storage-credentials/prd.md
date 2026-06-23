@@ -1,6 +1,6 @@
 ---
 title: "Owner-Managed Integration Credentials (BYO)"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -187,14 +187,14 @@ Storing credentials securely requires encryption at rest. A single instance mast
 
 #### Tasks
 
-- [ ] Update `src/server/api/routers/setup.ts` `getSetupReadiness` procedure:
+- [x] Update `src/server/api/routers/setup.ts` `getSetupReadiness` procedure:
   - If cloud mode: Check for valid `IntegrationCredential` record for the storage category or note that storage is required.
   - If self-hosted mode: Keep existing env + optional owner-config logic.
   - Display storage readiness status clearly in setup UI.
 - [x] Add startup warning logic:
   - On app boot, if `SELF_HOSTED=false` and env R2_* are set, log warning to console and structured logs.
   - Suggest operators migrate to owner-managed settings.
-- [ ] Update setup/readiness UI to show:
+- [x] Update setup/readiness UI to show:
   - Storage status and remediation if missing in cloud.
   - Note that storage is optional in self-hosted but required in cloud.
 
@@ -204,14 +204,14 @@ Storing credentials securely requires encryption at rest. A single instance mast
 
 #### Tasks
 
-- [ ] Update `README.md`:
+- [x] Update `README.md`:
   - Add section on owner-managed storage in the app settings.
   - Note the difference between self-hosted (env optional) and cloud (DB required).
   - Document the test/verify credential flow.
-- [ ] Add deployment guide for cloud operators:
+- [x] Add deployment guide for cloud operators:
   - Step-by-step: Create R2 account → Get credentials → Go to Family Settings → Integrations → Add Storage → Test → Save.
   - Explain what happens if credentials are missing (uploads fail with clear error).
-- [ ] Add self-hosted migration guide:
+- [x] Add self-hosted migration guide:
   - Option A: Keep env, no action needed.
   - Option B: Migrate to owner-managed settings via app for easier future updates.
 
@@ -226,7 +226,7 @@ Storing credentials securely requires encryption at rest. A single instance mast
 - [x] Cloud mode (`SELF_HOSTED=false`) ignores env R2_* and logs a warning if detected.
 - [x] Cloud mode fails with clear error if no DB credential record exists and upload is attempted.
 - [x] Self-hosted mode falls back to env if no DB record and env is configured.
-- [ ] Setup readiness checks account for owner-managed storage status and display it correctly.
+- [x] Setup readiness checks account for owner-managed storage status and display it correctly.
 - [x] Upload intent endpoint resolves credentials correctly and returns errors if storage is disabled.
 - [x] tRPC integration router procedures work: save, get, test, disable.
-- [ ] Documentation reflects the new flow and deployment differences.
+- [x] Documentation reflects the new flow and deployment differences.
