@@ -82,15 +82,6 @@ export function IntegrationList({
     ? { category: categoryItems[0].category, provider: categoryItems[0].defaultProvider }
     : null;
 
-  if (credentialsQuery.isLoading) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader className="size-4 animate-spin" />
-        Loading integrations...
-      </div>
-    );
-  }
-
   if (categoryItems.length === 0) {
     return (
       <Alert>

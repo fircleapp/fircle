@@ -28,7 +28,7 @@ type IntegrationSelection = {
 
 function IntegrationSettingsSkeleton() {
   return (
-    <section className="space-y-3 rounded-2xl border bg-card/60 p-5" aria-hidden>
+    <section className="space-y-3" aria-hidden>
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-2">
           <Skeleton className="h-5 w-44" />
