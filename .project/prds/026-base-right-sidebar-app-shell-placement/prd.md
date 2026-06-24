@@ -1,6 +1,6 @@
 ---
 title: "Base Right Sidebar App Shell Placement"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -54,10 +54,10 @@ The right sidebar is considered infrastructure: it should exist independently of
 
 #### Tasks
 
-- [ ] Update app shell layout under `src/app/(app)/layout.tsx` and supporting shell components to include a right-sidebar placement region.
-- [ ] Ensure the main content column and right sidebar co-exist without breaking existing left sidebar behavior.
-- [ ] Add responsive breakpoints so right sidebar is desktop-first and does not degrade mobile UX.
-- [ ] Verify spacing, overflow, and scroll behavior are clear for both main content and right sidebar.
+- [x] Update app shell layout under `src/app/(app)/layout.tsx` and supporting shell components to include a right-sidebar placement region.
+- [x] Ensure the main content column and right sidebar co-exist without breaking existing left sidebar behavior.
+- [x] Add responsive breakpoints so right sidebar is desktop-first and does not degrade mobile UX.
+- [x] Verify spacing, overflow, and scroll behavior are clear for both main content and right sidebar.
 
 ### Phase 2: Baseline Right-Side Content
 
