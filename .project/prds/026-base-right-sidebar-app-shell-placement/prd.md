@@ -1,6 +1,6 @@
 ---
 title: "Base Right Sidebar App Shell Placement"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -93,10 +93,10 @@ The right sidebar is considered infrastructure: it should exist independently of
 
 ## Acceptance Criteria
 
-- [ ] Authenticated app shell includes a right-sidebar placement region.
-- [ ] Right sidebar renders baseline manually authored items without requiring feature toggles.
-- [ ] Existing left sidebar, mobile header, and bottom nav behavior remain intact.
-- [ ] Right sidebar behavior on mobile is explicit and does not harm usability.
-- [ ] A lightweight extension shape is documented for future feature-contributed right-sidebar content.
-- [ ] No generalized widget framework is introduced in this PRD.
-- [ ] Lint, typecheck, and targeted tests pass for touched areas.
+- [x] Authenticated app shell includes a right-sidebar placement region.
+- [x] Right sidebar renders baseline manually authored items without requiring feature toggles.
+- [x] Existing left sidebar, mobile header, and bottom nav behavior remain intact.
+- [x] Right sidebar behavior on mobile is explicit and does not harm usability.
+- [x] A lightweight extension shape is documented for future feature-contributed right-sidebar content.
+- [x] No generalized widget framework is introduced in this PRD.
+- [x] Lint, typecheck, and targeted tests pass for touched areas.
