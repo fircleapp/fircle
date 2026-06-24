@@ -86,10 +86,10 @@ The right sidebar is considered infrastructure: it should exist independently of
 
 #### Tasks
 
-- [ ] Verify existing primary app routes render correctly with right-sidebar layout.
-- [ ] Verify mobile header and bottom nav behavior remains unchanged.
-- [ ] Run `pnpm lint`, `pnpm typecheck`, and relevant tests for touched areas.
-- [ ] Perform manual responsive checks for desktop, tablet, and mobile widths.
+- [x] Verify existing primary app routes render correctly with right-sidebar layout.
+- [x] Verify mobile header and bottom nav behavior remains unchanged.
+- [x] Run `pnpm lint`, `pnpm typecheck`, and relevant tests for touched areas.
+- [x] Perform manual responsive checks for desktop, tablet, and mobile widths.
 
 ## Acceptance Criteria
 
