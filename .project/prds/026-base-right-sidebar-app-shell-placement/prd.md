@@ -65,10 +65,6 @@ The right sidebar is considered infrastructure: it should exist independently of
 
 #### Tasks
 
-- [ ] Create baseline right-sidebar component(s) under `src/components/nav/` or another app-shell-owned location.
-- [ ] Add manually authored base items to the right sidebar (no feature framework requirement).
-- [ ] Keep content and rendering deterministic when no features are enabled.
-- [ ] Add empty-state/fallback behavior when no optional content is available.
 - [x] Create baseline right-sidebar component(s) under `src/components/nav/` or another app-shell-owned location.
 - [x] Add manually authored base items to the right sidebar (no feature framework requirement).
 - [x] Keep content and rendering deterministic when no features are enabled.
@@ -80,9 +76,9 @@ The right sidebar is considered infrastructure: it should exist independently of
 
 #### Tasks
 
-- [ ] Define minimal extension shape for optional contributed sidebar entries (for future feature usage).
-- [ ] Document where feature modules should plug in later, without implementing a full widget registry.
-- [ ] Ensure app shell can compose base items with optional contributed items in a predictable order.
+- [x] Define minimal extension shape for optional contributed sidebar entries (for future feature usage).
+- [x] Document where feature modules should plug in later, without implementing a full widget registry.
+- [x] Ensure app shell can compose base items with optional contributed items in a predictable order.
 
 ### Phase 4: Verification and QA
 
