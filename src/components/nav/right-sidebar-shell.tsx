@@ -154,17 +154,17 @@ export function RightSidebarShell() {
       <div className="h-full overflow-y-auto p-4">
         <div className="space-y-4">
           {sections.map((section) => (
-            <section key={section.id} className="rounded-2xl border border-border bg-card/60 p-4">
-              <h2 className="mb-3 font-semibold text-sm tracking-wide text-muted-foreground uppercase">
+            <section key={section.id} className="rounded-2xl border border-border bg-card/60 p-1">
+              <h2 className="py-3 px-4 font-semibold text-sm tracking-wide text-muted-foreground uppercase">
                 {section.title}
               </h2>
 
-              <ul className="space-y-3">
+              <ul className="space-y-1">
                 {section.items.map((item) => (
                   <li key={item.id}>
                     <Link
                       href={item.href}
-                      className="block rounded-xl border border-transparent p-2 transition-colors hover:border-border hover:bg-muted/50"
+                      className="block rounded-xl border border-transparent py-2 px-4 transition-colors hover:border-border hover:bg-muted/50"
                     >
                       <p className="font-medium text-sm text-foreground">{item.label}</p>
                       {item.description ? (
