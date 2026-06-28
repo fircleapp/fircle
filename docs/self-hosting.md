@@ -4,7 +4,7 @@ This guide covers:
 
 - Single-node production self-hosting (primary path)
 - Local and development self-hosting (secondary path)
-- PaaS-oriented deployment flow (Railway, Render, Fly.io)
+- PaaS-oriented deployment flow (Vercel, Netlify, Railway, Render, Fly.io)
 
 This guide does not cover HA, Kubernetes, or multi-region architecture.
 
