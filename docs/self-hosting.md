@@ -27,7 +27,14 @@ Recommended baseline for single-node production:
 ### Required in all environments
 
 - DATABASE_URL
+- DIRECT_URL (recommended for Prisma direct access; required when DATABASE_URL is pooled/pgbouncer)
 - STORAGE_DRIVER (currently: Cloudflare R2)
+
+Database URL guidance:
+
+- Use a pooled/transaction URL for `DATABASE_URL` in hosted production deployments.
+- Use a non-pooled direct URL for `DIRECT_URL` so Prisma migrations and direct operations do not run through the pooler.
+- Replace any placeholder password values before deploy.
 
 ### Required in production
 
@@ -74,20 +81,44 @@ These steps apply to Vercel, Netlify, Railway, Render, and Fly.io style deployme
 
 1. Provision a managed PostgreSQL database.
 2. Provision Cloudflare R2 and create an API key with bucket access.
-3. Set all required environment variables in your PaaS app.
+3. For Supabase, use Connect -> ORM -> Prisma to copy both `DATABASE_URL` and `DIRECT_URL`.
+4. Set all required environment variables in your PaaS app.
+   - `DATABASE_URL`: pooled URL
+   - `DIRECT_URL`: direct URL
 4. Configure build and start commands:
    - Build: pnpm build
    - Start: pnpm start
 5. Ensure migrations run on deploy:
    - Preferred release step: pnpm db:migrate
 6. Deploy the app.
-7. Open your deployment URL and complete first-time bootstrap at /auth/setup.
+7. Configure Cloudflare R2 bucket CORS using your final deployed app domain.
+8. Open your deployment URL and complete first-time bootstrap at /auth/setup.
 
 Important:
 
 - SELF_HOSTED should remain true for private single-family deployments.
 - AUTH_SECRET must be a strong random secret in production.
 - Production requires all three VAPID variables, even if you are not actively testing push yet.
+
+Post-deployment R2 CORS baseline:
+
+```json
+[
+   {
+      "AllowedOrigins": [
+         "https://your-domain.example"
+      ],
+      "AllowedMethods": [
+         "GET",
+         "PUT",
+         "HEAD"
+      ],
+      "AllowedHeaders": [
+         "content-type"
+      ]
+   }
+]
+```
 
 ## 4. Local and Development Self-Hosting
 
@@ -211,6 +242,7 @@ Recommended cadence: schedule cleanup as a cron job (daily or weekly based on me
 ### Setup readiness blocks on database
 
 - Confirm DATABASE_URL is reachable from the runtime environment.
+- If DATABASE_URL is pooled, confirm DIRECT_URL is configured with the direct/non-pooled URI.
 - Confirm database credentials and SSL mode match provider requirements.
 
 ### Setup readiness blocks on storage
@@ -240,3 +272,4 @@ Recommended cadence: schedule cleanup as a cron job (daily or weekly based on me
 
 - Cloud storage deployment guide: docs/cloud-storage-deployment.md
 - Self-hosted storage migration guide: docs/self-hosted-storage-migration.md
+- Public docs hub (screenshots and quickstart): https://fircle.co/docs

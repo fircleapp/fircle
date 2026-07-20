@@ -28,6 +28,7 @@ Fircle is currently optimized for shipping a focused family-first product quickl
 For a full production and local self-hosting walkthrough (PaaS-first), see:
 
 - [Self-hosting guide](docs/self-hosting.md)
+- [Public docs hub](https://fircle.app/docs)
 
 Related storage guides:
 
@@ -49,6 +50,7 @@ Create a `.env` file in the project root.
 Required variables:
 
 - `DATABASE_URL` (PostgreSQL connection string)
+- `DIRECT_URL` (direct/non-pooled PostgreSQL URL for Prisma operations when `DATABASE_URL` is pooled)
 - `AUTH_SECRET` (required in production, optional in development)
 - `NODE_ENV` (`development`, `test`, or `production`)
 - `STORAGE_DRIVER` (`r2`)
@@ -98,6 +100,7 @@ Example:
 
 ```env
 DATABASE_URL="postgresql://postgres:password@localhost:5432/fircle"
+DIRECT_URL="postgresql://postgres:password@localhost:5432/fircle"
 AUTH_SECRET="dev-secret"
 NODE_ENV="development"
 STORAGE_DRIVER="r2"
