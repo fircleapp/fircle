@@ -1,15 +1,28 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
-import { Heart, Comment, Share } from "~/components/ui/icons";
+import { Heart, Comment, Share, More, Edit, Delete } from "~/components/ui/icons";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { api } from "~/trpc/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import {
+  createAllMentionMember,
+  normalizeMentionsForSubmitWithFallback,
+  type MentionDraft,
+  type MentionableMember,
+} from "~/components/feed/mention-helpers";
+import { PostEditForm } from "~/components/feed/post-edit-form";
 
 import { PostMediaGrid } from "./post-media-grid";
 import { TaggedMemberAvatarStack } from "./tagged-member-avatar-stack";
@@ -115,20 +128,106 @@ export function PostCard({
   const [shareFeedback, setShareFeedback] = useState<"idle" | "copied" | "shared" | "error">("idle");
   const shareFeedbackTimeoutRef = useRef<number | null>(null);
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editBody, setEditBody] = useState(post.body);
+  const [editMentions, setEditMentions] = useState<MentionDraft[]>([]);
+  const [postActionError, setPostActionError] = useState<string | null>(null);
+  const [postActionStatus, setPostActionStatus] = useState<string | null>(null);
+
+  const canManagePost =
+    Boolean(familyId) &&
+    Boolean(post.author.slug) &&
+    Boolean(currentMemberSlug) &&
+    post.author.slug === currentMemberSlug;
+
+  const familyMembersQuery = api.familyMember.listFamilyMembers.useQuery(
+    { familyId: familyId ?? "" },
+    {
+      enabled: isEditing && Boolean(familyId),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const mentionMembers = useMemo<MentionableMember[]>(() => {
+    const members = (familyMembersQuery.data ?? []).map((member) => ({
+      id: member.id,
+      name: member.name,
+      avatarUrl: member.image ?? "",
+    }));
+
+    return isAdmin ? [createAllMentionMember(), ...members] : members;
+  }, [familyMembersQuery.data, isAdmin]);
+
   const toggleLikeMutation = api.post.toggleLike.useMutation({
     onSuccess: async () => {
       await Promise.all([
         trpcUtils.post.getFeed.invalidate(),
         trpcUtils.post.getById.invalidate(),
         trpcUtils.post.getPostsByMember.invalidate(),
+        trpcUtils.post.getLikedPostsByMember.invalidate(),
+        trpcUtils.post.getTaggedPostsByMember.invalidate(),
       ]);
     },
   });
 
+  const postApi = api.post as typeof api.post & {
+    updatePost: typeof api.post.create;
+    deletePost: typeof api.post.create;
+  };
+  const updatePostMutation = postApi.updatePost.useMutation();
+  const deletePostMutation = postApi.deletePost.useMutation();
+
+  const mapPostMentionsToDrafts = useCallback(() => {
+    const drafts: MentionDraft[] = [];
+
+    for (const mention of post.mentions) {
+      if (mention.kind === "ALL") {
+        drafts.push({
+          kind: "ALL",
+          start: mention.start,
+          end: mention.end,
+        });
+        continue;
+      }
+
+      if (!mention.member) {
+        continue;
+      }
+
+      drafts.push({
+        memberId: mention.member.id,
+        start: mention.start,
+        end: mention.end,
+      });
+    }
+
+    return drafts;
+  }, [post.mentions]);
+
+  const resetEditorState = useCallback(() => {
+    setEditBody(post.body);
+    setEditMentions(mapPostMentionsToDrafts());
+  }, [mapPostMentionsToDrafts, post.body]);
+
+  async function invalidatePostSurfaceQueries() {
+    await Promise.all([
+      trpcUtils.post.getFeed.invalidate(),
+      trpcUtils.post.getById.invalidate(),
+      trpcUtils.post.getPostsByMember.invalidate(),
+      trpcUtils.post.getLikedPostsByMember.invalidate(),
+      trpcUtils.post.getTaggedPostsByMember.invalidate(),
+    ]);
+  }
+
   useEffect(() => {
     setOptimisticLikedByCurrentUser(undefined);
     setOptimisticReactionCount(undefined);
-  }, [post.id, post.likedByCurrentUser, post.reactionCount]);
+    resetEditorState();
+    setIsEditing(false);
+    setPostActionError(null);
+    setPostActionStatus(null);
+  }, [post.id, post.likedByCurrentUser, post.reactionCount, resetEditorState]);
 
   useEffect(() => {
     setIsSharing(false);
@@ -245,7 +344,7 @@ export function PostCard({
 
   const imageItems = post.mediaItems.filter((item) => item.type === "image");
   const videoItems = post.mediaItems.filter((item) => item.type === "video");
-  const isClickable = !pathname?.startsWith("/post/");
+  const isClickable = !isEditing && !pathname?.startsWith("/post/");
   const authorHref = post.author.slug
     ? post.author.slug === currentMemberSlug
       ? "/profile"
@@ -259,6 +358,18 @@ export function PostCard({
     router.push(`/post/${post.id}`);
   }
 
+  function isInteractiveTarget(target: EventTarget | null) {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    return Boolean(
+      target.closest(
+        "a,button,input,textarea,select,option,[role='button'],[role='menu'],[role='menuitem'],[role='dialog'],[data-radix-collection-item]",
+      ),
+    );
+  }
+
   function handleOpenComments() {
     if (!isClickable) {
       document.getElementById("comments")?.scrollIntoView({
@@ -270,6 +381,89 @@ export function PostCard({
 
     beginNavigationProgress();
     router.push(`/post/${post.id}#comments`);
+  }
+
+  function startEditingPost() {
+    if (!canManagePost) {
+      return;
+    }
+
+    setPostActionError(null);
+    setPostActionStatus(null);
+    resetEditorState();
+    setIsEditing(true);
+  }
+
+  function cancelEditingPost() {
+    setIsEditing(false);
+    setPostActionError(null);
+    resetEditorState();
+  }
+
+  async function savePostEdits() {
+    if (!familyId || updatePostMutation.isPending) {
+      return;
+    }
+
+    setPostActionError(null);
+    setPostActionStatus(null);
+
+    try {
+      const normalized = normalizeMentionsForSubmitWithFallback({
+        text: editBody,
+        mentions: editMentions,
+        members: mentionMembers,
+      });
+
+      await updatePostMutation.mutateAsync({
+        familyId,
+        postId: post.id,
+        caption: normalized.text || undefined,
+        mentions: normalized.mentions,
+      });
+
+      await invalidatePostSurfaceQueries();
+      setPostActionStatus("Post updated.");
+      setIsEditing(false);
+    } catch (error) {
+      setPostActionError(error instanceof Error ? error.message : "Failed to update post.");
+    }
+  }
+
+  async function deletePost() {
+    if (!familyId || deletePostMutation.isPending) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Delete this post? This also deletes all comments and replies on this post.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setPostActionError(null);
+    setPostActionStatus(null);
+
+    try {
+      await deletePostMutation.mutateAsync({
+        familyId,
+        postId: post.id,
+      });
+
+      await invalidatePostSurfaceQueries();
+
+      if (pathname?.startsWith(`/post/${post.id}`)) {
+        beginNavigationProgress();
+        router.replace("/");
+        return;
+      }
+
+      setPostActionStatus("Post deleted.");
+    } catch (error) {
+      setPostActionError(error instanceof Error ? error.message : "Failed to delete post.");
+    }
   }
 
   function buildPostShareUrl() {
@@ -358,10 +552,24 @@ export function PostCard({
           ? "cursor-pointer outline-none transition-colors hover:border-border hover:bg-card"
           : "cursor-default"
       }`}
-      onClick={isClickable ? navigateToPost : undefined}
+      onClick={
+        isClickable
+          ? (event) => {
+              if (isInteractiveTarget(event.target)) {
+                return;
+              }
+
+              navigateToPost();
+            }
+          : undefined
+      }
       onKeyDown={
         isClickable
           ? (event) => {
+              if (event.target !== event.currentTarget) {
+                return;
+              }
+
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
                 navigateToPost();
@@ -407,12 +615,76 @@ export function PostCard({
           </div>
         )}
 
-        {post.taggedMembers.length > 0 && post.type !== "text" ? (
-          <TaggedMemberAvatarStack members={post.taggedMembers} />
-        ) : null}
+        <div className="flex items-center gap-2">
+          {!isEditing && post.taggedMembers.length > 0 && post.type !== "text" ? (
+            <TaggedMemberAvatarStack members={post.taggedMembers} />
+          ) : null}
+
+          {canManagePost && !isEditing ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 rounded-full"
+                  aria-label="Open post actions"
+                  onClick={(event) => event.stopPropagation()}
+                  onPointerDown={(event) => event.stopPropagation()}
+                >
+                  <More className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-fit rounded-xl"
+                align="end"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    startEditingPost();
+                  }}
+                >
+                  <Edit className="mr-2 size-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer text-destructive hover:bg-destructive/20"
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    void deletePost();
+                  }}
+                >
+                  <Delete className="mr-2 size-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+        </div>
       </header>
 
-      {post.body ? (
+      {isEditing ? (
+        <div className="mt-3" onClick={(event) => event.stopPropagation()}>
+          <PostEditForm
+            value={editBody}
+            onChange={setEditBody}
+            mentionMembers={mentionMembers}
+            mentions={editMentions}
+            onMentionsChange={setEditMentions}
+            onSubmit={() => void savePostEdits()}
+            placeholder="Edit your post"
+            submitLabel="Save"
+            pending={updatePostMutation.isPending}
+            autoFocus
+            onCancel={cancelEditingPost}
+          />
+        </div>
+      ) : post.body ? (
         <p className="mt-3 whitespace-pre-wrap wrap-break-word text-foreground text-sm leading-6 sm:text-base">
           <MentionText
             text={post.body}
@@ -422,7 +694,7 @@ export function PostCard({
         </p>
       ) : null}
 
-      {post.type === "photo" && imageItems.length > 0 ? (
+      {!isEditing && post.type === "photo" && imageItems.length > 0 ? (
         <div className="mt-3" onClick={(event) => event.stopPropagation()}>
           <PostMediaGrid
             items={imageItems}
@@ -434,7 +706,7 @@ export function PostCard({
         </div>
       ) : null}
 
-      {post.type === "video" && videoItems.length > 0 ? (
+      {!isEditing && post.type === "video" && videoItems.length > 0 ? (
         <div className="mt-3" onClick={(event) => event.stopPropagation()}>
           <PostMediaGrid
             items={videoItems}
@@ -446,16 +718,17 @@ export function PostCard({
         </div>
       ) : null}
 
-      {post.type === "mixed" ? (
+      {!isEditing && post.type === "mixed" ? (
         <div className="mt-3 space-y-2" onClick={(event) => event.stopPropagation()}>
           <PostMediaGrid items={post.mediaItems} onItemClick={openViewer} />
         </div>
       ) : null}
 
-      {footerMeta ? (
+      {!isEditing && footerMeta ? (
         <p className="mt-4 text-muted-foreground text-sm">{footerMeta}</p>
       ) : null}
 
+      {!isEditing ? (
       <div
         className={`mt-4 flex flex-wrap items-center gap-2 pt-2 ${
           showActionsSeparator ? "border-t border-border/70" : ""
@@ -508,14 +781,27 @@ export function PostCard({
           <span className="sr-only sm:hidden">{shareButtonText}</span>
         </Button>
       </div>
+      ) : null}
 
-      {toggleLikeMutation.error ? (
+      {postActionError ? (
+        <p className="mt-2 text-xs text-destructive" role="status" aria-live="polite">
+          {postActionError}
+        </p>
+      ) : null}
+
+      {postActionStatus ? (
+        <p className="mt-2 text-xs text-emerald-600" role="status" aria-live="polite">
+          {postActionStatus}
+        </p>
+      ) : null}
+
+      {!isEditing && toggleLikeMutation.error ? (
         <p className="mt-2 text-xs text-destructive" role="status" aria-live="polite">
           {toggleLikeMutation.error.message}
         </p>
       ) : null}
 
-      {shareFeedback === "error" ? (
+      {!isEditing && shareFeedback === "error" ? (
         <p className="mt-2 text-xs text-destructive" role="status" aria-live="polite">
           Unable to share this post right now. Please try again.
         </p>
