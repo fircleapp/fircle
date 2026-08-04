@@ -1046,6 +1046,7 @@ export default function SinglePostPage() {
           currentMemberId={memberProfileQuery.data?.id}
           currentMemberSlug={memberProfileQuery.data?.slug}
           highlightedCommentId={highlightedCommentId}
+          activeEditCommentId={activeEditCommentId}
           onToggleLike={handleToggleLike}
           onStartReply={handleStartReply}
           onStartEdit={handleStartEdit}
