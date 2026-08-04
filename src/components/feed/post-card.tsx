@@ -504,7 +504,8 @@ export function PostCard({
           aria-label={shareFeedback === "copied" ? "Post link copied" : "Share this post"}
         >
           <Share className="size-5" />
-          {shareButtonText}
+          <span className="hidden sm:inline">{shareButtonText}</span>
+          <span className="sr-only sm:hidden">{shareButtonText}</span>
         </Button>
       </div>
 
