@@ -81,7 +81,7 @@ function formatCreatedAtLabel(dateInput: Date | string) {
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays}d ago`;
 
-  return date.toLocaleDateString();
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
 export function CommentCard({
