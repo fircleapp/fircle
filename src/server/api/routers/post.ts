@@ -173,6 +173,33 @@ export const toggleLikeInputSchema = z.object({
   postId: z.string().cuid(),
 });
 
+export const updatePostInputSchema = z
+  .object({
+    familyId: z.string().cuid(),
+    postId: z.string().cuid(),
+    caption: z.string().trim().max(5000).optional(),
+    mentions: z.array(mentionInputSchema).max(MAX_MENTIONS_PER_ENTITY).default([]),
+  })
+  .superRefine((input, ctx) => {
+    validateAllMentionUsage({
+      mentions: input.mentions,
+      ctx,
+      path: ["mentions"],
+    });
+
+    validateMentionRanges({
+      text: input.caption?.trim() ?? "",
+      mentions: input.mentions,
+      ctx,
+      path: ["mentions"],
+    });
+  });
+
+export const deletePostInputSchema = z.object({
+  familyId: z.string().cuid(),
+  postId: z.string().cuid(),
+});
+
 export const createCommentInputSchema = z
   .object({
     familyId: z.string().cuid(),
@@ -1052,6 +1079,209 @@ export const postRouter = createTRPCRouter({
 
       void dispatchPushForNotifications(createdNotifications);
       return result;
+    }),
+
+  updatePost: protectedProcedure
+    .input(updatePostInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      await assertMentionMembersBelongToFamily({
+        db: ctx.db,
+        familyId: input.familyId,
+        mentions: input.mentions,
+      });
+
+      assertAllMentionPermission({
+        mentions: input.mentions,
+        role: membership.role,
+      });
+
+      const post = await ctx.db.post.findFirst({
+        where: {
+          id: input.postId,
+          authorMember: {
+            familyId: input.familyId,
+          },
+        },
+        select: {
+          id: true,
+          type: true,
+          authorMemberId: true,
+        },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found",
+        });
+      }
+
+      if (post.authorMemberId !== membership.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only edit your own posts",
+        });
+      }
+
+      const nextCaption = input.caption?.trim() ?? null;
+      if (post.type === "TEXT" && !nextCaption) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Text posts must include a caption",
+        });
+      }
+
+      const storage = await tryGetStorageProvider(input.familyId);
+
+      const { updatedPost, createdNotifications } = await ctx.db.$transaction(async (tx) => {
+        let createdNotifications: CreatedNotifications = [];
+
+        await tx.post.update({
+          where: {
+            id: post.id,
+          },
+          data: {
+            caption: nextCaption,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        await tx.postMention.deleteMany({
+          where: {
+            postId: post.id,
+          },
+        });
+
+        if (input.mentions.length > 0) {
+          await tx.postMention.createMany({
+            data: input.mentions.map((mention) => ({
+              postId: post.id,
+              kind: mention.kind,
+              mentionedMemberId: mention.kind === "MEMBER" ? mention.memberId : null,
+              start: mention.start,
+              end: mention.end,
+            })),
+          });
+
+          const mentionRecipientIds = await resolveClaimedMentionRecipientIds(tx, {
+            familyId: input.familyId,
+            actorMemberId: membership.id,
+            directMemberIds: getMentionedMemberIds(input.mentions),
+            includeAll: hasAllMention(input.mentions),
+          });
+
+          const mentionSeeds = mentionRecipientIds.map((memberId) => ({
+            familyId: input.familyId,
+            recipientMemberId: memberId,
+            actorMemberId: membership.id,
+            category: "MENTION" as const,
+            eventType: "POST_MENTION_CREATED" as const,
+            sourceType: "postMention",
+            sourceId: `${post.id}:${memberId}`,
+            title: "You were mentioned in a post",
+            body: "A family member mentioned you in a post.",
+          }));
+
+          if (mentionSeeds.length > 0) {
+            createdNotifications = await createNotifications(tx, mentionSeeds);
+          }
+        }
+
+        const updatedPost = await tx.post.findUnique({
+          where: {
+            id: post.id,
+          },
+          select: postResponseSelect(membership.id),
+        });
+
+        if (!updatedPost) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to load updated post",
+          });
+        }
+
+        return {
+          updatedPost,
+          createdNotifications,
+        };
+      });
+
+      void dispatchPushForNotifications(createdNotifications);
+
+      return storage ? mapPostResponse(storage, updatedPost) : null;
+    }),
+
+  deletePost: protectedProcedure
+    .input(deletePostInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      const post = await ctx.db.post.findFirst({
+        where: {
+          id: input.postId,
+          authorMember: {
+            familyId: input.familyId,
+          },
+        },
+        select: {
+          id: true,
+          authorMemberId: true,
+          media: {
+            select: {
+              provider: true,
+              bucket: true,
+              objectKey: true,
+            },
+          },
+        },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found",
+        });
+      }
+
+      if (post.authorMemberId !== membership.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only delete your own posts",
+        });
+      }
+
+      await ctx.db.post.delete({
+        where: {
+          id: post.id,
+        },
+      });
+
+      const storage = await tryGetStorageProvider(input.familyId);
+      if (storage) {
+        const storageDeletes = post.media
+          .filter((media) => media.provider === storage.driver)
+          .map((media) =>
+            storage.deleteObject({
+              provider: storage.driver,
+              bucket: media.bucket,
+              objectKey: media.objectKey,
+            }),
+          );
+
+        if (storageDeletes.length > 0) {
+          void Promise.allSettled(storageDeletes);
+        }
+      }
+
+      return {
+        postId: post.id,
+        deleted: true,
+      };
     }),
 
   getById: protectedProcedure

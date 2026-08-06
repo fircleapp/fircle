@@ -9,6 +9,7 @@ type CommentListProps = {
   highlightedCommentId?: string | null;
   currentMemberId?: string;
   currentMemberSlug?: string;
+  activeEditCommentId?: string | null;
   onToggleLike: (commentId: string) => void;
   onStartReply: (commentId: string) => void;
   onStartEdit: (commentId: string) => void;
@@ -26,6 +27,7 @@ export function CommentList({
   highlightedCommentId,
   currentMemberId,
   currentMemberSlug,
+  activeEditCommentId,
   onToggleLike,
   onStartReply,
   onStartEdit,
@@ -53,40 +55,52 @@ export function CommentList({
             const hiddenReplyCount = Math.max(comment.replyCount - comment.replies.length, 0);
             const canShowMore = hasMoreReplies?.(comment) ?? hiddenReplyCount > 0;
             const repliesLoading = isRepliesLoading?.(comment.id) ?? false;
+            const topLevelInlineComposer = renderInlineComposer?.(comment);
+            const showTopLevelComposerOnly = activeEditCommentId === comment.id;
 
             return (
               <>
-          <CommentCard
-            comment={comment}
-            isHighlighted={highlightedCommentId === comment.id}
-            isOwnComment={comment.author.id === currentMemberId}
-            currentMemberSlug={currentMemberSlug}
-            onToggleLike={onToggleLike}
-            onStartReply={onStartReply}
-            onStartEdit={onStartEdit}
-            onDelete={onDelete}
-            likePending={isLikePending?.(comment.id)}
-          >
-            {renderInlineComposer?.(comment)}
-          </CommentCard>
+                {showTopLevelComposerOnly ? (
+                  topLevelInlineComposer
+                ) : (
+                  <CommentCard
+                    comment={comment}
+                    isHighlighted={highlightedCommentId === comment.id}
+                    isOwnComment={comment.author.id === currentMemberId}
+                    currentMemberSlug={currentMemberSlug}
+                    onToggleLike={onToggleLike}
+                    onStartReply={onStartReply}
+                    onStartEdit={onStartEdit}
+                    onDelete={onDelete}
+                    likePending={isLikePending?.(comment.id)}
+                  >
+                    {topLevelInlineComposer}
+                  </CommentCard>
+                )}
 
           {comment.replies.length > 0
               ? comment.replies.map((reply) => (
                   <div key={reply.id} className="mt-5 ml-4 relative scroll-mt-24" id={`comment-${reply.id}`}>
-                    <div className="w-px h-5 bg-border/80 absolute -top-5 left-8.5 z-1" />
-                    <CommentCard
-                      comment={reply}
-                      isHighlighted={highlightedCommentId === reply.id}
-                      isOwnComment={reply.author.id === currentMemberId}
-                      currentMemberSlug={currentMemberSlug}
-                      onToggleLike={onToggleLike}
-                      onStartReply={onStartReply}
-                      onStartEdit={onStartEdit}
-                      onDelete={onDelete}
-                      likePending={isLikePending?.(reply.id)}
-                    >
-                      {renderInlineComposer?.(reply)}
-                    </CommentCard>
+                    {activeEditCommentId !== reply.id ? (
+                      <div className="w-px h-5 bg-border/80 absolute -top-5 left-8.5 z-1" />
+                    ) : null}
+                    {activeEditCommentId === reply.id ? (
+                      renderInlineComposer?.(reply)
+                    ) : (
+                      <CommentCard
+                        comment={reply}
+                        isHighlighted={highlightedCommentId === reply.id}
+                        isOwnComment={reply.author.id === currentMemberId}
+                        currentMemberSlug={currentMemberSlug}
+                        onToggleLike={onToggleLike}
+                        onStartReply={onStartReply}
+                        onStartEdit={onStartEdit}
+                        onDelete={onDelete}
+                        likePending={isLikePending?.(reply.id)}
+                      >
+                        {renderInlineComposer?.(reply)}
+                      </CommentCard>
+                    )}
                   </div>
                 ))
               : null}

@@ -32,7 +32,7 @@ function formatCreatedAtLabel(dateInput: Date | string) {
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays}d ago`;
 
-  return date.toLocaleDateString();
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
 function formatFullPostTimestamp(dateInput: Date | string) {
@@ -975,145 +975,148 @@ export default function SinglePostPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="-ml-1 mb-6 rounded-2xl"
-        onClick={() => router.back()}
-      >
-        <ArrowLeft className="size-4" />
-        Back
-      </Button>
+    <section className="w-full px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-2xl">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="-ml-1 mb-6 rounded-2xl"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="size-4" />
+          Back
+        </Button>
 
-      <PostCard
-        post={post}
-        showHeaderTimestamp={false}
-        footerMeta={fullPostTimestamp}
-        showActionsSeparator
-        currentMemberSlug={memberProfileQuery.data?.slug}
-        familyId={familyId}
-        isAdmin={isAdmin}
-        highlightedMediaTagId={targetMediaTagId}
-      />
-
-      <div className="mt-6">
-        <CommentInput
-          user={currentUser}
-          value={topLevelDraft}
-          onChange={setTopLevelDraft}
-          mentionMembers={mentionMembers}
-          mentions={topLevelMentions}
-          onMentionsChange={setTopLevelMentions}
-          onSubmit={handleSubmitTopLevelComment}
-          submitLabel="Reply"
-          pending={isPostingTopLevelComment}
-        />
-      </div>
-
-      <section id="comments" className="mt-5" aria-label="Comments">
-        <p className="sr-only" role="status" aria-live="polite">
-          {commentActionStatus ?? ""}
-        </p>
-
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          {totalCommentCount} {totalCommentCount === 1 ? "Comment" : "Comments"}
-        </h2>
-
-        {commentsQuery.error ? (
-          <div
-            className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-            role="status"
-            aria-live="polite"
-          >
-            {commentsQuery.error.message}
-          </div>
-        ) : null}
-
-        {commentActionError ? (
-          <div
-            className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-            role="status"
-            aria-live="polite"
-          >
-            {commentActionError}
-          </div>
-        ) : null}
-
-        <CommentList
-          comments={comments}
-          currentMemberId={memberProfileQuery.data?.id}
+        <PostCard
+          post={post}
+          showHeaderTimestamp={false}
+          footerMeta={fullPostTimestamp}
+          showActionsSeparator
           currentMemberSlug={memberProfileQuery.data?.slug}
-          highlightedCommentId={highlightedCommentId}
-          onToggleLike={handleToggleLike}
-          onStartReply={handleStartReply}
-          onStartEdit={handleStartEdit}
-          onDelete={handleDeleteComment}
-          isLikePending={isLikePending}
-          hasMoreReplies={(comment) =>
-            getReplyPaginationState(comment as CommentApiItem).hasMore
-          }
-          isRepliesLoading={isRepliesLoading}
-          onShowMoreReplies={(comment) => {
-            void loadRepliesForComment(comment as CommentApiItem, false);
-          }}
-          onShowAllReplies={(comment) => {
-            void loadRepliesForComment(comment as CommentApiItem, true);
-          }}
-          renderInlineComposer={(comment) => {
-            if (activeEditCommentId === comment.id) {
-              return (
-                <CommentInput
-                  user={currentUser}
-                  value={editDraft}
-                  onChange={setEditDraft}
-                  mentionMembers={mentionMembers}
-                  mentions={editMentions}
-                  onMentionsChange={setEditMentions}
-                  onSubmit={() => handleSubmitEdit(comment.id)}
-                  placeholder="Edit your comment"
-                  submitLabel="Save"
-                  pending={updateCommentMutation.isPending}
-                  compact
-                  autoFocus
-                  onCancel={() => {
-                    setActiveEditCommentId(null);
-                    setEditDraft("");
-                    setEditMentions([]);
-                  }}
-                />
-              );
-            }
-
-            if (activeReplyCommentId === comment.id) {
-              return (
-                <CommentInput
-                  user={currentUser}
-                  value={replyDraft}
-                  onChange={setReplyDraft}
-                  mentionMembers={mentionMembers}
-                  mentions={replyMentions}
-                  onMentionsChange={setReplyMentions}
-                  onSubmit={handleSubmitReply}
-                  placeholder="Write a reply"
-                  submitLabel="Reply"
-                  pending={createCommentMutation.isPending}
-                  compact
-                  autoFocus
-                  onCancel={() => {
-                    setActiveReplyCommentId(null);
-                    setReplyDraft("");
-                    setReplyMentions([]);
-                  }}
-                />
-              );
-            }
-
-            return null;
-          }}
+          familyId={familyId}
+          isAdmin={isAdmin}
+          highlightedMediaTagId={targetMediaTagId}
         />
-      </section>
+
+        <div className="mt-6">
+          <CommentInput
+            user={currentUser}
+            value={topLevelDraft}
+            onChange={setTopLevelDraft}
+            mentionMembers={mentionMembers}
+            mentions={topLevelMentions}
+            onMentionsChange={setTopLevelMentions}
+            onSubmit={handleSubmitTopLevelComment}
+            submitLabel="Reply"
+            pending={isPostingTopLevelComment}
+          />
+        </div>
+
+        <section id="comments" className="mt-5" aria-label="Comments">
+          <p className="sr-only" role="status" aria-live="polite">
+            {commentActionStatus ?? ""}
+          </p>
+
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            {totalCommentCount} {totalCommentCount === 1 ? "Comment" : "Comments"}
+          </h2>
+
+          {commentsQuery.error ? (
+            <div
+              className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+              role="status"
+              aria-live="polite"
+            >
+              {commentsQuery.error.message}
+            </div>
+          ) : null}
+
+          {commentActionError ? (
+            <div
+              className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+              role="status"
+              aria-live="polite"
+            >
+              {commentActionError}
+            </div>
+          ) : null}
+
+          <CommentList
+            comments={comments}
+            currentMemberId={memberProfileQuery.data?.id}
+            currentMemberSlug={memberProfileQuery.data?.slug}
+            highlightedCommentId={highlightedCommentId}
+            activeEditCommentId={activeEditCommentId}
+            onToggleLike={handleToggleLike}
+            onStartReply={handleStartReply}
+            onStartEdit={handleStartEdit}
+            onDelete={handleDeleteComment}
+            isLikePending={isLikePending}
+            hasMoreReplies={(comment) =>
+              getReplyPaginationState(comment as CommentApiItem).hasMore
+            }
+            isRepliesLoading={isRepliesLoading}
+            onShowMoreReplies={(comment) => {
+              void loadRepliesForComment(comment as CommentApiItem, false);
+            }}
+            onShowAllReplies={(comment) => {
+              void loadRepliesForComment(comment as CommentApiItem, true);
+            }}
+            renderInlineComposer={(comment) => {
+              if (activeEditCommentId === comment.id) {
+                return (
+                  <CommentInput
+                    user={currentUser}
+                    value={editDraft}
+                    onChange={setEditDraft}
+                    mentionMembers={mentionMembers}
+                    mentions={editMentions}
+                    onMentionsChange={setEditMentions}
+                    onSubmit={() => handleSubmitEdit(comment.id)}
+                    placeholder="Edit your comment"
+                    submitLabel="Save"
+                    pending={updateCommentMutation.isPending}
+                    compact
+                    autoFocus
+                    onCancel={() => {
+                      setActiveEditCommentId(null);
+                      setEditDraft("");
+                      setEditMentions([]);
+                    }}
+                  />
+                );
+              }
+
+              if (activeReplyCommentId === comment.id) {
+                return (
+                  <CommentInput
+                    user={currentUser}
+                    value={replyDraft}
+                    onChange={setReplyDraft}
+                    mentionMembers={mentionMembers}
+                    mentions={replyMentions}
+                    onMentionsChange={setReplyMentions}
+                    onSubmit={handleSubmitReply}
+                    placeholder="Write a reply"
+                    submitLabel="Reply"
+                    pending={createCommentMutation.isPending}
+                    compact
+                    autoFocus
+                    onCancel={() => {
+                      setActiveReplyCommentId(null);
+                      setReplyDraft("");
+                      setReplyMentions([]);
+                    }}
+                  />
+                );
+              }
+
+              return null;
+            }}
+          />
+        </section>
+      </div>
     </section>
   );
 }
